@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-09-25T03:36:23+00:00",
+  "source_file": "data/raw/hinge_base.tsv",
+  "source_sha256": "2bd142a400dc5e2e9a8c53a5c35218addf462a0b50708fc53745ae649078590a",
+  "seed": 42,
+  "ratios": {
+    "train": 0.8,
+    "dev": 0.1,
+    "test": 0.1
+  },
+  "dedup": {
+    "exact": "NFKC, lowercase, punctuation stripped, whitespace collapsed",
+    "near_duplicate": "MinHash/LSH, char 4-gram shingles, 128 permutations, Jaccard threshold 0.7",
+    "note": "clusters (exact-key groups further merged by MinHash) are assigned whole to a single split"
+  },
+  "counts": {
+    "rows": 8751,
+    "exact_keys": 1973,
+    "minhash_clusters": 1972
+  },
+  "splits": {
+    "train": {
+      "file": "train.tsv",
+      "rows": 7004,
+      "sha256": "e16d8076b079dc03b355bf1198d9f2dcc694c492dfb73d86c56d88deb907c931"
+    },
+    "dev": {
+      "file": "dev.tsv",
+      "rows": 867,
+      "sha256": "b241db6338d9f9c2a762d498c75b9ccfc5223cb382078be261baf38558225ecd"
+    },
+    "test": {
+      "file": "test.tsv",
+      "rows": 880,
+      "sha256": "72c9f1be01cd6fada98562ef3a9f3f4993968021165bb2ac164f2569f784a5b5"
+    }
+  }
+}

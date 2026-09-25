@@ -1,0 +1,19 @@
+# Data hygiene (see CLAUDE.md section 4 / 9): raw and annotated data is never
+# committed. Split manifests ARE committed -- they're what makes splits
+# citable and reproducible without redistributing the data itself.
+data/raw/
+data/interim/
+data/processed/*
+!data/processed/manifests/
+!data/processed/manifests/**
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.vscode/
