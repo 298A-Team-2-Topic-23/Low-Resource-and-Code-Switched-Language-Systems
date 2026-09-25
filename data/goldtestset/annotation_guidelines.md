@@ -59,6 +59,18 @@ Annotators must not inspect model outputs before completing their own references
 
 All three raters independently score the same 50 pilot items for adequacy and fluency. Use the agreement script in `human_eval/agreement.py` with one CSV per dimension, for example `python human_eval/agreement.py --csv human_eval/pilot/adequacy.csv --rater-cols rater_a rater_b rater_c`. A blank rating means that the rater did not score the item and is excluded from that item's agreement calculation.
 
+Use the following ordinal scale for both dimensions:
+
+| Score | Adequacy | Fluency |
+| --- | --- | --- |
+| 1 | Meaning is mostly missing or incorrect | Unintelligible or consistently unnatural |
+| 2 | Major meaning errors or omissions | Several serious grammar or register problems |
+| 3 | Main meaning is present but details are wrong or awkward | Understandable but noticeably translated or uneven |
+| 4 | Meaning is complete with only minor issues | Natural overall with minor awkwardness |
+| 5 | Meaning, intent, and details are fully preserved | Sounds like a natural bilingual message |
+
+Score the submitted reference against the English source and these anchors, not against another rater's score. Use integer values only. Keep the English source and `notes` columns unchanged while entering ratings in `rater_a`, `rater_b`, and `rater_c`.
+
 - `alpha >= 0.67`: usable; proceed to the full set.
 - `0.40 <= alpha < 0.67`: revise the lowest-agreement guideline dimensions and rerun targeted training.
 - `alpha < 0.40`: retrain the raters using shared examples before continuing.
