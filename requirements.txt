@@ -1,0 +1,19 @@
+# Pinned environment [Linear 298-26, owner: Prakhar]
+# Resolved together with pip on 2026-09-24.
+#
+# torch 2.6.0 ships wheels for CUDA 11.8 / 12.4 / 12.6. If the cluster's driver
+# needs a different build, install torch first from the matching index, e.g.
+#   pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+# then: pip install -r requirements.txt
+#
+# transformers must be >= 4.51 for Qwen3 and >= 4.50 for Gemma 3.
+# Held on the last 4.x release to avoid v5 API changes mid-project.
+torch==2.6.0
+transformers==4.57.6
+tokenizers==0.22.2
+accelerate==1.10.1
+peft==0.17.1
+bitsandbytes==0.47.0
+sacrebleu==2.6.0
+sentencepiece==0.2.0
+numpy==1.26.4
