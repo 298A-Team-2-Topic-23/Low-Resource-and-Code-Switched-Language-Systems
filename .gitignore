@@ -1,0 +1,15 @@
+# Never commit data (licences go in the datasheet, not the repo)
+data/raw/
+*.pt
+*.safetensors
+*.bin
+checkpoints/
+out/
+wandb/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.DS_Store
+# runs/*.json IS committed -- it is the GPU-hour evidence for the report
