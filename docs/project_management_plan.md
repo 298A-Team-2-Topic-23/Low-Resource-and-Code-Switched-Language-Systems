@@ -31,3 +31,15 @@ The main risks are low inter-rater agreement, insufficient authoring throughput,
 ## 2.2.8 Reporting and change control
 
 The team reports milestone status in Linear and records material decisions in the repository documentation. Changes to guidelines, split membership, schema, evaluation metrics, or item-count commitments require a dated rationale and reviewer acknowledgement. The final report cites the exact commit, environment pins, data manifest, pilot agreement result, and any unresolved limitations. Completed work is not marked done until its artifact, validation evidence, and review link are present.
+
+## Evidence matrix
+
+| Area | Repository evidence | Validation |
+| --- | --- | --- |
+| Guidelines | `data/goldtestset/annotation_guidelines.md` | peer review before pilot scoring |
+| Pilot inputs | `human_eval/pilot/adequacy.csv`, `fluency.csv` | 50 aligned items in each file |
+| Agreement | `human_eval/agreement.py` and tests | `python3 -m unittest human_eval/test_agreement.py` |
+| Gold-set contract | `data/goldtestset/gold_set.csv` | `python data/goldtestset/validate_gold_set.py ...` |
+| PM plan | this document | linked issue and pull-request review |
+
+The current checkout intentionally stops at the gold-set contract because no approved English source inventory is present. This is a dependency for issue 298-21, not a completed 800-item claim. Once the inventory is supplied, authoring must proceed only after the pilot decision is recorded in `human_eval/pilot/results.md`.
