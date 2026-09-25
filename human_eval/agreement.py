@@ -70,6 +70,8 @@ def parse_args():
     )
     parser.add_argument("--csv", required=True, help="CSV containing item and rater columns")
     parser.add_argument("--scale", choices=["ordinal", "nominal"], default="ordinal")
+    parser.add_argument("--min-score", type=int, default=1)
+    parser.add_argument("--max-score", type=int, default=5)
     parser.add_argument("--id-col", default=None, help="ID column; defaults to the first column")
     parser.add_argument(
         "--rater-cols",
@@ -82,6 +84,8 @@ def parse_args():
 
 def main():
     args = parse_args()
+    if args.min_score >= args.max_score:
+        sys.exit("min-score must be lower than max-score")
     with open(args.csv, newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     if not rows:
@@ -106,9 +110,15 @@ def main():
             value = (row.get(rater) or "").strip()
             if value:
                 try:
-                    values.append(int(value) if args.scale == "ordinal" else value)
+                    parsed = int(value) if args.scale == "ordinal" else value
                 except ValueError:
                     sys.exit(f"non-integer rating for ordinal scale: {value!r}")
+                if args.scale == "ordinal" and not args.min_score <= parsed <= args.max_score:
+                    sys.exit(
+                        f"rating {parsed} is outside the configured range "
+                        f"{args.min_score}-{args.max_score}"
+                    )
+                values.append(parsed)
         if len(values) >= 2:
             units.append(values)
         else:
