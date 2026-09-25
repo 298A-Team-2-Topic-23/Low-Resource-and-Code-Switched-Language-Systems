@@ -1,0 +1,117 @@
+# Romanized Hinglish spelling-variant lexicon  [Linear 298-13, owner: Sarvesh]
+#
+# One group per line, tab-separated:  group_label <TAB> variant <TAB> variant <TAB> ...
+# The label is the conventional Devanagari-derived romanisation; the remaining
+# fields are surface forms that occur in the wild for the same underlying word.
+#
+# What this file is for
+# ---------------------
+# It drives spelling_variant_burden, the project's novel metric. Each group is one
+# word that a tokenizer sees as several unrelated vocabulary entries. The mean
+# number of tokens paid per surface form is the direct measurement of the cost our
+# central hypothesis claims is being mistaken for a data-scarcity problem.
+#
+# It is also the intended input to Shibin's normalized chrF++ (298-23). The same
+# lexicon must drive normalisation and burden measurement, otherwise the two
+# numbers stop being about the same thing and their divergence -- which we report
+# as evidence of orthographic instability -- is not interpretable.
+#
+# Curation rules, so this stays defensible in the report
+# -----------------------------------------------------
+# 1. High-frequency function words and discourse particles first. These dominate
+#    token counts, so they dominate the burden, and they are also the forms whose
+#    spelling is least standardised.
+# 2. Variants are attested forms, not generated permutations. Padding the groups
+#    with plausible-but-unseen strings would inflate the metric for free.
+# 3. No proper nouns and no English words. Named-entity spelling is a separate
+#    failure category in the taxonomy and mixing it in here would confound them.
+# 4. Groups stay lowercase. Case folding is handled by the consumer, not the file,
+#    because the tokenizer's treatment of case is itself part of what we measure.
+#
+# v1, 24 Sep 2026. Seeded by hand from HinGE references and standard Hinglish
+# orthography; scheduled to be extended from the frozen train split once 298-11
+# lands, and to be frequency-ranked from that corpus rather than from intuition.
+# Any extension is a versioned change to this file, never an in-place edit, so
+# that an already-reported burden number stays reproducible.
+
+# ---------------------------------------------------------------- negation
+nahi	nahi	nahin	nhi	nahii	nai	nahee
+mat	mat	matt
+na	na	naa
+
+# ------------------------------------------------------- copula and auxiliaries
+hai	hai	hain	hy	h
+tha	tha	thaa	th
+hoga	hoga	hogaa	hoge
+raha	raha	rha	rahaa
+kar	kar	kr	karr
+karna	karna	krna	karnaa
+hona	hona	honaa	hna
+diya	diya	diyaa	dia
+liya	liya	liyaa	lia
+gaya	gaya	gayaa	gya
+
+# -------------------------------------------------------------- pronouns
+mera	mera	meraa	mra
+tera	tera	teraa	tra
+tum	tum	tumm	tu	tw
+aap	aap	ap	aapp
+hum	hum	hm	humm
+mujhe	mujhe	mjhe	muje
+tujhe	tujhe	tjhe	tuje
+uska	uska	uskaa	uskah
+kaun	kaun	kon	kaunn	kn
+
+# ------------------------------------------------------- question words
+kya	kya	kyaa	kia	kyaaa
+kyun	kyun	kyu	kyon	q
+kaise	kaise	kese	kaisay	kase
+kahan	kahan	kaha	khan	kahaan
+kab	kab	kb
+kitna	kitna	kitnaa	ktna
+
+# ----------------------------------------------------- discourse and particles
+bahut	bahut	bahot	bhot	bht	bahutt
+thoda	thoda	thora	thodaa
+bilkul	bilkul	bilkool	bilkl
+matlab	matlab	mtlb	matlb
+yaar	yaar	yar	yr
+acha	acha	accha	achha	acchha	achaa
+theek	theek	thik	teek	thk
+sahi	sahi	sahee	shi
+abhi	abhi	abi	abhee
+phir	phir	fir	phr	pher
+lekin	lekin	lekn	lkn
+magar	magar	mgr
+bas	bas	bss	bs
+sirf	sirf	srf	sif
+zyada	zyada	jyada	zyaada	jada
+kam	kam	km
+jaldi	jaldi	jldi	jaldee
+dhyan	dhyan	dhyaan	dyan
+paisa	paisa	paisaa	pesa
+ghar	ghar	gar	ghr
+kaam	kaam	kaamm	kamm
+baat	baat	bat	baatt
+din	din	dn
+saal	saal	sal
+aaj	aaj	aj	aajj
+kal	kal	kl
+subah	subah	subha	sbh
+raat	raat	rat	raatt
+pyaar	pyaar	pyar	piyar
+dost	dost	dst	dosth
+log	log	lg	logg
+sab	sab	sb	sabb
+kuch	kuch	kch	kuchh	kucch
+koi	koi	koee	kohi
+chahiye	chahiye	chahie	chaiye	chahye
+milega	milega	milegaa	mlega
+dekho	dekho	dekh	deko
+suno	suno	sun	sno
+chalo	chalo	chal	chlo
+bolo	bolo	bol	blo
+samajh	samajh	samaj	smjh
+pata	pata	pataa	pta
+shukriya	shukriya	shukria	sukriya
+namaste	namaste	namastey	namaskar
