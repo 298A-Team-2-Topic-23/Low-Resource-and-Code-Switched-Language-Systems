@@ -8,6 +8,22 @@ import sys
 from collections import Counter, defaultdict
 
 
+# Columns that hold free text or bookkeeping rather than a rater's score. Used
+# only to pick sensible defaults; --rater-cols overrides this entirely.
+NON_RATER_COLUMNS = {
+    "english_source",
+    "source",
+    "item",
+    "text",
+    "segment",
+    "notes",
+    "comment",
+    "comments",
+    "system",
+    "dimension",
+}
+
+
 def ordinal_delta(a, b, counts, levels):
     """Krippendorff's ordinal difference function."""
     lo, hi = sorted((levels.index(a), levels.index(b)))
@@ -95,7 +111,16 @@ def main():
     id_column = args.id_col or columns[0]
     if id_column not in columns:
         sys.exit(f"unknown id column: {id_column}")
-    raters = args.rater_cols or [column for column in columns if column != id_column]
+    # Defaulting to "every column that is not the ID" swept up the source text and
+    # the notes column in our own pilot CSVs, so the documented default invocation
+    # died on a sentence rather than a rating. Columns carrying free text are
+    # excluded by name, which keeps `--csv` alone working on the pilot files while
+    # `--rater-cols` stays available for any other layout.
+    raters = args.rater_cols or [
+        column
+        for column in columns
+        if column != id_column and column.lower() not in NON_RATER_COLUMNS
+    ]
     unknown_raters = [rater for rater in raters if rater not in columns]
     if unknown_raters:
         sys.exit(f"unknown rater column(s): {', '.join(unknown_raters)}")
