@@ -1,0 +1,7 @@
+id,label,owner,duration,dependencies,ES,EF,LF,LS,float,critical
+298-38,Pipeline,Yash,5,,0,5,5,0,0,True
+298-39,EDA figures,Sarvesh,2,298-38,5,7,7,5,0,True
+298-42,Assembly,Jenil,2,298-39,7,9,9,7,0,True
+submission,Workbook submission,Jenil,0,298-42,9,9,9,9,0,True
+298-40,Rehearsal window,Prakhar,4,298-38,5,9,10,6,1,False
+demo,ISA demo,All,0,298-40,9,9,10,10,1,False
