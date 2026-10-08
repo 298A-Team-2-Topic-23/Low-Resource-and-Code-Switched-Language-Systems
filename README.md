@@ -108,6 +108,32 @@ of producing a quietly wrong score.
 
 ---
 
+## Data pipeline — one command, four stages
+
+```bash
+python scripts/run_pipeline.py --synthetic --n-synthetic 1200     # offline, no data needed
+python scripts/run_pipeline.py --input data/raw/hinge.csv         # the real corpus
+```
+
+| Stage | Module | What it prints / writes |
+|---|---|---|
+| 1 ingest | `src/lrcs/data/ingest.py` | path, file timestamp, bytes, SHA-256, **measured** row and reference counts |
+| 2 clean | `src/lrcs/data/clean.py` | attrition table — six filters, each reporting its own removals; rule-based language tags |
+| 3 split | `src/lrcs/data/splits.py`, `leakage.py` | near-duplicate grouping, disjoint splits, **leakage gate**, hashed manifest |
+| 4 EDA | `src/lrcs/analysis/eda.py`, `codemixing.py` | statistics, spelling variance, four figures, `reports/data_statistics.json` |
+
+`PYTHONPATH=src` is not needed; the script adds `src/` itself. Needs only the standard
+library plus `matplotlib` for the figures, and runs on Python 3.9+. `--dup-threshold` is
+shared by dedupe and the leakage gate, and the gate **halts** the run (exit code 3, no
+manifest written) on any cross-split overlap rather than warning.
+`--inject-leak K` exists only to demonstrate the gate halting.
+
+The committed `reports/data_statistics.json` and `reports/figures/` come from a
+**synthetic** run — every figure title and the JSON's `"synthetic": true` say so. HinGE
+splits are still to be derived from the real file.
+
+---
+
 ## Repository layout
 
 ```
@@ -119,7 +145,10 @@ docs/              datasheet, project management plan, compute budget, decisions
 evaluation/        the scoring harness and its demo fixtures
 human_eval/        rater agreement tooling and the annotation pilot
 models/            generation and training scripts
+reports/           pipeline statistics and figures
 runs/              one JSON per run — committed, this is the GPU-hour evidence
+scripts/           run_pipeline.py — the four-stage data pipeline
+src/lrcs/          the pipeline package (ingest, clean, splits, leakage gate, EDA)
 tests/             the pytest suite
 ```
 

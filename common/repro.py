@@ -103,7 +103,9 @@ def git_commit():
     sha = _run(["git", "rev-parse", "HEAD"])
     if not sha:
         return None
-    dirty = _run(["git", "status", "--porcelain"])
+    # Tracked changes only: a run that writes its own outputs (reports/,
+    # manifests) into the repo must not mark the code it ran from as dirty.
+    dirty = _run(["git", "status", "--porcelain", "--untracked-files=no"])
     return sha + ("-dirty" if dirty else "")
 
 

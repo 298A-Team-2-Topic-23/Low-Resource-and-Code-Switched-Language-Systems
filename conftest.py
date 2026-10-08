@@ -8,6 +8,8 @@ script needs its own sys.path shim:
     __init__.py files or an installed package
   * common/, so `from repro import set_seed, RunLogger` resolves the same way
     it does when a training script is run directly from the repo root
+  * src/, so `from lrcs.data import ...` resolves without installing the
+    package (scripts/run_pipeline.py adds src/ to the path the same way)
 
 Without this, test collection depends on pytest's rootdir insertion happening
 to put the right directory on the path, which is not something to rely on when
@@ -19,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-for path in (ROOT, ROOT / "common"):
+for path in (ROOT, ROOT / "common", ROOT / "src"):
     entry = str(path)
     if entry not in sys.path:
         sys.path.insert(0, entry)
