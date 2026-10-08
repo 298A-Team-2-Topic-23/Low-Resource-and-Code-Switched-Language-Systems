@@ -88,14 +88,21 @@ above, plus the controlled experiment below.
 Each model adds exactly one ingredient, so each step isolates one competing explanation.
 
 ```mermaid
-flowchart LR
-    M1["<b>M1 · Zero-shot</b><br/>adds nothing<br/><i>how big is the gap?</i>"]
-    M2["<b>M2 · QLoRA fine-tune</b><br/>adds task supervision<br/><i>is it missing task data?</i>"]
-    M3["<b>M3 · Vocab extension + CPT</b><br/>adds representation<br/><i>is it the tokenizer?</i>"]
-    M4["<b>M4 · Augmented</b><br/>adds distribution<br/><i>is it scarce code-switched text?</i>"]
-    M1 --> M2 --> M3 --> M4
-    C1["Control: CPT without<br/>vocabulary extension"] -. "isolates the<br/>vocabulary effect" .-> M3
-    C2["Control: M2 trained to<br/>M3's GPU-hours"] -. "rules out<br/>more compute" .-> M3
+flowchart TB
+    subgraph L["Ablation ladder: each step adds exactly one ingredient"]
+        direction LR
+        M1["<b>M1 · Zero-shot</b><br/>adds nothing<br/><i>how big is the gap?</i>"]
+        M2["<b>M2 · QLoRA</b><br/>adds task supervision<br/><i>missing task data?</i>"]
+        M3["<b>M3 · Vocab + CPT</b><br/>adds representation<br/><i>the tokenizer?</i>"]
+        M4["<b>M4 · Augmented</b><br/>adds distribution<br/><i>scarce code-switched text?</i>"]
+        M1 --> M2 --> M3 --> M4
+    end
+    subgraph C["Control arms: what makes an M3 gain attributable"]
+        direction LR
+        C1["<b>CPT without vocabulary extension</b><br/><i>is it the vocabulary or the extra training?</i>"]
+        C2["<b>M2 trained to M3's GPU-hours</b><br/><i>is it just more compute?</i>"]
+    end
+    L ~~~ C
     classDef model fill:#e8f1fb,stroke:#2a78d6,color:#0b0b0b
     classDef control fill:#fdf0e9,stroke:#eb6834,color:#0b0b0b,stroke-dasharray:5 4
     class M1,M2,M3,M4 model
@@ -120,65 +127,37 @@ designed but not built yet.
 
 ```mermaid
 flowchart TB
-    subgraph SRC["Data sources"]
-        PKL["HinGE.pkl<br/>authors' release"]
+    subgraph D["1 · Data in"]
+        direction LR
+        PKL["HinGE.pkl<br/>authors' release"] --> CONV["convert_hinge_pkl.py<br/>restricted unpickler<br/>SHA-256 pin"] --> CSV["data/raw/hinge.csv<br/><i>gitignored</i>"]
         SYN["--synthetic<br/>offline generator"]
     end
-
-    CONV["convert_hinge_pkl.py<br/>restricted unpickler · SHA-256 pin"]
-    PKL --> CONV --> CSV["data/raw/hinge.csv<br/><i>gitignored</i>"]
-
-    subgraph PIPE["scripts/run_pipeline.py · src/lrcs · one command"]
-        direction TB
-        S1["<b>1 · Ingest</b><br/>path · bytes · SHA-256<br/>measured rows and references"]
-        S2["<b>2 · Clean</b><br/>6 filters · attrition table<br/>rule-based LinCE language tags"]
-        S3["<b>3 · Split</b><br/>MinHash/LSH near-duplicate grouping<br/>seeded group assignment"]
-        GATE{"<b>Leakage gate</b><br/>exact + near-duplicate<br/>Jaccard ≥ 0.7"}
-        S1 --> S2 --> S3 --> GATE
-    end
-
-    CSV --> S1
-    SYN --> S1
-    GATE -- "pass" --> MAN[("hashed split manifest<br/>data/processed/manifests/")]
-    GATE -- "overlap" --> HALT["exit 3<br/>nothing written"]
-    MAN --> S4["<b>4 · EDA</b><br/>CMI · SPF · M-index · burstiness<br/>spelling variance · 4 figures"]
-    S4 --> STATS[("data_statistics.json<br/>reports/figures/")]
-
-    LEX[("spelling_variants.tsv<br/>72 word groups")]
-    LEX --> S2
-    LEX --> S4
-    LEX --> FERT["tokenizer_fertility.py<br/>fertility · burden · coverage"]
-
-    subgraph MODELS["Ablation ladder · one backbone · 3 seeds"]
+    subgraph P["2 · Data pipeline: scripts/run_pipeline.py + src/lrcs"]
         direction LR
-        M1["M1 zero-shot<br/><i>script exists</i>"]
-        M2["M2 QLoRA"]
-        M3["M3 vocab + CPT"]
-        M4["M4 augmented"]
+        S1["<b>Ingest</b><br/>SHA-256<br/>measured counts"] --> S2["<b>Clean</b><br/>6 filters<br/>language tags"] --> S3["<b>Split</b><br/>near-duplicate<br/>grouping"] --> GATE{"<b>Leakage</b><br/><b>gate</b>"}
+        GATE -- "pass: manifest" --> S4["<b>EDA</b><br/>statistics<br/>4 figures"]
+        GATE -- "overlap" --> HALT["exit 3<br/>nothing written"]
     end
-    MAN --> MODELS
-    BASE["Gahoi et al. 2022<br/>baseline reproduction"]
-
-    MODELS --> EVAL["run_eval.py<br/>chrF++ · BLEU · ROUGE-L · WER<br/>multi-seed mean ± std"]
-    BASE --> EVAL
-    MODELS --> HUM["Human evaluation<br/>adequacy · fluency · CS naturalness<br/>Krippendorff's alpha"]
-    EVAL --> RES[("results.jsonl")]
-    HUM --> RES
-    RES -.-> SERVE["vLLM + FastAPI<br/>web demo"]
-
-    LOG["RunLogger<br/>runs/*.json"]
-    PIPE -. "every run" .-> LOG
-    MODELS -. "every run" .-> LOG
-
+    subgraph M["3 · Models: one backbone, three seeds"]
+        direction LR
+        M1["M1<br/>zero-shot"] --> M2["M2<br/>QLoRA"] --> M3["M3<br/>vocab + CPT"] --> M4["M4<br/>augmented"]
+        BASE["baseline<br/>Gahoi et al. 2022"]
+    end
+    subgraph E["4 · Evaluation"]
+        direction LR
+        FE["tokenizer_fertility.py<br/>fertility · burden"]
+        EV["run_eval.py<br/>chrF++ · ROUGE-L · WER<br/>mean ± std over seeds"]
+        HU["human evaluation<br/>Krippendorff's alpha"]
+        SERVE["vLLM + FastAPI<br/>web demo"]
+    end
+    D --> P --> M --> E
     classDef built fill:#e7f5ec,stroke:#1a7f37,color:#0b0b0b
     classDef partial fill:#fff8e1,stroke:#c98500,color:#0b0b0b
     classDef planned fill:#f6f8fa,stroke:#8c959f,color:#0b0b0b,stroke-dasharray:5 4
     classDef gate fill:#fdf0e9,stroke:#d95926,color:#0b0b0b
-    classDef store fill:#e8f1fb,stroke:#2a78d6,color:#0b0b0b
-    class PKL,SYN,CONV,CSV,S1,S2,S3,S4,FERT,EVAL,LOG built
+    class PKL,CONV,CSV,SYN,S1,S2,S3,S4,FE,EV built
     class GATE,HALT gate
-    class MAN,STATS,LEX,RES store
-    class M1,HUM partial
+    class M1,HU partial
     class M2,M3,M4,BASE,SERVE planned
 ```
 
@@ -235,18 +214,21 @@ HinGE's downstream released train/dev splits are **not disjoint**: the audit rec
 (**75.8%**) also in train. We never use them.
 
 ```mermaid
-flowchart LR
-    A["4,674 cleaned pairs"] --> B["Key = normalised<br/>English source"]
-    B --> C["MinHash/LSH candidates<br/>96 permutations · 32 bands"]
-    C --> D["Exact Jaccard check<br/>char 4-grams ≥ 0.7"]
-    D --> E["Union-find groups<br/>1,938 sources → 1,937 groups"]
-    E --> F["Seeded shuffle of groups<br/>80 / 10 / 10 by records"]
-    F --> G{"Leakage gate<br/>independent hash seed<br/>same threshold"}
-    G -- "0 overlaps" --> H[("manifest<br/>SHA-256 per split + record IDs")]
-    G -- "any overlap" --> X["exit 3 · no manifest"]
+flowchart TB
+    subgraph G["Group: a paraphrase can never straddle a split"]
+        direction LR
+        A["4,674<br/>cleaned pairs"] --> B["key = normalised<br/>English source"] --> C["MinHash/LSH<br/>candidates"] --> D["exact Jaccard ≥ 0.7<br/>then union-find"]
+    end
+    subgraph S["Assign whole groups, then verify"]
+        direction LR
+        F["seeded shuffle<br/>of 1,937 groups"] --> GT{"leakage gate<br/>independent seed<br/>same threshold"}
+        GT -- "0 overlaps" --> H[("manifest<br/>SHA-256 per split")]
+        GT -- "any overlap" --> X["exit 3<br/>no manifest"]
+    end
+    G --> S
     classDef gate fill:#fdf0e9,stroke:#d95926,color:#0b0b0b
     classDef ok fill:#e7f5ec,stroke:#1a7f37,color:#0b0b0b
-    class G,X gate
+    class GT,X gate
     class H ok
 ```
 
