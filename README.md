@@ -130,7 +130,7 @@ flowchart TB
     subgraph D["1 · Data in"]
         direction LR
         PKL["HinGE.pkl<br/>authors' release"] --> CONV["convert_hinge_pkl.py<br/>restricted unpickler<br/>SHA-256 pin"] --> CSV["data/raw/hinge.csv<br/><i>gitignored</i>"]
-        SYN["--synthetic<br/>offline generator"]
+        SYN["--synthetic<br/>offline generator"] ~~~ PKL
     end
     subgraph P["2 · Data pipeline: scripts/run_pipeline.py + src/lrcs"]
         direction LR
@@ -141,7 +141,7 @@ flowchart TB
     subgraph M["3 · Models: one backbone, three seeds"]
         direction LR
         M1["M1<br/>zero-shot"] --> M2["M2<br/>QLoRA"] --> M3["M3<br/>vocab + CPT"] --> M4["M4<br/>augmented"]
-        BASE["baseline<br/>Gahoi et al. 2022"]
+        BASE["baseline<br/>Gahoi et al. 2022"] ~~~ M1
     end
     subgraph E["4 · Evaluation"]
         direction LR
@@ -149,6 +149,7 @@ flowchart TB
         EV["run_eval.py<br/>chrF++ · ROUGE-L · WER<br/>mean ± std over seeds"]
         HU["human evaluation<br/>Krippendorff's alpha"]
         SERVE["vLLM + FastAPI<br/>web demo"]
+        FE ~~~ EV ~~~ HU ~~~ SERVE
     end
     D --> P --> M --> E
     classDef built fill:#e7f5ec,stroke:#1a7f37,color:#0b0b0b
