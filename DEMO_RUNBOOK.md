@@ -26,6 +26,10 @@ record its SHA; do not present a branch-only artifact as merged.
   `docs/datasheet.md`. Keep it in gitignored `data/raw/`. Confirm its checksum,
   column mapping and reference count; do not substitute the paper's 4,803 for a
   measured count (the datasheet reports 4,799; reconciliation is still open).
+  If you have the authors' `HinGE.pkl`, convert it first:
+  `python scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv`
+  (298-44). `notebooks/tm1_data_pipeline_demo.ipynb` runs the same four stages
+  cell by cell for the live demo and holds the outputs of the real-corpus run.
 - Open the merged pipeline PR with a **non-author approval visible**, the real
   Linear cycle board filtered by assignee, and `reports/data_statistics.json`.
   A requested review is not an approval. These tabs remain preparation tasks.
