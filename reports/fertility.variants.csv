@@ -1,0 +1,73 @@
+tokenizer,group,n_variants,mean_tokens,min_tokens,max_tokens,spread,single_token_variants,detail
+Qwen/Qwen2.5-7B-Instruct,nahi,6,1.8333,1,2,1,1,nahi:2 nahin:2 nhi:1 nahii:2 nai:2 nahee:2
+Qwen/Qwen2.5-7B-Instruct,mat,2,1.0000,1,1,0,2,mat:1 matt:1
+Qwen/Qwen2.5-7B-Instruct,na,2,1.5000,1,2,1,1,na:1 naa:2
+Qwen/Qwen2.5-7B-Instruct,hai,4,1.2500,1,2,1,3,hai:1 hain:2 hy:1 h:1
+Qwen/Qwen2.5-7B-Instruct,tha,3,1.3333,1,2,1,2,tha:1 thaa:2 th:1
+Qwen/Qwen2.5-7B-Instruct,hoga,3,2.0000,2,2,0,0,hoga:2 hogaa:2 hoge:2
+Qwen/Qwen2.5-7B-Instruct,raha,3,2.0000,2,2,0,0,raha:2 rha:2 rahaa:2
+Qwen/Qwen2.5-7B-Instruct,kar,3,1.3333,1,2,1,2,kar:1 kr:1 karr:2
+Qwen/Qwen2.5-7B-Instruct,karna,3,2.3333,2,3,1,0,karna:2 krna:2 karnaa:3
+Qwen/Qwen2.5-7B-Instruct,hona,3,2.0000,2,2,0,0,hona:2 honaa:2 hna:2
+Qwen/Qwen2.5-7B-Instruct,diya,3,1.6667,1,2,1,1,diya:2 diyaa:2 dia:1
+Qwen/Qwen2.5-7B-Instruct,liya,3,2.0000,1,3,2,1,liya:2 liyaa:3 lia:1
+Qwen/Qwen2.5-7B-Instruct,gaya,3,2.0000,2,2,0,0,gaya:2 gayaa:2 gya:2
+Qwen/Qwen2.5-7B-Instruct,mera,3,2.0000,2,2,0,0,mera:2 meraa:2 mra:2
+Qwen/Qwen2.5-7B-Instruct,tera,3,1.3333,1,2,1,2,tera:1 teraa:2 tra:1
+Qwen/Qwen2.5-7B-Instruct,tum,4,1.2500,1,2,1,3,tum:1 tumm:2 tu:1 tw:1
+Qwen/Qwen2.5-7B-Instruct,aap,3,1.6667,1,2,1,1,aap:2 ap:1 aapp:2
+Qwen/Qwen2.5-7B-Instruct,hum,3,1.3333,1,2,1,2,hum:1 hm:1 humm:2
+Qwen/Qwen2.5-7B-Instruct,mujhe,3,2.0000,2,2,0,0,mujhe:2 mjhe:2 muje:2
+Qwen/Qwen2.5-7B-Instruct,tujhe,3,2.3333,2,3,1,0,tujhe:3 tjhe:2 tuje:2
+Qwen/Qwen2.5-7B-Instruct,uska,3,2.3333,2,3,1,0,uska:2 uskaa:3 uskah:2
+Qwen/Qwen2.5-7B-Instruct,kaun,4,1.5000,1,2,1,2,kaun:2 kon:1 kaunn:2 kn:1
+Qwen/Qwen2.5-7B-Instruct,kya,4,2.0000,2,2,0,0,kya:2 kyaa:2 kia:2 kyaaa:2
+Qwen/Qwen2.5-7B-Instruct,kyun,4,1.7500,1,2,1,1,kyun:2 kyu:2 kyon:2 q:1
+Qwen/Qwen2.5-7B-Instruct,kaise,4,2.2500,2,3,1,0,kaise:2 kese:2 kaisay:3 kase:2
+Qwen/Qwen2.5-7B-Instruct,kahan,4,2.2500,2,3,1,0,kahan:2 kaha:2 khan:2 kahaan:3
+Qwen/Qwen2.5-7B-Instruct,kab,2,1.0000,1,1,0,2,kab:1 kb:1
+Qwen/Qwen2.5-7B-Instruct,kitna,3,2.6667,2,3,1,0,kitna:2 kitnaa:3 ktna:3
+Qwen/Qwen2.5-7B-Instruct,bahut,5,2.0000,2,2,0,0,bahut:2 bahot:2 bhot:2 bht:2 bahutt:2
+Qwen/Qwen2.5-7B-Instruct,thoda,3,2.0000,1,3,2,1,thoda:2 thora:1 thodaa:3
+Qwen/Qwen2.5-7B-Instruct,bilkul,3,2.3333,2,3,1,0,bilkul:2 bilkool:3 bilkl:2
+Qwen/Qwen2.5-7B-Instruct,matlab,3,1.6667,1,2,1,1,matlab:1 mtlb:2 matlb:2
+Qwen/Qwen2.5-7B-Instruct,yaar,3,1.3333,1,2,1,2,yaar:2 yar:1 yr:1
+Qwen/Qwen2.5-7B-Instruct,acha,5,2.0000,1,3,2,1,acha:1 accha:2 achha:2 acchha:3 achaa:2
+Qwen/Qwen2.5-7B-Instruct,theek,4,2.0000,2,2,0,0,theek:2 thik:2 teek:2 thk:2
+Qwen/Qwen2.5-7B-Instruct,sahi,3,1.6667,1,2,1,1,sahi:2 sahee:2 shi:1
+Qwen/Qwen2.5-7B-Instruct,abhi,3,1.6667,1,2,1,1,abhi:2 abi:1 abhee:2
+Qwen/Qwen2.5-7B-Instruct,phir,4,1.5000,1,2,1,2,phir:2 fir:1 phr:2 pher:1
+Qwen/Qwen2.5-7B-Instruct,lekin,3,2.0000,2,2,0,0,lekin:2 lekn:2 lkn:2
+Qwen/Qwen2.5-7B-Instruct,magar,2,1.5000,1,2,1,1,magar:2 mgr:1
+Qwen/Qwen2.5-7B-Instruct,bas,3,1.3333,1,2,1,2,bas:1 bss:2 bs:1
+Qwen/Qwen2.5-7B-Instruct,sirf,3,2.0000,2,2,0,0,sirf:2 srf:2 sif:2
+Qwen/Qwen2.5-7B-Instruct,zyada,4,2.5000,2,3,1,0,zyada:2 jyada:3 zyaada:3 jada:2
+Qwen/Qwen2.5-7B-Instruct,kam,2,1.0000,1,1,0,2,kam:1 km:1
+Qwen/Qwen2.5-7B-Instruct,jaldi,3,2.3333,2,3,1,0,jaldi:2 jldi:3 jaldee:2
+Qwen/Qwen2.5-7B-Instruct,dhyan,3,2.3333,2,3,1,0,dhyan:2 dhyaan:3 dyan:2
+Qwen/Qwen2.5-7B-Instruct,paisa,3,2.0000,2,2,0,0,paisa:2 paisaa:2 pesa:2
+Qwen/Qwen2.5-7B-Instruct,ghar,3,1.6667,1,2,1,1,ghar:2 gar:1 ghr:2
+Qwen/Qwen2.5-7B-Instruct,kaam,3,2.0000,2,2,0,0,kaam:2 kaamm:2 kamm:2
+Qwen/Qwen2.5-7B-Instruct,baat,3,1.6667,1,2,1,1,baat:2 bat:1 baatt:2
+Qwen/Qwen2.5-7B-Instruct,din,2,1.0000,1,1,0,2,din:1 dn:1
+Qwen/Qwen2.5-7B-Instruct,saal,2,1.5000,1,2,1,1,saal:2 sal:1
+Qwen/Qwen2.5-7B-Instruct,aaj,3,2.0000,1,3,2,1,aaj:2 aj:1 aajj:3
+Qwen/Qwen2.5-7B-Instruct,kal,2,1.0000,1,1,0,2,kal:1 kl:1
+Qwen/Qwen2.5-7B-Instruct,subah,3,2.0000,2,2,0,0,subah:2 subha:2 sbh:2
+Qwen/Qwen2.5-7B-Instruct,raat,3,1.6667,1,2,1,1,raat:2 rat:1 raatt:2
+Qwen/Qwen2.5-7B-Instruct,pyaar,3,2.0000,2,2,0,0,pyaar:2 pyar:2 piyar:2
+Qwen/Qwen2.5-7B-Instruct,dost,3,1.3333,1,2,1,2,dost:1 dst:1 dosth:2
+Qwen/Qwen2.5-7B-Instruct,log,3,1.0000,1,1,0,3,log:1 lg:1 logg:1
+Qwen/Qwen2.5-7B-Instruct,sab,3,1.3333,1,2,1,2,sab:1 sb:1 sabb:2
+Qwen/Qwen2.5-7B-Instruct,kuch,4,2.2500,2,3,1,0,kuch:2 kch:2 kuchh:3 kucch:2
+Qwen/Qwen2.5-7B-Instruct,koi,3,2.3333,2,3,1,0,koi:2 koee:2 kohi:3
+Qwen/Qwen2.5-7B-Instruct,chahiye,4,2.7500,2,3,1,0,chahiye:3 chahie:3 chaiye:2 chahye:3
+Qwen/Qwen2.5-7B-Instruct,milega,3,2.6667,2,3,1,0,milega:2 milegaa:3 mlega:3
+Qwen/Qwen2.5-7B-Instruct,dekho,3,2.0000,2,2,0,0,dekho:2 dekh:2 deko:2
+Qwen/Qwen2.5-7B-Instruct,suno,3,1.3333,1,2,1,2,suno:2 sun:1 sno:1
+Qwen/Qwen2.5-7B-Instruct,chalo,3,1.6667,1,2,1,1,chalo:2 chal:1 chlo:2
+Qwen/Qwen2.5-7B-Instruct,bolo,3,1.3333,1,2,1,2,bolo:2 bol:1 blo:1
+Qwen/Qwen2.5-7B-Instruct,samajh,3,2.3333,2,3,1,0,samajh:3 samaj:2 smjh:2
+Qwen/Qwen2.5-7B-Instruct,pata,3,2.0000,1,3,2,1,pata:2 pataa:3 pta:1
+Qwen/Qwen2.5-7B-Instruct,shukriya,3,3.3333,3,4,1,0,shukriya:4 shukria:3 sukriya:3
+Qwen/Qwen2.5-7B-Instruct,namaste,3,2.6667,2,3,1,0,namaste:2 namastey:3 namaskar:3

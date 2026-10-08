@@ -1,0 +1,3 @@
+tokenizer,slice,n_lines,n_words,n_word_types,n_tokens,fertility,fertility_wordlevel,bytes_per_token,continuation_rate,severe_split_rate,byte_fallback_rate,vocab_coverage,spelling_variant_burden,variant_single_token_rate
+Qwen/Qwen2.5-7B-Instruct,en,1091,9866,67,10103,1.0240,1.0240,5.3018,0.0240,0.0000,0.0000,0.9851,1.8322,0.2731
+Qwen/Qwen2.5-7B-Instruct,hinglish,1091,9639,78,14468,1.5010,1.4841,3.6789,0.4489,0.0000,0.0000,0.5256,1.8322,0.2731
