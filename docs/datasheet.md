@@ -19,6 +19,13 @@ this datasheet from whoever owns them.
   https://drive.google.com/drive/folders/1sxU4PpFZs86ncad_iak4U6AY_2wOsayj
   (linked from the author's resource page). English/Hindi source pairs
   are drawn from the IIT Bombay parallel corpus.
+- **Checksum and conversion (298-44).** The release we use has SHA-256
+  `e78c8f48af3eea0b141e767082189b7b619e9cbe50ad8f0b2a4863b82ebc5960`.
+  The pipeline refuses pickles, so it is converted once with
+  `python scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv
+  --expected-sha256 <hash above>` (restricted unpickler, pandas/numpy only),
+  giving a CSV with SHA-256 `dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3`.
+  The pipeline measures 1,976 rows and 4,799 references from that CSV.
 - **Verified against the actual file** (not taken from secondary
   literature): **1,976 rows**, columns `English, Hindi,
   Human-generated Hinglish (list), WAC, WAC rating1, WAC rating2, PAC,
