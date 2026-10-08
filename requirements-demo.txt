@@ -2,5 +2,6 @@
 # scripts/run_pipeline.py becomes available when 298-38 lands.
 matplotlib==3.9.4
 numpy==1.26.4
+pandas==2.2.3   # scripts/convert_hinge_pkl.py and the demo notebook's tables
 sacrebleu==2.6.0
 pytest==8.4.2
