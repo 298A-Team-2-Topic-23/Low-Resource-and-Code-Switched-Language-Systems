@@ -1,15 +1,31 @@
-# Never commit data (licences go in the datasheet, not the repo)
+# Data hygiene (CLAUDE.md sections 4 and 9): raw, interim and processed data is
+# never committed. Split manifests ARE committed -- they are what makes a split
+# citable and reproducible without redistributing the data itself.
 data/raw/
+data/interim/
+data/processed/*
+!data/processed/manifests/
+!data/processed/manifests/**
+
+# Model weights and training byproducts
 *.pt
 *.safetensors
 *.bin
 checkpoints/
 out/
 wandb/
+
+# runs/*.json IS committed -- it is the GPU-hour evidence for the report.
+
+# Python
 __pycache__/
 *.pyc
+*.egg-info/
+.pytest_cache/
 .venv/
 venv/
 .env
+
+# OS / editor
 .DS_Store
-# runs/*.json IS committed -- it is the GPU-hour evidence for the report
+.vscode/

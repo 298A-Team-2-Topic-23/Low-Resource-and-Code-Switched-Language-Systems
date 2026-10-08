@@ -38,7 +38,7 @@ The team reports milestone status in Linear and records material decisions in th
 | --- | --- | --- |
 | Guidelines | `data/goldtestset/annotation_guidelines.md` | peer review before pilot scoring |
 | Pilot inputs | `human_eval/pilot/adequacy.csv`, `fluency.csv` | 50 aligned items in each file |
-| Agreement | `human_eval/agreement.py` and tests | `python3 -m unittest human_eval/test_agreement.py` |
+| Agreement | `human_eval/agreement.py` and tests | `python3 -m pytest tests/` |
 | Gold-set contract | `data/goldtestset/gold_set.csv` | `python data/goldtestset/validate_gold_set.py ...` |
 | PM plan | this document | linked issue and pull-request review |
 
