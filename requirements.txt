@@ -17,3 +17,6 @@ bitsandbytes==0.47.0
 sacrebleu==2.6.0
 sentencepiece==0.2.0
 numpy==1.26.4
+# [298-38] data pipeline stage-4 figures. 3.9.4 is the last line that still
+# supports Python 3.9 (one team machine) and works with numpy 1.26.
+matplotlib==3.9.4
