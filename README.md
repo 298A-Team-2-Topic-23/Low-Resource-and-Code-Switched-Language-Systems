@@ -33,7 +33,7 @@ Measured on the real HinGE corpus by `scripts/run_pipeline.py --input data/raw/h
 (commit `c65faec`, 8 Oct 2026). Every number below is in
 [`reports/data_statistics.json`](reports/data_statistics.json).
 
-| | |
+| Measure | Result |
 |---|---|
 | **Corpus** | 1,976 English–Hindi source rows → **4,799** human Hinglish references, counted off the file (the paper reports 4,803; see [open issues](#known-gaps-and-open-questions)) |
 | **After cleaning** | **4,674** pairs — six filters, 125 removals (2.6%), each charged to the filter that caught it |
@@ -277,12 +277,12 @@ mistaken for a HinGE run.
 
 <table>
 <tr>
-<td width="50%"><img src="reports/figures/fig1_sentence_lengths.png" alt="Sentence length distribution, English vs Romanized Hinglish"/><br/><sub><b>Sentence length.</b> Hinglish tracks its English source closely: mean 15.9 vs 15.2 words, both medians 12.</sub></td>
-<td width="50%"><img src="reports/figures/fig2_cmi_distribution.png" alt="Code-Mixing Index per Hinglish sentence"/><br/><sub><b>Code-Mixing Index.</b> Mean 25.3 over all sentences and 29.4 over mixed ones; 86.1% are mixed.</sub></td>
+<td width="50%" valign="top"><img src="reports/figures/fig1_sentence_lengths.png" alt="Sentence length distribution, English vs Romanized Hinglish"/><br/><sub><b>Sentence length.</b> Hinglish tracks its English source closely: mean 15.9 vs 15.2 words, both medians 12.</sub></td>
+<td width="50%" valign="top"><img src="reports/figures/fig2_cmi_distribution.png" alt="Code-Mixing Index per Hinglish sentence"/><br/><sub><b>Code-Mixing Index.</b> Mean 25.3 over all sentences and 29.4 over mixed ones; 86.1% are mixed.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="reports/figures/fig3_switch_point_fraction.png" alt="Switch-point fraction per Hinglish sentence"/><br/><sub><b>Switch-point fraction.</b> Corpus SPF 0.240: roughly one switch every four adjacent language tokens. This number will set M4's synthetic sampling.</sub></td>
-<td width="50%"><img src="reports/figures/fig4_spelling_variants.png" alt="Spelling variants per word group"/><br/><sub><b>Spelling variants.</b> Canonical vs other spellings for the 15 most frequent lexicon groups.</sub></td>
+<td width="50%" valign="top"><img src="reports/figures/fig3_switch_point_fraction.png" alt="Switch-point fraction per Hinglish sentence"/><br/><sub><b>Switch-point fraction.</b> Corpus SPF 0.240: roughly one switch every four adjacent language tokens. This number will set M4's synthetic sampling.</sub></td>
+<td width="50%" valign="top"><img src="reports/figures/fig4_spelling_variants.png" alt="Spelling variants per word group"/><br/><sub><b>Spelling variants.</b> Canonical vs other spellings for the 15 most frequent lexicon groups.</sub></td>
 </tr>
 </table>
 
