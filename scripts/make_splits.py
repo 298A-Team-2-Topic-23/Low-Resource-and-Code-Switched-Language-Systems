@@ -105,7 +105,11 @@ class UnionFind:
     def union(self, a, b):
         ra, rb = self.find(a), self.find(b)
         if ra != rb:
-            self.parent[ra] = rb
+            # Always attach the larger key to the smaller one. Attaching in
+            # arrival order makes the surviving root depend on the order unions
+            # happen to arrive, which is what made the clustering irreproducible.
+            lo, hi = (ra, rb) if ra < rb else (rb, ra)
+            self.parent[hi] = lo
 
 
 def near_dup_clusters(keys):
@@ -129,11 +133,23 @@ def near_dup_clusters(keys):
 
     uf = UnionFind(keys)
     for k in keys:
-        for neighbour in lsh.query(sigs[k]):
+        # sorted(): LSH returns neighbours in set-iteration order, which varies
+        # with PYTHONHASHSEED between processes. Unsorted, the same corpus and
+        # the same --seed produced different splits on every run.
+        for neighbour in sorted(lsh.query(sigs[k])):
             if neighbour != k:
                 uf.union(k, neighbour)
 
-    return {k: uf.find(k) for k in keys}
+    # Name each cluster by its lexicographically smallest member, so the id is a
+    # property of the cluster's contents rather than of traversal order. The
+    # caller sorts cluster ids before shuffling, so an unstable id would reorder
+    # the shuffle and move rows between splits.
+    canonical = {}
+    for k in keys:
+        root = uf.find(k)
+        if root not in canonical or k < canonical[root]:
+            canonical[root] = k
+    return {k: canonical[uf.find(k)] for k in keys}
 
 
 def sha256_file(path: Path) -> str:
@@ -218,6 +234,43 @@ def make_splits(rows, ratios, seed):
             exact_groups, clusters)
 
 
+def verify_not_degenerate(splits, clusters, ratios, rows_total):
+    """Catch the failure mode that disjointness cannot see.
+
+    Near-duplicate grouping is transitive: if A~B and B~C are each above the
+    similarity threshold, union-find merges A, B and C even when A~C is not. On a
+    templated corpus that chain can run through the whole dataset and collapse it
+    into a single cluster, which is then assigned whole to one split. The result
+    is an empty train and dev set -- and verify_disjoint still passes, because one
+    non-empty split is trivially disjoint from two empty ones.
+
+    HinGE itself does not trigger this (1,973 keys produce 1,972 clusters), but
+    this script is also meant for Samanantar, the IIT Bombay corpus and the
+    team-authored gold set, where formulaic sentences are entirely plausible. The
+    failure is silent, so it is checked rather than assumed.
+    """
+    ok = True
+    biggest = max((len(v) for v in clusters.values()), default=0)
+    share = biggest / max(rows_total, 1)
+    print(f"  largest cluster: {biggest} rows ({share:.1%} of the corpus)")
+    if share > 0.5:
+        print("  FAIL near-duplicate grouping collapsed the corpus into one "
+              "cluster; raise MINHASH_JACCARD_THRESHOLD or use word-level shingles")
+        ok = False
+
+    for name, expected in zip(("train", "dev", "test"), ratios):
+        actual = len(splits[name]) / max(rows_total, 1)
+        print(f"  {name:<6} {len(splits[name]):>6} rows  {actual:6.1%} "
+              f"(requested {expected:.0%})")
+        if not splits[name]:
+            print(f"  FAIL {name} split is empty")
+            ok = False
+        elif expected > 0 and abs(actual - expected) > 0.1:
+            print(f"  FAIL {name} is more than 10 points from its requested share")
+            ok = False
+    return ok
+
+
 def verify_disjoint(splits):
     """Belt and braces: prove the output is actually disjoint before writing."""
     keysets = {n: {dedup_key(r[0]) for r in rows} for n, rows in splits.items()}
@@ -271,6 +324,12 @@ def main():
     if not verify_disjoint(splits):
         sys.exit("splits are not disjoint -- aborting, nothing written")
     print("  OK: no key appears in more than one split")
+
+    print("\nverifying the splits are not degenerate")
+    if not verify_not_degenerate(splits, clusters,
+                                 (args.train, args.dev, args.test), len(rows)):
+        sys.exit("splits are degenerate -- aborting, nothing written")
+    print("  OK: every split is populated and close to its requested share")
 
     out = Path(args.outdir)
     out.mkdir(parents=True, exist_ok=True)
