@@ -1,0 +1,58 @@
+[run] data-pipeline started, seed=42
+
+[stage 1] ingest -- provenance and measured counts
+----------------------------------------------------------------
+  source            synthetic
+  path              data/raw/synthetic_n1200_seed42.tsv
+  file mtime (UTC)  2026-10-08T04:20:21+00:00   <- when the file was retrieved/written
+  ingested at (UTC) 2026-10-08T04:20:21+00:00
+  bytes             117,933
+  sha256            9a99d85b60ac0d767829adf5a6c9b5bfe7b94bfd60dfe7630c85df9723189087
+  columns           english=english, hindi=hindi, hinglish=hinglish (from header)
+  rows in file      1,200   <- measured
+  records           1,200   <- one per Hinglish reference
+  note              no Devanagari Hindi column in this input
+
+[stage 2] clean -- six filters, attrition, language tags
+----------------------------------------------------------------
+  filter                 in  removed     out     % rm
+  ---------------------------------------------------
+  missing_field       1,200       31   1,169    2.58%
+  not_romanized       1,169       17   1,152    1.45%
+  untranslated        1,152       28   1,124    2.43%
+  length_bounds       1,124       14   1,110    1.25%
+  length_ratio        1,110       13   1,097    1.17%
+  exact_duplicate     1,097       93   1,004    8.48%
+  ---------------------------------------------------
+  ingested 1,200 -> kept 1,004 (196 removed)
+
+[stage 3] split -- dedupe, disjoint splits, leakage gate, manifests
+----------------------------------------------------------------
+  sources 839 -> 673 groups (166 merged as near-duplicates, 217 verified pairs; largest group 19)
+  train     801 records
+  dev       100 records
+  test      103 records
+  leakage gate PASSED: 839 sources checked at Jaccard >= 0.7 -- 0 exact, 0 near-duplicate overlaps
+  train  sha256 67d8f9841677377db310d06ee4598e8988b8a9581305f3bb4403231bb4fc80ff
+  dev    sha256 882f56d819a808a3d8abd69dada8cffd992e7e0681aea9e6fe02a2d8e86b8a7d
+  test   sha256 de454f0cc74c7310d2a59ece273546c28ee38513290fd37d6d21660dab5d80a1
+  manifest -> /private<fresh-clone-2>/data/processed/manifests/synthetic_split_manifest.json
+
+[stage 4] eda -- statistics, spelling variance, figures
+----------------------------------------------------------------
+  records           1,004 across train 801, dev 100, test 103
+  refs per source   1.20 mean
+  length (words)    English mean 8.2 / median 8.0   Hinglish mean 8.0 / median 8.0
+  vocabulary        Hinglish 214 types / 8,033 tokens (TTR 0.027)
+  tagger coverage   99.3% of word tokens resolved to lang1/lang2
+  CMI               25.22 mean, 100.0% of sentences mixed
+  SPF               0.4651   M-index 0.6026
+  spelling variance 23/72 lexicon groups seen, 23 with 2+ spellings, 37.1% of their occurrences non-canonical
+  figure -> reports/figures/fig1_sentence_lengths.png
+  figure -> reports/figures/fig2_cmi_distribution.png
+  figure -> reports/figures/fig3_switch_point_fraction.png
+  figure -> reports/figures/fig4_spelling_variants.png
+  statistics -> /private<fresh-clone-2>/reports/data_statistics.json
+
+pipeline OK in 1.6s  (ingest 0.0s, clean 0.0s, split 1.1s, eda 0.4s)
+[run] data-pipeline ok in 0.000 GPU-hours -> /private<fresh-clone-2>/runs/20261008T042021Z_data-pipeline_seed42.json

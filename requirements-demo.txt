@@ -1,0 +1,6 @@
+# CPU-only pipeline / rehearsal checks; does not validate the training stack.
+# scripts/run_pipeline.py becomes available when 298-38 lands.
+matplotlib==3.9.4
+numpy==1.26.4
+sacrebleu==2.6.0
+pytest==8.4.2
