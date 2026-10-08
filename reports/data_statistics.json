@@ -1,7 +1,7 @@
 {
-  "source": "synthetic",
-  "synthetic": true,
-  "generated_at": "2026-10-08T04:14:20+00:00",
+  "source": "hinge",
+  "synthetic": false,
+  "generated_at": "2026-10-08T04:32:18+00:00",
   "params": {
     "seed": 42,
     "dup_threshold": 0.7,
@@ -22,26 +22,21 @@
     }
   },
   "provenance": {
-    "source": "synthetic",
-    "path": "data/raw/synthetic_n1200_seed42.tsv",
-    "file_mtime": "2026-10-08T04:14:19+00:00",
-    "ingested_at": "2026-10-08T04:14:19+00:00",
-    "bytes": 117933,
-    "sha256": "9a99d85b60ac0d767829adf5a6c9b5bfe7b94bfd60dfe7630c85df9723189087",
+    "source": "hinge",
+    "path": "data/raw/hinge.csv",
+    "file_mtime": "2026-10-08T04:30:48+00:00",
+    "ingested_at": "2026-10-08T04:32:08+00:00",
+    "bytes": 1591630,
+    "sha256": "dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3",
     "column_mapping": {
-      "english": "english",
-      "hindi": "hindi",
-      "hinglish": "hinglish"
+      "english": "English",
+      "hindi": "Hindi",
+      "hinglish": "Human-generated Hinglish"
     },
     "mapping_inferred_from": "header",
-    "rows_in_file": 1200,
-    "records": 1200,
-    "hindi_present": false,
-    "synthetic": {
-      "n": 1200,
-      "seed": 42,
-      "generator": "lrcs.data.synthetic"
-    }
+    "rows_in_file": 1976,
+    "records": 4799,
+    "hindi_present": true
   },
   "attrition": {
     "params": {
@@ -50,449 +45,423 @@
       "max_ratio": 3.0,
       "max_devanagari": 0.2
     },
-    "ingested": 1200,
-    "kept": 1004,
-    "removed_total": 196,
+    "ingested": 4799,
+    "kept": 4674,
+    "removed_total": 125,
     "table": [
       {
         "filter": "missing_field",
-        "in": 1200,
-        "removed": 31,
-        "out": 1169,
-        "pct_removed": 2.58,
-        "examples": [
-          "3805a39055c6e1f8",
-          "0671b391b7caa7ad",
-          "a3a768b0bd657f71"
-        ]
+        "in": 4799,
+        "removed": 0,
+        "out": 4799,
+        "pct_removed": 0.0,
+        "examples": []
       },
       {
         "filter": "not_romanized",
-        "in": 1169,
-        "removed": 17,
-        "out": 1152,
-        "pct_removed": 1.45,
+        "in": 4799,
+        "removed": 25,
+        "out": 4774,
+        "pct_removed": 0.52,
         "examples": [
-          "541cb2b416f87da7",
-          "6ba331036246e5a8",
-          "32aff8173c928e63"
+          "aac61091e3fa9cd4",
+          "4179c759dc734cf5",
+          "c7b7363d5982a61f"
         ]
       },
       {
         "filter": "untranslated",
-        "in": 1152,
-        "removed": 28,
-        "out": 1124,
-        "pct_removed": 2.43,
-        "examples": [
-          "cc0246ebb569c65d",
-          "ea1913c9d3c5ce17",
-          "bcba7f19bb80fe50"
-        ]
+        "in": 4774,
+        "removed": 0,
+        "out": 4774,
+        "pct_removed": 0.0,
+        "examples": []
       },
       {
         "filter": "length_bounds",
-        "in": 1124,
-        "removed": 14,
-        "out": 1110,
-        "pct_removed": 1.25,
+        "in": 4774,
+        "removed": 87,
+        "out": 4687,
+        "pct_removed": 1.82,
         "examples": [
-          "e917e81a9034f055",
-          "1ab54d78651c5f70",
-          "27f44cc6ce373bc9"
+          "98fa6da9f1f2fb18",
+          "6906e032e927add2",
+          "346511d591a901c7"
         ]
       },
       {
         "filter": "length_ratio",
-        "in": 1110,
-        "removed": 13,
-        "out": 1097,
-        "pct_removed": 1.17,
+        "in": 4687,
+        "removed": 11,
+        "out": 4676,
+        "pct_removed": 0.23,
         "examples": [
-          "b1458d1f198d08da",
-          "b3c3c28e91911acf",
-          "7af2dd5c5453f6e3"
+          "797dcaa76c76cfa3",
+          "359f78cc3349f06b",
+          "507de2258f8e8973"
         ]
       },
       {
         "filter": "exact_duplicate",
-        "in": 1097,
-        "removed": 93,
-        "out": 1004,
-        "pct_removed": 8.48,
+        "in": 4676,
+        "removed": 2,
+        "out": 4674,
+        "pct_removed": 0.04,
         "examples": [
-          "3d35f02c4c2a8921",
-          "8f48c401fe921eef",
-          "5a439ac789a3dceb"
+          "b0e23483d3cbdf22",
+          "c0474c83aeb9960b"
         ]
       }
     ]
   },
   "splits": {
     "train": {
-      "records": 801,
-      "unique_sources": 669,
-      "groups": 537
+      "records": 3738,
+      "unique_sources": 1549,
+      "groups": 1549
     },
     "dev": {
-      "records": 100,
-      "unique_sources": 81,
-      "groups": 69
+      "records": 468,
+      "unique_sources": 192,
+      "groups": 192
     },
     "test": {
-      "records": 103,
-      "unique_sources": 89,
-      "groups": 67
+      "records": 468,
+      "unique_sources": 197,
+      "groups": 196
     }
   },
   "grouping": {
-    "unique_sources": 839,
-    "groups": 673,
-    "near_duplicate_pairs": 217,
-    "sources_merged_by_near_dup": 166,
-    "largest_group": 19
+    "unique_sources": 1938,
+    "groups": 1937,
+    "near_duplicate_pairs": 1,
+    "sources_merged_by_near_dup": 1,
+    "largest_group": 8
   },
   "leakage_gate": {
     "passed": true,
     "threshold": 0.7,
-    "sources_checked": 839,
+    "sources_checked": 1938,
     "exact_overlaps": 0,
     "near_overlaps": 0,
     "exact_examples": [],
     "near_examples": [],
     "info_identical_targets_across_splits": 0
   },
-  "manifest": "data/processed/manifests/synthetic_split_manifest.json",
+  "manifest": "data/processed/manifests/hinge_split_manifest.json",
   "lengths_words": {
     "english": {
-      "n": 1004,
-      "mean": 8.206,
-      "median": 8.0,
-      "p95": 10,
-      "min": 6,
-      "max": 11
+      "n": 4674,
+      "mean": 15.237,
+      "median": 12.0,
+      "p95": 37,
+      "min": 3,
+      "max": 60
     },
     "hinglish": {
-      "n": 1004,
-      "mean": 8.001,
-      "median": 8.0,
-      "p95": 11,
-      "min": 5,
-      "max": 12
+      "n": 4674,
+      "mean": 15.868,
+      "median": 12.0,
+      "p95": 39,
+      "min": 2,
+      "max": 60
     },
-    "hinglish_to_english_ratio_mean": 0.982
+    "hinglish_to_english_ratio_mean": 1.062
   },
   "vocabulary": {
-    "english_types": 151,
-    "english_tokens": 8239,
-    "hinglish_types": 214,
-    "hinglish_tokens": 8033,
-    "hinglish_type_token_ratio": 0.0266,
+    "english_types": 6780,
+    "english_tokens": 71217,
+    "hinglish_types": 13204,
+    "hinglish_tokens": 74165,
+    "hinglish_type_token_ratio": 0.178,
     "hinglish_top_20": [
       [
-        "hai",
-        307
+        "the",
+        2131
       ],
       [
         "ke",
-        266
+        1512
       ],
       [
-        "mujhe",
-        178
+        "of",
+        1265
       ],
       [
-        "kar",
-        118
+        "and",
+        1210
       ],
       [
-        "aaj",
-        115
+        "he",
+        1194
       ],
       [
-        "ho",
-        115
+        "to",
+        1140
+      ],
+      [
+        "ki",
+        1125
+      ],
+      [
+        "aur",
+        988
+      ],
+      [
+        "me",
+        906
+      ],
+      [
+        "hai",
+        852
+      ],
+      [
+        "in",
+        756
       ],
       [
         "ko",
-        113
+        753
       ],
       [
-        "shaam",
-        112
+        "is",
+        693
       ],
       [
-        "pe",
-        107
+        "a",
+        629
       ],
       [
-        "mein",
-        103
+        "se",
+        612
       ],
       [
-        "kya",
-        97
+        "ka",
+        575
       ],
       [
-        "raha",
-        94
+        "liye",
+        399
       ],
       [
-        "nahi",
-        93
+        "par",
+        364
       ],
       [
-        "hain",
-        87
+        "for",
+        333
       ],
       [
-        "karna",
-        81
-      ],
-      [
-        "abhi",
-        77
-      ],
-      [
-        "lunch",
-        76
-      ],
-      [
-        "baad",
-        76
-      ],
-      [
-        "monday",
-        74
-      ],
-      [
-        "bahut",
-        71
+        "you",
+        317
       ]
     ]
   },
   "references_per_source": {
-    "mean": 1.197,
+    "mean": 2.412,
     "distribution": {
-      "1": 697,
-      "2": 124,
-      "3": 14,
-      "4": 3,
-      "5": 1
+      "1": 26,
+      "2": 1470,
+      "3": 166,
+      "4": 210,
+      "5": 37,
+      "6": 21,
+      "7": 5,
+      "8": 3
     }
   },
   "code_mixing": {
-    "n_sentences": 1004,
+    "n_sentences": 4674,
     "tag_counts": {
-      "lang1": 2003,
-      "lang2": 5976,
-      "other": 1102,
-      "unk": 54
+      "ambiguous": 3324,
+      "lang1": 35618,
+      "lang2": 14344,
+      "ne": 632,
+      "other": 10622,
+      "unk": 19382
     },
-    "tagger_coverage": 0.9933,
-    "cmi_mean_all": 25.2235,
-    "cmi_mean_mixed_only": 25.2235,
-    "frac_sentences_mixed": 1.0,
-    "switch_point_fraction": 0.4651,
-    "spf_mean_per_sentence": 0.4761,
-    "n_switch_points": 3244,
-    "m_index": 0.6026,
-    "burstiness": -0.154,
-    "mean_span_length": 1.8783
+    "tagger_coverage": 0.6816,
+    "cmi_mean_all": 25.3438,
+    "cmi_mean_mixed_only": 29.423,
+    "frac_sentences_mixed": 0.8614,
+    "switch_point_fraction": 0.2398,
+    "spf_mean_per_sentence": 0.272,
+    "n_switch_points": 10861,
+    "m_index": 0.693,
+    "burstiness": 0.0558,
+    "mean_span_length": 3.2161
   },
   "spelling_variance": {
     "lexicon_groups": 72,
-    "groups_observed": 23,
-    "groups_with_2plus_forms": 23,
-    "mean_distinct_forms_per_observed_group": 3.348,
-    "lexicon_token_occurrences": 2773,
-    "non_canonical_share_overall": 0.3707,
+    "groups_observed": 68,
+    "groups_with_2plus_forms": 28,
+    "mean_distinct_forms_per_observed_group": 1.5,
+    "lexicon_token_occurrences": 3812,
+    "non_canonical_share_overall": 0.1293,
     "top_groups": [
       {
         "group": "hai",
-        "occurrences": 522,
-        "distinct_forms": 4,
-        "non_canonical_share": 0.4119,
-        "entropy_bits": 1.6235,
-        "forms": {
-          "hai": 307,
-          "hain": 87,
-          "hy": 66,
-          "h": 62
-        }
-      },
-      {
-        "group": "mujhe",
-        "occurrences": 301,
+        "occurrences": 934,
         "distinct_forms": 3,
-        "non_canonical_share": 0.4086,
-        "entropy_bits": 1.3811,
+        "non_canonical_share": 0.0878,
+        "entropy_bits": 0.5138,
         "forms": {
-          "mujhe": 178,
-          "muje": 68,
-          "mjhe": 55
-        }
-      },
-      {
-        "group": "aaj",
-        "occurrences": 185,
-        "distinct_forms": 3,
-        "non_canonical_share": 0.3784,
-        "entropy_bits": 1.3272,
-        "forms": {
-          "aaj": 115,
-          "aj": 41,
-          "aajj": 29
-        }
-      },
-      {
-        "group": "kar",
-        "occurrences": 177,
-        "distinct_forms": 3,
-        "non_canonical_share": 0.3333,
-        "entropy_bits": 1.2516,
-        "forms": {
-          "kar": 118,
-          "kr": 30,
-          "karr": 29
-        }
-      },
-      {
-        "group": "kya",
-        "occurrences": 161,
-        "distinct_forms": 4,
-        "non_canonical_share": 0.3975,
-        "entropy_bits": 1.5924,
-        "forms": {
-          "kya": 97,
-          "kyaaa": 26,
-          "kia": 20,
-          "kyaa": 18
+          "hai": 852,
+          "h": 50,
+          "hain": 32
         }
       },
       {
         "group": "nahi",
-        "occurrences": 150,
-        "distinct_forms": 6,
-        "non_canonical_share": 0.38,
-        "entropy_bits": 1.827,
-        "forms": {
-          "nahi": 93,
-          "nai": 14,
-          "nahin": 13,
-          "nahii": 12,
-          "nhi": 11,
-          "nahee": 7
-        }
-      },
-      {
-        "group": "raha",
-        "occurrences": 146,
+        "occurrences": 350,
         "distinct_forms": 3,
-        "non_canonical_share": 0.3562,
-        "entropy_bits": 1.2895,
+        "non_canonical_share": 0.1457,
+        "entropy_bits": 0.7183,
         "forms": {
-          "raha": 94,
-          "rahaa": 30,
-          "rha": 22
+          "nahi": 299,
+          "nhi": 38,
+          "nai": 13
         }
       },
       {
-        "group": "abhi",
-        "occurrences": 121,
-        "distinct_forms": 3,
-        "non_canonical_share": 0.3636,
-        "entropy_bits": 1.3071,
-        "forms": {
-          "abhi": 77,
-          "abi": 24,
-          "abhee": 20
-        }
-      },
-      {
-        "group": "karna",
-        "occurrences": 118,
-        "distinct_forms": 3,
-        "non_canonical_share": 0.3136,
-        "entropy_bits": 1.2106,
-        "forms": {
-          "karna": 81,
-          "karnaa": 19,
-          "krna": 18
-        }
-      },
-      {
-        "group": "bahut",
-        "occurrences": 113,
-        "distinct_forms": 5,
-        "non_canonical_share": 0.3717,
-        "entropy_bits": 1.683,
-        "forms": {
-          "bahut": 71,
-          "bahot": 13,
-          "bhot": 11,
-          "bahutt": 11,
-          "bht": 7
-        }
-      },
-      {
-        "group": "hum",
-        "occurrences": 82,
-        "distinct_forms": 3,
-        "non_canonical_share": 0.3659,
-        "entropy_bits": 1.2834,
-        "forms": {
-          "hum": 52,
-          "humm": 20,
-          "hm": 10
-        }
-      },
-      {
-        "group": "kal",
-        "occurrences": 76,
+        "group": "kar",
+        "occurrences": 226,
         "distinct_forms": 2,
-        "non_canonical_share": 0.2632,
-        "entropy_bits": 0.8315,
+        "non_canonical_share": 0.0487,
+        "entropy_bits": 0.2807,
         "forms": {
-          "kal": 56,
-          "kl": 20
+          "kar": 215,
+          "kr": 11
         }
       },
       {
-        "group": "raat",
-        "occurrences": 75,
-        "distinct_forms": 3,
-        "non_canonical_share": 0.4133,
-        "entropy_bits": 1.3888,
+        "group": "tha",
+        "occurrences": 156,
+        "distinct_forms": 2,
+        "non_canonical_share": 0.0128,
+        "entropy_bits": 0.099,
         "forms": {
-          "raat": 44,
-          "rat": 17,
-          "raatt": 14
+          "tha": 154,
+          "th": 2
         }
       },
       {
-        "group": "subah",
-        "occurrences": 67,
-        "distinct_forms": 3,
-        "non_canonical_share": 0.3881,
-        "entropy_bits": 1.3499,
+        "group": "gaya",
+        "occurrences": 125,
+        "distinct_forms": 2,
+        "non_canonical_share": 0.112,
+        "entropy_bits": 0.5059,
         "forms": {
-          "subah": 41,
-          "subha": 14,
-          "sbh": 12
+          "gaya": 111,
+          "gya": 14
         }
       },
       {
         "group": "tum",
-        "occurrences": 62,
-        "distinct_forms": 4,
-        "non_canonical_share": 0.3065,
-        "entropy_bits": 1.3696,
+        "occurrences": 119,
+        "distinct_forms": 2,
+        "non_canonical_share": 0.0756,
+        "entropy_bits": 0.3866,
         "forms": {
-          "tum": 43,
-          "tu": 7,
-          "tw": 7,
-          "tumm": 5
+          "tum": 110,
+          "tu": 9
+        }
+      },
+      {
+        "group": "koi",
+        "occurrences": 113,
+        "distinct_forms": 1,
+        "non_canonical_share": 0.0,
+        "entropy_bits": -0.0,
+        "forms": {
+          "koi": 113
+        }
+      },
+      {
+        "group": "aap",
+        "occurrences": 112,
+        "distinct_forms": 2,
+        "non_canonical_share": 0.0089,
+        "entropy_bits": 0.0736,
+        "forms": {
+          "aap": 111,
+          "ap": 1
+        }
+      },
+      {
+        "group": "hum",
+        "occurrences": 112,
+        "distinct_forms": 1,
+        "non_canonical_share": 0.0,
+        "entropy_bits": -0.0,
+        "forms": {
+          "hum": 112
+        }
+      },
+      {
+        "group": "na",
+        "occurrences": 104,
+        "distinct_forms": 1,
+        "non_canonical_share": 0.0,
+        "entropy_bits": -0.0,
+        "forms": {
+          "na": 104
+        }
+      },
+      {
+        "group": "kuch",
+        "occurrences": 98,
+        "distinct_forms": 3,
+        "non_canonical_share": 0.3673,
+        "entropy_bits": 1.0159,
+        "forms": {
+          "kuch": 62,
+          "kuchh": 35,
+          "kucch": 1
+        }
+      },
+      {
+        "group": "diya",
+        "occurrences": 88,
+        "distinct_forms": 1,
+        "non_canonical_share": 0.0,
+        "entropy_bits": -0.0,
+        "forms": {
+          "diya": 88
+        }
+      },
+      {
+        "group": "kahan",
+        "occurrences": 85,
+        "distinct_forms": 3,
+        "non_canonical_share": 0.9059,
+        "entropy_bits": 0.717,
+        "forms": {
+          "kaha": 73,
+          "kahan": 8,
+          "khan": 4
+        }
+      },
+      {
+        "group": "karna",
+        "occurrences": 85,
+        "distinct_forms": 2,
+        "non_canonical_share": 0.0588,
+        "entropy_bits": 0.3228,
+        "forms": {
+          "karna": 80,
+          "krna": 5
+        }
+      },
+      {
+        "group": "phir",
+        "occurrences": 82,
+        "distinct_forms": 2,
+        "non_canonical_share": 0.7683,
+        "entropy_bits": 0.781,
+        "forms": {
+          "fir": 63,
+          "phir": 19
         }
       }
     ]
@@ -504,10 +473,10 @@
     "variants": "reports/figures/fig4_spelling_variants.png"
   },
   "timings_seconds": {
-    "ingest": 0.01,
-    "clean": 0.02,
-    "split": 0.76,
-    "eda": 0.4
+    "ingest": 0.23,
+    "clean": 0.54,
+    "split": 9.16,
+    "eda": 2.02
   },
-  "elapsed_seconds": 1.2
+  "elapsed_seconds": 11.96
 }
