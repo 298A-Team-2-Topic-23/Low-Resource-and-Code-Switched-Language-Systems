@@ -262,9 +262,12 @@ prints the run table and the total GPU-hours against the 80–145 budget. This i
 evidences the compute claim in the report, so **log every training run in the same commit as
 the run**.
 
-Budget: 120–170 GPU-hours across both semesters plus ~20 for inference and evaluation, on
-40GB-class cards, one training job per GPU. Continued pretraining and synthetic data
-generation count *inside* the budget of the model that uses them.
+Budget: **80–145 GPU-hours** across both semesters, with a **130 GPU-hour planning
+target**, including inference, evaluation, controls and retries, on 40GB-class cards.
+Jobs are independent and single-GPU. Continued pretraining and synthetic generation
+count inside the allocation of the model that uses them. See
+[Workbook 1 resources and schedule](docs/workbook1/section_2_3_2_4.md) for the
+resource gap, cost assumptions, Gantt and critical-path PERT.
 
 ---
 
