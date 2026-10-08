@@ -1,0 +1,39 @@
+
+[stage 1] ingest -- provenance and measured counts
+----------------------------------------------------------------
+  source            synthetic
+  path              leak-check/raw/synthetic_n1200_seed42.tsv
+  file mtime (UTC)  2026-10-08T04:21:01+00:00   <- when the file was retrieved/written
+  ingested at (UTC) 2026-10-08T04:21:01+00:00
+  bytes             117,933
+  sha256            9a99d85b60ac0d767829adf5a6c9b5bfe7b94bfd60dfe7630c85df9723189087
+  columns           english=english, hindi=hindi, hinglish=hinglish (from header)
+  rows in file      1,200   <- measured
+  records           1,200   <- one per Hinglish reference
+  note              no Devanagari Hindi column in this input
+
+[stage 2] clean -- six filters, attrition, language tags
+----------------------------------------------------------------
+  filter                 in  removed     out     % rm
+  ---------------------------------------------------
+  missing_field       1,200       31   1,169    2.58%
+  not_romanized       1,169       17   1,152    1.45%
+  untranslated        1,152       28   1,124    2.43%
+  length_bounds       1,124       14   1,110    1.25%
+  length_ratio        1,110       13   1,097    1.17%
+  exact_duplicate     1,097       93   1,004    8.48%
+  ---------------------------------------------------
+  ingested 1,200 -> kept 1,004 (196 removed)
+
+[stage 3] split -- dedupe, disjoint splits, leakage gate, manifests
+----------------------------------------------------------------
+  sources 839 -> 673 groups (166 merged as near-duplicates, 217 verified pairs; largest group 19)
+  train     801 records
+  dev       100 records
+  test      103 records
+  DEMO: injected 1 test source(s) into train
+  leakage gate HALTED: 839 sources checked at Jaccard >= 0.7 -- 1 exact, 1 near-duplicate overlaps
+    exact: 'the bike at the hotel was really confusing'
+    near (0.73): 'the bike at the hotel was really confusing' ~ 'the book at the hotel was really confusing'
+
+HALTED: leakage gate: 1 exact and 1 near-duplicate source(s) shared across splits. No manifest written. That is the gate working; do not bypass it.

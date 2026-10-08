@@ -1,0 +1,269 @@
+{
+  "scope": "Automated CPU synthetic preflight only; not a real-corpus or team rehearsal",
+  "client_date": "2026-10-07",
+  "python": "Python 3.11.14",
+  "dependencies": [
+    "colorama==0.4.6",
+    "contourpy==1.3.3",
+    "cycler==0.12.1",
+    "fonttools==4.66.1",
+    "iniconfig==2.3.1",
+    "kiwisolver==1.5.1",
+    "lxml==6.1.3",
+    "matplotlib==3.9.4",
+    "numpy==1.26.4",
+    "packaging==26.3",
+    "pillow==12.3.0",
+    "pluggy==1.6.0",
+    "portalocker==4.4.0",
+    "pygments==2.21.0",
+    "pyparsing==3.3.3",
+    "pytest==8.4.2",
+    "python-dateutil==2.9.0.post0",
+    "regex==2026.9.29",
+    "sacrebleu==2.6.0",
+    "six==1.17.0",
+    "tabulate==0.10.0"
+  ],
+  "runs": [
+    {
+      "clone": 1,
+      "branch": "jenil/298-38-data-pipeline",
+      "commit": "b7494e5a7db52008fa20bb3c83df9fa76c9b1144",
+      "initial_git_status": "clean",
+      "environment": "Shared CPU-only Python environment; not a fresh full training-stack install",
+      "checks": [
+        {
+          "check": "tests",
+          "command": [
+            "python",
+            "-m",
+            "pytest",
+            "tests/",
+            "-q"
+          ],
+          "started_at": "2026-10-08T04:20:14+00:00",
+          "wall_seconds": 2.719,
+          "returncode": 0,
+          "log": "clone-1-tests.log"
+        },
+        {
+          "check": "repro-selftest",
+          "command": [
+            "python",
+            "common/repro.py",
+            "--selftest"
+          ],
+          "started_at": "2026-10-08T04:20:16+00:00",
+          "wall_seconds": 0.188,
+          "returncode": 0,
+          "log": "clone-1-repro-selftest.log"
+        },
+        {
+          "check": "fertility-selftest",
+          "command": [
+            "python",
+            "analysis/tokenizer_fertility.py",
+            "--selftest"
+          ],
+          "started_at": "2026-10-08T04:20:17+00:00",
+          "wall_seconds": 0.034,
+          "returncode": 0,
+          "log": "clone-1-fertility-selftest.log"
+        },
+        {
+          "check": "pipeline",
+          "command": [
+            "python",
+            "scripts/run_pipeline.py",
+            "--synthetic",
+            "--n-synthetic",
+            "1200",
+            "--seed",
+            "42"
+          ],
+          "started_at": "2026-10-08T04:20:17+00:00",
+          "wall_seconds": 1.765,
+          "returncode": 0,
+          "log": "clone-1-pipeline.log"
+        }
+      ],
+      "observed": {
+        "source": "synthetic",
+        "synthetic": true,
+        "attrition": {
+          "ingested": 1200,
+          "kept": 1004,
+          "removed_total": 196
+        },
+        "splits": {
+          "train": {
+            "records": 801,
+            "unique_sources": 669,
+            "groups": 537
+          },
+          "dev": {
+            "records": 100,
+            "unique_sources": 81,
+            "groups": 69
+          },
+          "test": {
+            "records": 103,
+            "unique_sources": 89,
+            "groups": 67
+          }
+        },
+        "leakage_gate": {
+          "passed": true,
+          "threshold": 0.7,
+          "sources_checked": 839,
+          "exact_overlaps": 0,
+          "near_overlaps": 0,
+          "exact_examples": [],
+          "near_examples": [],
+          "info_identical_targets_across_splits": 0
+        },
+        "figures": {
+          "lengths": "reports/figures/fig1_sentence_lengths.png",
+          "cmi": "reports/figures/fig2_cmi_distribution.png",
+          "spf": "reports/figures/fig3_switch_point_fraction.png",
+          "variants": "reports/figures/fig4_spelling_variants.png"
+        },
+        "elapsed_seconds": 1.55,
+        "timings_seconds": {
+          "ingest": 0.02,
+          "clean": 0.06,
+          "split": 1.05,
+          "eda": 0.42
+        }
+      },
+      "input_sha256": "9a99d85b60ac0d767829adf5a6c9b5bfe7b94bfd60dfe7630c85df9723189087"
+    },
+    {
+      "clone": 2,
+      "branch": "jenil/298-38-data-pipeline",
+      "commit": "b7494e5a7db52008fa20bb3c83df9fa76c9b1144",
+      "initial_git_status": "clean",
+      "environment": "Shared CPU-only Python environment; not a fresh full training-stack install",
+      "checks": [
+        {
+          "check": "tests",
+          "command": [
+            "python",
+            "-m",
+            "pytest",
+            "tests/",
+            "-q"
+          ],
+          "started_at": "2026-10-08T04:20:18+00:00",
+          "wall_seconds": 2.562,
+          "returncode": 0,
+          "log": "clone-2-tests.log"
+        },
+        {
+          "check": "repro-selftest",
+          "command": [
+            "python",
+            "common/repro.py",
+            "--selftest"
+          ],
+          "started_at": "2026-10-08T04:20:21+00:00",
+          "wall_seconds": 0.165,
+          "returncode": 0,
+          "log": "clone-2-repro-selftest.log"
+        },
+        {
+          "check": "fertility-selftest",
+          "command": [
+            "python",
+            "analysis/tokenizer_fertility.py",
+            "--selftest"
+          ],
+          "started_at": "2026-10-08T04:20:21+00:00",
+          "wall_seconds": 0.034,
+          "returncode": 0,
+          "log": "clone-2-fertility-selftest.log"
+        },
+        {
+          "check": "pipeline",
+          "command": [
+            "python",
+            "scripts/run_pipeline.py",
+            "--synthetic",
+            "--n-synthetic",
+            "1200",
+            "--seed",
+            "42"
+          ],
+          "started_at": "2026-10-08T04:20:21+00:00",
+          "wall_seconds": 1.829,
+          "returncode": 0,
+          "log": "clone-2-pipeline.log"
+        }
+      ],
+      "observed": {
+        "source": "synthetic",
+        "synthetic": true,
+        "attrition": {
+          "ingested": 1200,
+          "kept": 1004,
+          "removed_total": 196
+        },
+        "splits": {
+          "train": {
+            "records": 801,
+            "unique_sources": 669,
+            "groups": 537
+          },
+          "dev": {
+            "records": 100,
+            "unique_sources": 81,
+            "groups": 69
+          },
+          "test": {
+            "records": 103,
+            "unique_sources": 89,
+            "groups": 67
+          }
+        },
+        "leakage_gate": {
+          "passed": true,
+          "threshold": 0.7,
+          "sources_checked": 839,
+          "exact_overlaps": 0,
+          "near_overlaps": 0,
+          "exact_examples": [],
+          "near_examples": [],
+          "info_identical_targets_across_splits": 0
+        },
+        "figures": {
+          "lengths": "reports/figures/fig1_sentence_lengths.png",
+          "cmi": "reports/figures/fig2_cmi_distribution.png",
+          "spf": "reports/figures/fig3_switch_point_fraction.png",
+          "variants": "reports/figures/fig4_spelling_variants.png"
+        },
+        "elapsed_seconds": 1.63,
+        "timings_seconds": {
+          "ingest": 0.02,
+          "clean": 0.05,
+          "split": 1.14,
+          "eda": 0.42
+        }
+      },
+      "input_sha256": "9a99d85b60ac0d767829adf5a6c9b5bfe7b94bfd60dfe7630c85df9723189087"
+    }
+  ],
+  "input_sha256_matches": true,
+  "split_output_sha256": {
+    "dev.tsv": "882f56d819a808a3d8abd69dada8cffd992e7e0681aea9e6fe02a2d8e86b8a7d",
+    "test.tsv": "de454f0cc74c7310d2a59ece273546c28ee38513290fd37d6d21660dab5d80a1",
+    "train.tsv": "67d8f9841677377db310d06ee4598e8988b8a9581305f3bb4403231bb4fc80ff"
+  },
+  "failure_drill": {
+    "kind": "Synthetic injected overlap",
+    "exit_code": 3,
+    "wall_seconds": 1.092,
+    "manifest_directory_written": false,
+    "log": "leakage-gate.log"
+  }
+}

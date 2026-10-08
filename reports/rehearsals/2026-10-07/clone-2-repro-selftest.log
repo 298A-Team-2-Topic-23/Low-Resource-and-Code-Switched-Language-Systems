@@ -1,0 +1,3 @@
+[run] selftest started, seed=42
+[run] selftest ok in 0.000 GPU-hours -> /private<fresh-clone-2>/runs/20261008T042021Z_selftest_seed42.json
+selftest OK: seeding deterministic, run log written
