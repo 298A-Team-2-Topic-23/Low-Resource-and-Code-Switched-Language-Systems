@@ -1,0 +1,15 @@
+id,label,owner,duration,deps,ES,EF,LS,LF,float,critical,status
+A,Corpus acquisition,Yash,10,,0,10,2,12,2,True,done
+B,Pre-processing & language ID,Yash,4,A,10,14,12,16,2,True,done
+C,Disjoint split re-derivation,Yash,3,B,14,17,16,19,2,True,done
+D,Tokenizer fertility + CMI statistics,Sarvesh,8,A,10,18,35,43,25,False,done
+E,Annotation guidelines + 50-item pilot,Jenil,10,A,10,20,13,23,3,False,progress
+F,Evaluation harness,Shibin,3,C,17,20,19,22,2,True,progress
+G,800-item gold set,Jenil,20,E,20,40,23,43,3,False,planned
+H,Baseline reproduction,Shibin,10,F,20,30,22,32,2,True,planned
+I,Model 1 zero-shot,Sarvesh,5,F,20,25,27,32,7,False,progress
+J,Model 2 QLoRA,Sarvesh,8,H I,30,38,32,40,2,True,planned
+K,Serving + interface,Prakhar,12,F,20,32,28,40,8,False,planned
+L,Cloud deploy + clone test,Prakhar,3,J K,38,41,40,43,2,True,planned
+M,Failure study + ablation,Sarvesh,10,L G D,41,51,43,53,2,True,planned
+N,Final report + 298B plan,Jenil,7,M,51,58,53,60,2,True,planned
