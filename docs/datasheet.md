@@ -5,10 +5,14 @@ HinGE, the IIT Bombay English–Hindi Parallel Corpus, Samanantar, and
 Dakshina. Written before ingestion (CLAUDE.md section 4/9: licence text
 for every source is recorded in the datasheet before ingestion).
 
+The data-management plan that cites this datasheet is
+[`docs/workbook1/section_2_1.md`](workbook1/section_2_1.md) (298-35).
+
 Out of scope here: the MixMT 2022 Subtask-1 test set (baseline
 reproduction, owned separately) and the team-authored 800-item eval set
 (released by us, not sourced externally). Both still need an entry in
-this datasheet from whoever owns them.
+this datasheet from whoever owns them. The plan in section 2.1 records
+them as not yet ingested, so the gap stays visible.
 
 ## 1. HinGE
 
@@ -37,12 +41,13 @@ this datasheet from whoever owns them.
   goes in the final report). 1,973 of the 1,976 English sources are
   unique — three sentences appear twice in the base file with separate
   annotations.
-- **What we use as the primary corpus.** `HinGE.pkl` flattened to one
-  row per available Hinglish variant (human refs, WAC, PAC) —
-  1,976 × (avg. 2.43 human refs + WAC + PAC) = 8,751 rows in
-  `data/raw/hinge_base.tsv` (gitignored, not committed). This, not the
-  shared-task CSVs below, is what CLAUDE.md's data table means by
-  "primary parallel supervision, 1,976 En–Hi pairs."
+- **What we use as the primary corpus.** The committed pipeline reads
+  `data/raw/hinge.csv` and expands only the human-generated Hinglish
+  column: 1,976 rows, 4,799 references, 4,674 after the six cleaning
+  filters. WAC and PAC are in the release and are not training targets.
+  An earlier note in this datasheet described an 8,751-row flattening
+  (human references plus WAC and PAC) at `data/raw/hinge_base.tsv`.
+  That file is not an input to `scripts/run_pipeline.py`.
 - **Licensing — unresolved, flagged for the team.** No licence is
   stated on the download page, in the paper, or in the AI4Bharat
   catalog entry that links it (`AI4Bharat/indicnlp_catalog#213`). The
@@ -59,21 +64,24 @@ this datasheet from whoever owns them.
   (2,766 / 395 / 791 rows — English, Hindi, Hinglish, average rating,
   disagreement — reusing HinGE's English sources with different,
   single Hinglish outputs and human quality ratings, hosted at the same
-  Drive link). **These are not disjoint**: our audit
-  (`python scripts/make_splits.py --audit
-  data/raw/hinge_released_train.tsv data/raw/hinge_released_dev.tsv`)
-  found 285 of dev's 376 unique English sources (75.8%) also present in
-  train. We do not use these released splits anywhere in this project.
-- **Split derivation.** See `data/processed/manifests/hinge_split_manifest.json`.
-  Our own train/dev/test splits (7004 / 867 / 880 rows over the
-  flattened base corpus, seed 42) were derived from the primary HinGE
-  corpus, with whole near-duplicate clusters assigned to a single
-  split. Near-duplicate grouping uses exact normalised match (NFKC,
-  lowercase, punctuation stripped) **and** MinHash/LSH over character
-  4-gram shingles (128 permutations, Jaccard threshold 0.7) — exact
-  match alone found 1,973 unique English sources; MinHash merged one
-  additional pair that exact match missed. Verified disjoint before
-  writing.
+  Drive link). **These are not disjoint**: the audit on 25 September
+  2026 found 285 of dev's 376 unique English sources (75.8%) also
+  present in train. The script that ran that audit is not on `main`.
+  The finding stands, and we do not use these released splits anywhere
+  in this project.
+- **Split derivation.** See `data/processed/manifests/hinge_split_manifest.json`,
+  produced by `scripts/run_pipeline.py` from the cleaned human-reference
+  pairs (seed 42). The splits are **3,738 / 468 / 468** records over
+  1,938 unique English sources grouped into 1,937 near-duplicate
+  clusters. Near-duplicate grouping uses exact normalised match (NFKC,
+  lowercase, punctuation stripped) and exact Jaccard of character
+  4-gram shingles at 0.7. MinHash (96 permutations) only proposes
+  candidates; every merge is verified exactly. The leakage gate passed
+  with 0 exact and 0 near-duplicate overlaps. An earlier derivation
+  (7,004 / 867 / 880 rows, 128 permutations, over a human-plus-WAC-plus-PAC
+  flattening) is on the unmerged branch `yash/298-11-hinge-splits` and
+  is not the split this project uses. This paragraph used to quote
+  those older counts against this manifest; it now matches the file.
 - **Intended use.** Source of English→Hinglish reference pairs for
   training and evaluating M1–M4, and as the gold set from which the
   team-authored 800-item three-column set is derived.
