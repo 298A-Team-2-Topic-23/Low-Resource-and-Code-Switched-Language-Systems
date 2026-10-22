@@ -1,0 +1,48 @@
+{
+  "name": "model2-qlora-0shot",
+  "seed": 13,
+  "started_at": "2026-10-22T21:38:57+00:00",
+  "elapsed_seconds": 20.2,
+  "n_gpus": 1,
+  "gpu_hours": 0.006,
+  "status": "ok",
+  "error": null,
+  "config": {
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "shots": 0,
+    "n_src": 48,
+    "max_new_tokens": 128,
+    "decoding": "greedy",
+    "adapter": "out/m2-seed13"
+  },
+  "metrics": {
+    "sentences": 48,
+    "empty_generations": 0,
+    "outputs_with_devanagari": 0
+  },
+  "notes": [
+    "adapter: out/m2-seed13",
+    "greedy decoding, 0-shot"
+  ],
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",
+    "host": "faa0937d1266",
+    "git_commit": "2b41b95c074a8bc8bb725d95690d9f9b436e49dd-dirty",
+    "gpu": {
+      "name": "Tesla T4",
+      "count": 1,
+      "cuda": "13.0"
+    },
+    "packages": {
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.6",
+      "accelerate": "1.10.1",
+      "peft": "0.17.1",
+      "bitsandbytes": "0.50.2",
+      "sacrebleu": "2.6.0",
+      "numpy": "2.1.3"
+    },
+    "slurm_job_id": null
+  }
+}

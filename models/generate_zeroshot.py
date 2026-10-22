@@ -116,6 +116,12 @@ def main():
     ap.add_argument("--max-new-tokens", type=int, default=128)
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument(
+        "--adapter",
+        help="path to a trained LoRA/QLoRA adapter. With it this script scores an "
+             "adapted arm (M2) instead of the zero-shot baseline (M1); the prompt and "
+             "decoding stay identical so the two are comparable",
+    )
+    ap.add_argument(
         "--dry-run",
         action="store_true",
         help="print the prompt for the first source line and exit, no model loaded",
@@ -159,13 +165,15 @@ def main():
     except ImportError:
         sys.exit("pip install torch transformers accelerate")
 
-    name = "model1-{}shot".format(args.shots)
+    name = ("model2-qlora-{}shot".format(args.shots) if args.adapter
+            else "model1-{}shot".format(args.shots))
     cfg = {
         "model": args.model,
         "shots": args.shots,
         "n_src": len(srcs),
         "max_new_tokens": args.max_new_tokens,
         "decoding": "greedy",
+        "adapter": args.adapter,
     }
 
     with RunLogger(name, seed=args.seed, config=cfg) as run:
@@ -177,6 +185,18 @@ def main():
         model = AutoModelForCausalLM.from_pretrained(
             args.model, torch_dtype=torch.bfloat16, device_map="auto"
         )
+        if args.adapter:
+            # M2 and later arms are the same base model plus an adapter. Loading it here
+            # rather than in a separate script keeps the prompt, the chat template and the
+            # decoding settings identical to M1, which is what makes the comparison a
+            # comparison.
+            try:
+                from peft import PeftModel
+            except ImportError:
+                sys.exit("--adapter needs peft: pip install -r requirements.txt")
+            model = PeftModel.from_pretrained(model, args.adapter)
+            run.note("adapter: {}".format(args.adapter))
+            print("loaded adapter {}".format(args.adapter))
         model.eval()
 
         outs, t0 = [], time.time()
