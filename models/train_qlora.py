@@ -190,12 +190,23 @@ def main():
     # on it outright, which is a failure three minutes into a run that has already
     # downloaded the weights.
     has_cuda = torch.cuda.is_available()
-    use_bf16 = has_cuda and torch.cuda.is_bf16_supported()
+    # is_bf16_supported() counts EMULATED bf16 by default, so a T4 answers True and then
+    # trains through a slow software path. Ask for native support only; Turing falls back
+    # to fp16, which it does have silicon for.
+    if has_cuda:
+        try:
+            native_bf16 = torch.cuda.is_bf16_supported(including_emulation=False)
+        except TypeError:                      # torch too old for the keyword
+            native_bf16 = torch.cuda.get_device_capability()[0] >= 8
+    else:
+        native_bf16 = False
+    use_bf16 = has_cuda and native_bf16
     use_fp16 = has_cuda and not use_bf16
     compute_dtype = torch.bfloat16 if use_bf16 else torch.float16
     if has_cuda:
-        print("precision: {} on {}".format(
-            "bf16" if use_bf16 else "fp16", torch.cuda.get_device_name(0)))
+        cap = torch.cuda.get_device_capability()
+        print("precision: {} on {} (sm_{}{})".format(
+            "bf16" if use_bf16 else "fp16", torch.cuda.get_device_name(0), cap[0], cap[1]))
     else:
         print("precision: fp32 (no CUDA) -- this is a code-path check, not a real run")
 
