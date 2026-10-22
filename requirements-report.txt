@@ -1,0 +1,2 @@
+# Progress Report 2 assembly [298-50]: scripts/build_progress_report.py
+python-docx==1.2.0
