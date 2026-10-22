@@ -185,18 +185,33 @@ def main():
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
 
+    # Precision is chosen from the card, not assumed. bf16 needs Ampere or newer
+    # (compute capability 8.0+); a T4 is Turing and TrainingArguments rejects bf16=True
+    # on it outright, which is a failure three minutes into a run that has already
+    # downloaded the weights.
+    has_cuda = torch.cuda.is_available()
+    use_bf16 = has_cuda and torch.cuda.is_bf16_supported()
+    use_fp16 = has_cuda and not use_bf16
+    compute_dtype = torch.bfloat16 if use_bf16 else torch.float16
+    if has_cuda:
+        print("precision: {} on {}".format(
+            "bf16" if use_bf16 else "fp16", torch.cuda.get_device_name(0)))
+    else:
+        print("precision: fp32 (no CUDA) -- this is a code-path check, not a real run")
+
     quant = None if args.no_4bit else BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_compute_dtype=compute_dtype,
     )
 
     cfg = {
         "model": args.model, "seed": args.seed, "rank": args.rank, "alpha": args.alpha,
         "dropout": args.dropout, "lr": args.lr, "epochs": args.epochs,
         "effective_batch": effective, "max_len": args.max_len,
-        "quantisation": "bf16" if args.no_4bit else "nf4-double",
+        "quantisation": "unquantised" if args.no_4bit else "nf4-double",
+        "precision": "bf16" if use_bf16 else ("fp16" if use_fp16 else "fp32"),
         "target_modules": TARGET_MODULES, "n_train": len(pairs),
     }
 
@@ -205,12 +220,20 @@ def main():
         print("loading {} ...".format(args.model))
         model = AutoModelForCausalLM.from_pretrained(
             args.model, quantization_config=quant,
-            torch_dtype=torch.bfloat16, device_map="auto")
+            torch_dtype=compute_dtype if has_cuda else torch.float32,
+            device_map="auto" if has_cuda else None)
         model.config.use_cache = False          # incompatible with gradient checkpointing
 
         if not args.no_4bit:
             model = prepare_model_for_kbit_training(
                 model, use_gradient_checkpointing=True)
+        else:
+            # Gradient checkpointing severs the backward graph when the base is frozen:
+            # the inputs to each checkpointed block do not require grad, so autograd has
+            # nothing to walk back through and raises "element 0 of tensors does not
+            # require grad". prepare_model_for_kbit_training does this for the quantised
+            # path; the unquantised fallback has to do it itself.
+            model.enable_input_require_grads()
 
         model = get_peft_model(model, LoraConfig(
             r=args.rank, lora_alpha=args.alpha, lora_dropout=args.dropout,
@@ -236,7 +259,8 @@ def main():
             learning_rate=args.lr,
             lr_scheduler_type="cosine",
             warmup_ratio=0.03,
-            bf16=True,
+            bf16=use_bf16,
+            fp16=use_fp16,
             gradient_checkpointing=True,
             logging_steps=10,
             save_strategy="no",
