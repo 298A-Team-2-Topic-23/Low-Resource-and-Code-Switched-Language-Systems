@@ -1,7 +1,8 @@
 # GPU allocation and fallback runbook
 
 Owner: Prakhar Kumar Singh. Issues: [298-10](https://linear.app/298a-team-2-topic-23/issue/298-10)
-and [298-51](https://linear.app/298a-team-2-topic-23/issue/298-51), due 24 October 2026.
+(original due date 26 September) and
+[298-51](https://linear.app/298a-team-2-topic-23/issue/298-51) (due 24 October 2026).
 Prepared 22 October 2026. **Allocation and fallback funding remain unconfirmed.**
 
 ## Obtain a written allocation outcome
