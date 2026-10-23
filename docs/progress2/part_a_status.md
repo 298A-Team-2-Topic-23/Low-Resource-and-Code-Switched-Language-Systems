@@ -82,12 +82,15 @@ blocker in Part D rather than as a documentation gap.
 
 Three rows would be easy to overstate, and are not.
 
-**4.5 First Model Implementation, Complete 25%.** `models/generate_zeroshot.py` is merged
-and its CPU paths are tested, but **no model has been trained and no generation run has
-been scored**. `runs/` contains two pipeline records and no model records. Issue 298-24 was
-previously marked Done without an artifact and is being reset; the scored run is 298-53,
-due 3 November, and the QLoRA fine-tune is 298-54, due 9 November. Both are blocked on GPU
-confirmation (298-51).
+**4.5 First Model Implementation, Complete 25%.** `models/generate_zeroshot.py` and
+`models/train_qlora.py` are merged and their CPU paths are tested, and `runs/` now holds
+four model records from a Tesla T4. **But no model has been trained on the real corpus and
+no scored run exists at three seeds**: those four records are a single-seed smoke test on
+synthetic data with a 0.5B stand-in model, and `docs/COMPUTE_BUDGET.md` states in terms that
+none of it is a reportable result. Issues 298-24 and 298-25 were previously marked Done
+without a result and were reset to In Progress on 23 October under 298-45. The scored run is
+298-53, due 3 November, and the QLoRA fine-tune at three seeds is 298-54, due 9 November.
+Both are blocked on GPU confirmation (298-51).
 
 **4.6 Baseline Reproduction, Complete 10%.** The target is fixed and justified — Gahoi et
 al. (2022), Table 2, ROUGE-L 0.617 — and `evaluation/run_eval.py --check-baseline` enforces
@@ -112,5 +115,7 @@ Percentages were assigned against four questions, applied row by row:
 
 A row was only marked above 80% on Complete if an artifact exists on `main` that a reader
 can open. Issues marked Done on the Linear board without a corresponding artifact were
-treated as incomplete; those six are being reset under 298-45, so that Part C and this
-table agree with each other and with the repository.
+treated as incomplete. Eight such issues were found and reset on 23 October under 298-45 --
+298-10, 298-15, 298-16, 298-17, 298-21, 298-23, 298-24 and 298-25 -- so that Part C, this
+table and the repository agree with each other. The audit is recorded in
+`docs/progress2/board_reset_298-45.md`.
