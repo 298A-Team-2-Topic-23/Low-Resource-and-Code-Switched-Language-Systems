@@ -39,6 +39,10 @@ class UnsafePickleError(RuntimeError):
     pass
 
 
+class MissingPickleError(RuntimeError):
+    """The release is not on this machine. Not a refusal -- nothing was opened."""
+
+
 def _allowed(module, name):
     return (module in ALLOWED_MODULES or module.startswith(ALLOWED_MODULE_PREFIXES)
             or (module, name) in ALLOWED_GLOBALS)
@@ -64,7 +68,16 @@ def sha256_bytes(data):
 
 
 def load_dataframe(path, expected_sha256=None):
-    data = Path(path).read_bytes()
+    path = Path(path)
+    if not path.exists():
+        # lrcs.data.ingest says this properly for the CSV; the converter runs one
+        # step earlier and was dumping a traceback instead.
+        raise MissingPickleError(
+            "{}: not found. The HinGE release is never committed (data/raw/ is "
+            "gitignored). Get HinGE.pkl from a team member who has already "
+            "converted it, or from the authors' release linked in "
+            "docs/datasheet.md, and put it at {}.".format(path, path))
+    data = path.read_bytes()
     digest = sha256_bytes(data)
     if expected_sha256 and digest != expected_sha256.lower():
         raise UnsafePickleError("SHA-256 mismatch for {}: expected {}, got {}".format(
@@ -100,6 +113,9 @@ def main(argv=None):
     args = ap.parse_args(argv)
     try:
         info = convert(args.pkl, args.csv, args.expected_sha256)
+    except MissingPickleError as exc:
+        print("{}".format(exc), file=sys.stderr)
+        return 3
     except (UnsafePickleError, ValueError) as exc:
         print("conversion refused: {}".format(exc), file=sys.stderr)
         return 2
