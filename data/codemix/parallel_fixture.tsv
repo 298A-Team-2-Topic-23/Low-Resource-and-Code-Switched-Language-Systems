@@ -1,0 +1,38 @@
+english	hindi_roman
+# Team-authored English / Romanised-Hindi pairs, written for 298-17 so the
+# code-mixing generator can be tested and demonstrated without a licensed
+# parallel corpus. NOT training data and NOT a corpus: 30 sentences cannot
+# support any claim about distribution. Samanantar and IIT Bombay are the real
+# inputs; both are licence-checked in docs/datasheet.md and neither is in the
+# repository. The Hindi side is deliberately monolingual Romanised Hindi, with
+# no English borrowings, so that every switch the generator makes is its own.
+I am going to the market tomorrow	main kal bazaar ja raha hoon
+She did not finish her work today	usne aaj apna kaam khatam nahi kiya
+The boy is reading a book	ladka ek kitaab padh raha hai
+We will meet near the station	hum station ke paas milenge
+Please give me some water	mujhe thoda paani dijiye
+My brother lives in another city	mera bhai doosre shehar mein rehta hai
+This road is very long	yeh sadak bahut lambi hai
+He bought a new house last year	usne pichle saal naya ghar khareeda
+The food was really good	khana sach mein accha tha
+I do not know her name	mujhe uska naam nahi pata
+They are waiting outside the door	woh darwaze ke bahar intezaar kar rahe hain
+The child is sleeping right now	bachcha abhi so raha hai
+Tell me the truth	mujhe sach batao
+We should leave early in the morning	humein subah jaldi nikalna chahiye
+The weather is hot today	aaj mausam garam hai
+She writes letters to her mother	woh apni maa ko chitthi likhti hai
+The shop closes at nine	dukaan nau baje band hoti hai
+I forgot my keys at home	main apni chabi ghar par bhool gaya
+This question is difficult	yeh sawaal mushkil hai
+He runs faster than me	woh mujhse tez daudta hai
+The teacher explained the lesson again	adhyapak ne paath dobara samjhaya
+We ate rice and vegetables	humne chawal aur sabzi khayi
+Her voice is very sweet	uski aawaz bahut meethi hai
+The train arrives late every day	train har din der se aati hai
+I want to learn music	main sangeet seekhna chahta hoon
+They built a temple on the hill	unhone pahadi par mandir banaya
+The window was open all night	khidki poori raat khuli thi
+My father reads the newspaper daily	mere pita roz akhbaar padhte hain
+She asked a simple question	usne ek saral sawaal poocha
+The river flows near our village	nadi hamare gaon ke paas behti hai
