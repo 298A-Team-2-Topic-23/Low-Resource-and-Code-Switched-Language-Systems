@@ -1,0 +1,109 @@
+{
+  "source": "hinge",
+  "synthetic": false,
+  "tokenizer": "Qwen/Qwen2.5-7B-Instruct",
+  "generated_from": {
+    "statistics": "reports/data_statistics.json",
+    "variants": "reports/fertility.variants.csv"
+  },
+  "groups_measured": 15,
+  "lexicon_groups": 72,
+  "occurrences": 2789,
+  "share_of_lexicon_occurrences": 0.7316,
+  "tokens_per_occurrence": 1.3955,
+  "same_groups_lexicon_burden": 1.7222,
+  "whole_lexicon_burden": 1.8322,
+  "whole_lexicon_mean_per_form": 1.8634,
+  "groups": [
+    {
+      "group": "hai",
+      "occurrences": 934,
+      "tokens_per_occurrence": 1.0343,
+      "lexicon_mean_tokens": 1.25
+    },
+    {
+      "group": "nahi",
+      "occurrences": 350,
+      "tokens_per_occurrence": 1.8914,
+      "lexicon_mean_tokens": 1.8333
+    },
+    {
+      "group": "kar",
+      "occurrences": 226,
+      "tokens_per_occurrence": 1.0,
+      "lexicon_mean_tokens": 1.3333
+    },
+    {
+      "group": "tha",
+      "occurrences": 156,
+      "tokens_per_occurrence": 1.0,
+      "lexicon_mean_tokens": 1.3333
+    },
+    {
+      "group": "gaya",
+      "occurrences": 125,
+      "tokens_per_occurrence": 2.0,
+      "lexicon_mean_tokens": 2.0
+    },
+    {
+      "group": "tum",
+      "occurrences": 119,
+      "tokens_per_occurrence": 1.0,
+      "lexicon_mean_tokens": 1.25
+    },
+    {
+      "group": "koi",
+      "occurrences": 113,
+      "tokens_per_occurrence": 2.0,
+      "lexicon_mean_tokens": 2.3333
+    },
+    {
+      "group": "aap",
+      "occurrences": 112,
+      "tokens_per_occurrence": 1.9911,
+      "lexicon_mean_tokens": 1.6667
+    },
+    {
+      "group": "hum",
+      "occurrences": 112,
+      "tokens_per_occurrence": 1.0,
+      "lexicon_mean_tokens": 1.3333
+    },
+    {
+      "group": "na",
+      "occurrences": 104,
+      "tokens_per_occurrence": 1.0,
+      "lexicon_mean_tokens": 1.5
+    },
+    {
+      "group": "kuch",
+      "occurrences": 98,
+      "tokens_per_occurrence": 2.3571,
+      "lexicon_mean_tokens": 2.25
+    },
+    {
+      "group": "diya",
+      "occurrences": 88,
+      "tokens_per_occurrence": 2.0,
+      "lexicon_mean_tokens": 1.6667
+    },
+    {
+      "group": "kahan",
+      "occurrences": 85,
+      "tokens_per_occurrence": 2.0,
+      "lexicon_mean_tokens": 2.25
+    },
+    {
+      "group": "karna",
+      "occurrences": 85,
+      "tokens_per_occurrence": 2.0,
+      "lexicon_mean_tokens": 2.3333
+    },
+    {
+      "group": "phir",
+      "occurrences": 82,
+      "tokens_per_occurrence": 1.2317,
+      "lexicon_mean_tokens": 1.5
+    }
+  ]
+}
