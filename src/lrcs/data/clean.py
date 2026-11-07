@@ -137,8 +137,14 @@ def _rejection(record, seen, params):
     return None
 
 
-def clean(records, lexicon=None, **overrides):
-    """Returns (kept_records, attrition). Kept records gain a `tags` field."""
+def partition(records, lexicon=None, **overrides):
+    """Returns (kept, removed_by_filter, attrition).
+
+    What clean() computes, except that the rejected records are handed back
+    instead of discarded. The attrition table only carries three ids per filter,
+    which is enough to cite a removal but not to show one; Workbook 2 section 3.3
+    needs the records themselves to present before/after samples (298-62).
+    """
     params = dict(DEFAULTS)
     params.update({k: v for k, v in overrides.items() if v is not None})
     removed = OrderedDict((name, []) for name in FILTER_ORDER)
@@ -174,6 +180,12 @@ def clean(records, lexicon=None, **overrides):
         "removed_total": len(records) - len(kept),
         "table": table,
     }
+    return kept, removed, attrition
+
+
+def clean(records, lexicon=None, **overrides):
+    """Returns (kept_records, attrition). Kept records gain a `tags` field."""
+    kept, _removed, attrition = partition(records, lexicon=lexicon, **overrides)
     return kept, attrition
 
 

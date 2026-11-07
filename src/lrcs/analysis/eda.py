@@ -38,6 +38,34 @@ SERIES_1 = "#2a78d6"   # blue
 SERIES_2 = "#eb6834"   # orange
 
 
+def _stage_table(provenance, attrition, splits, records):
+    """Rows and columns at each pipeline stage, for Workbook 2 section 3.6.
+
+    The template's stage table wants both, and only row counts were recorded.
+    `columns` is the number of fields a record carries at that stage, not the
+    column count of the source file: one source row becomes several records at
+    ingest, so the file's own width stops being meaningful after stage 1. The
+    released file's width is reported separately as `source_file_columns`.
+    """
+    prepared = OrderedDict((name, len(recs)) for name, recs in splits.items())
+    raw_fields = ("id", "english", "hindi", "hinglish", "row", "ref")
+    split_columns = ("id", "group", "english", "hindi", "hinglish")
+    header = provenance.get("header")
+    return OrderedDict([
+        ("source_file_columns", len(header) if header else None),
+        ("source_file_rows", provenance.get("rows_in_file")),
+        ("raw", {"rows": attrition["ingested"], "columns": len(raw_fields),
+                 "fields": list(raw_fields)}),
+        ("preprocessed", {"rows": attrition["kept"],
+                          "columns": len(raw_fields) + 1,
+                          "fields": list(raw_fields) + ["tags"]}),
+        ("transformed", {"rows": len(records), "columns": len(split_columns),
+                         "fields": list(split_columns)}),
+        ("prepared", {"rows": sum(prepared.values()), "columns": len(split_columns),
+                      "by_split": prepared, "fields": list(split_columns)}),
+    ])
+
+
 def _describe(values):
     if not values:
         return {"n": 0}
@@ -123,6 +151,7 @@ def compute_statistics(splits, provenance, attrition, split_info, leakage_report
     stats["grouping"] = split_info
     stats["leakage_gate"] = leakage_report
     stats["manifest"] = repo_relative(manifest_path)
+    stats["stages"] = _stage_table(provenance, attrition, splits, records)
     stats["lengths_words"] = {
         "english": _describe(en_len),
         "hinglish": _describe(hi_len),
