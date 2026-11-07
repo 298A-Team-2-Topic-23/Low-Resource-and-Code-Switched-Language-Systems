@@ -409,7 +409,7 @@ OUTCOMES = [
 
 
 # ------------------------------------------------------------------- rendering
-def build(out: Path):
+def new_document():
     doc = Document()
     sec = doc.sections[0]
     sec.page_width, sec.page_height = Inches(8.5), Inches(11)
@@ -422,6 +422,44 @@ def build(out: Path):
     normal.element.rPr.rFonts.set(qn("w:eastAsia"), FONT)
     normal.paragraph_format.space_after = Pt(6)
     normal.paragraph_format.line_spacing = 1.15
+    return doc
+
+
+def borders(table):
+    el = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        e = OxmlElement("w:" + edge)
+        e.set(qn("w:val"), "single")
+        e.set(qn("w:sz"), "4")
+        e.set(qn("w:space"), "0")
+        e.set(qn("w:color"), "808080")
+        el.append(e)
+    table._tbl.tblPr.append(el)
+
+
+def shade(cell, fill="EFEFEF"):
+    sh = OxmlElement("w:shd")
+    sh.set(qn("w:val"), "clear")
+    sh.set(qn("w:color"), "auto")
+    sh.set(qn("w:fill"), fill)
+    cell._tc.get_or_add_tcPr().append(sh)
+
+
+def write_cell(cell, lines, size=9.5, bold=False, bullets=False):
+    cell.text = ""
+    if isinstance(lines, str):
+        lines = [lines]
+    for i, line in enumerate(lines):
+        p = cell.paragraphs[0] if i == 0 else cell.add_paragraph()
+        p.paragraph_format.space_before = Pt(1)
+        p.paragraph_format.space_after = Pt(1)
+        p.paragraph_format.line_spacing = 1.0
+        run = p.add_run(("• " if bullets else "") + line)
+        run.font.name, run.font.size, run.font.bold = FONT, Pt(size), bold
+
+
+def build(out: Path):
+    doc = new_document()
 
     def para(text="", size=None, bold=False, italic=False, align=None,
              before=None, after=None):
@@ -450,36 +488,6 @@ def build(out: Path):
         run = p.add_run(text)
         run.font.name, run.font.size = FONT, Pt(size)
         return p
-
-    def borders(table):
-        el = OxmlElement("w:tblBorders")
-        for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
-            e = OxmlElement("w:" + edge)
-            e.set(qn("w:val"), "single")
-            e.set(qn("w:sz"), "4")
-            e.set(qn("w:space"), "0")
-            e.set(qn("w:color"), "808080")
-            el.append(e)
-        table._tbl.tblPr.append(el)
-
-    def shade(cell, fill="EFEFEF"):
-        sh = OxmlElement("w:shd")
-        sh.set(qn("w:val"), "clear")
-        sh.set(qn("w:color"), "auto")
-        sh.set(qn("w:fill"), fill)
-        cell._tc.get_or_add_tcPr().append(sh)
-
-    def write_cell(cell, lines, size=9.5, bold=False, bullets=False):
-        cell.text = ""
-        if isinstance(lines, str):
-            lines = [lines]
-        for i, line in enumerate(lines):
-            p = cell.paragraphs[0] if i == 0 else cell.add_paragraph()
-            p.paragraph_format.space_before = Pt(1)
-            p.paragraph_format.space_after = Pt(1)
-            p.paragraph_format.line_spacing = 1.0
-            run = p.add_run(("• " if bullets else "") + line)
-            run.font.name, run.font.size, run.font.bold = FONT, Pt(size), bold
 
     def table(rows, widths, size=9.5, numbered_cols=()):
         t = doc.add_table(rows=len(rows), cols=len(rows[0]))
