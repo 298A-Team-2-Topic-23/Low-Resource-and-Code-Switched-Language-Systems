@@ -7,6 +7,13 @@ data/processed/*
 !data/processed/manifests/
 !data/processed/manifests/**
 
+# Warehouse DB holds sentences (same rule as processed/). Schema and queries
+# are committed; the SQLite file is not.  [298-70]
+data/warehouse/*.sqlite
+data/warehouse/*.sqlite-wal
+data/warehouse/*.sqlite-shm
+data/warehouse/*.duckdb
+
 # Model weights and training byproducts
 *.pt
 *.safetensors
