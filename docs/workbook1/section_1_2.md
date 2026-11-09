@@ -34,7 +34,7 @@ the document and the board can be checked against each other.
 | AI-3 | Statistical significance is established, not assumed | Bootstrap resampling, **1000 samples**; mean ± std over exactly **3** seeds | 298-14 |
 | AI-4 | The published baseline is reproduced within tolerance | ROUGE-L within **0.01** of **0.617**, and WER compared against **0.633** (Gahoi et al., 2022, Table 2, MixMT Subtask-1, 500 sentences) | 298-15 |
 | AI-5 | The tokenizer cost of orthographic variance is quantified | `spelling_variant_burden` reported against a lexicon of ≥ 72 variant groups; **> 1.0** means the vocabulary pays for spelling noise. **Measured: 1.832** | 298-13 |
-| AI-6 | Fertility is measured across all four text slices | Fertility, bytes/token, continuation rate, severe-split rate, byte-fallback rate and single-token vocabulary coverage reported for English, Devanagari Hindi, Romanized Hindi and Romanized Hinglish | 298-13 |
+| AI-6 | Fertility is measured across all four text slices | Fertility, bytes/token, continuation rate, severe-split rate, byte-fallback rate and single-token vocabulary coverage reported for English, Devanagari Hindi, Romanized Hindi and Romanized Hinglish. **Measured for 3 of 4 on 9 November; Devanagari Hindi has no source in the repository** (`reports/fertility_ai6.md`) | 298-13, 298-75 |
 | AI-7 | Perplexity is comparable across vocabularies | Reported **per byte**, never per token — per-token perplexity cannot compare M2 to M3 | 298-25 |
 | AI-8 | The four models are architecturally distinct | Each differs in parameters updated, tokenizer vocabulary or training distribution — **not** four hyperparameter settings | 298-24/25 |
 | AI-9 | Compute is held constant across arms | Identical token and step budget per model, logged in GPU-hours; M2 additionally re-trained to M3's total | 298-26 |
@@ -81,5 +81,6 @@ Stated here rather than discovered at assessment. Each is tracked with an owner.
 | AI-1, AI-2, AI-7 | Not yet testable | M2 not trained; blocked on splits and GPU allocation |
 | AI-4 | Not yet testable | Baseline reproduction not run; Gahoi et al. released no code |
 | AI-11 | Partially met | Normalised chrF++ currently collapses only 3 of the 72 lexicon groups (see 298-23) |
-| AI-5, AI-6 | **Met** | Burden 1.832 measured; fertility reported in `reports/spelling_variance.md` |
+| AI-5 | **Met** | Burden 1.832 measured; `reports/fertility.variants.csv` |
+| AI-6 | **Not met** | 3 of 4 slices measured (en 1.154, hi_roman 1.909, hinglish 1.653). Devanagari Hindi is absent: no Devanagari text is committed anywhere, the synthetic generator's `hindi` column is empty in all 1,200 rows, and `HinGE.pkl` is not on any team machine but Shibin's. One command closes it — `reports/fertility_ai6.md` |
 | FR-2 to FR-6 | **Met** | Harness and reproducibility scaffolding merged and tested |

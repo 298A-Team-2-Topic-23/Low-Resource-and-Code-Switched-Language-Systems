@@ -1,0 +1,45 @@
+{
+  "slices_required_by_ai6": [
+    "en",
+    "hi_deva",
+    "hi_roman",
+    "hinglish"
+  ],
+  "present": {
+    "en": {
+      "path": "data/slices/en.txt",
+      "n_lines": 1200,
+      "script": "roman",
+      "devanagari_fraction": 0.0,
+      "source": "lrcs.data.synthetic generate(n=1200, seed=42) english column",
+      "sha256": "80305ea742d30b3336a5aa0fcc9122e3ada503a7f7ae9318874d67cdd39cde74",
+      "regenerate": "python3 scripts/make_slices.py --seed 42"
+    },
+    "hi_roman": {
+      "path": "data/slices/hi_roman.txt",
+      "n_lines": 30,
+      "script": "roman",
+      "devanagari_fraction": 0.0,
+      "source": "data/codemix/parallel_fixture.tsv hindi_roman column",
+      "sha256": "34e32124d7797bb1eac273f5df7f81be6325873d3c2978bc62fe1666d1ec4c85",
+      "regenerate": "python3 scripts/make_slices.py"
+    },
+    "hinglish": {
+      "path": "data/slices/hinglish.txt",
+      "n_lines": 1169,
+      "script": "roman",
+      "devanagari_fraction": 0.005179,
+      "source": "lrcs.data.synthetic generate(n=1200, seed=42) hinglish column",
+      "sha256": "2269791d68098ea3f8a2fb062e8ff522b74f1a0ae4a18d823236b24786cfcdd8",
+      "regenerate": "python3 scripts/make_slices.py --seed 42"
+    }
+  },
+  "absent": {
+    "hi_deva": {
+      "reason": "no Devanagari text is committed anywhere in this repository (verified: git grep over the Devanagari block returns nothing). The synthetic generator produces an empty hindi column, and data/goldtestset/gold_set.csv holds its header row only, so its Devanagari column is empty too.",
+      "supplied_by": "HinGE.pkl, whose released 'Hindi' column is Devanagari. It is not committed (data/raw/ is gitignored) and is not on this machine. A licensed Devanagari corpus under 298-76 would also supply it.",
+      "command_that_closes_it": "python3 scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv && python3 scripts/make_slices.py --hi-deva-from data/raw/hinge.csv"
+    }
+  },
+  "ai6_status": "not met: 3 of 4 slices measurable (en, hi_roman, hinglish). Missing: hi_deva."
+}
