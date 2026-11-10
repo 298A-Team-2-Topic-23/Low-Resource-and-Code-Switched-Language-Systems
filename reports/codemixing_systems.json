@@ -18,5 +18,15 @@
     "switch_point_fraction": 0.0,
     "m_index": 0.0,
     "burstiness": -0.22823436008953357
+  },
+  "M1 zero-shot": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.6787454323995128,
+    "cmi_mean_all": 15.402231291276763,
+    "cmi_mean_mixed_only": 30.041975884965566,
+    "frac_sentences_mixed": 0.5126903553299492,
+    "switch_point_fraction": 0.20068694798822376,
+    "m_index": 0.7951353548491992,
+    "burstiness": 0.1031852279738152
   }
 }

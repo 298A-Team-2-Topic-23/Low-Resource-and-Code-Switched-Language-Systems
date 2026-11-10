@@ -35,8 +35,20 @@ data: "data/sft/hinge"
 
 num_layers: -1          # every layer, to match "all seven linear projections"
 batch_size: 1
-iters: 600              # ~0.16 epochs over 3,738 examples; see the sweep note
-learning_rate: 1.0e-4
+iters: 600              # ~0.16 epochs over 3,738 examples
+#
+# Learning rate: searched, not guessed. 1.0e-4, the usual LoRA default and what
+# this file first carried, produces NaN training loss by iteration 10 on this
+# setup -- the initial validation loss is finite at 5.250 and the first reported
+# train loss is already nan, so it is the update that overflows, not the forward
+# pass. 80.7M trainable parameters (1.06% of 7.6B) across all 28 layers on a
+# 4-bit base is enough to do it. At 1.0e-5 the same 10 iterations take
+# validation loss from 5.250 to 3.099 with no instability.
+#
+# Both runs are kept in runs/ and both appear on the Team Meeting 2 slide-6
+# curve, because that slide asks for "learning curves, including any run that
+# diverged" and the diverged run is the evidence that this value was searched.
+learning_rate: 1.0e-5
 max_seq_length: 512
 grad_checkpoint: true
 mask_prompt: true

@@ -52,6 +52,15 @@ TOKSEC_RE = re.compile(r"Tokens/sec\s+([0-9.]+)")
 PEAK_RE = re.compile(r"Peak mem(?:ory)?\s+([0-9.]+)\s*GB")
 
 
+def _repo_rel(path):
+    """Repo-relative when inside the repo, absolute otherwise."""
+    path = Path(path).resolve()
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
 def diverged(val_curve, patience=2):
     """True if validation loss rose on the last `patience` consecutive evals.
 
@@ -74,7 +83,7 @@ def main(argv=None):
     p.add_argument("--runs-dir", default=str(REPO_ROOT / "runs"))
     args = p.parse_args(argv)
 
-    config_path = Path(args.config)
+    config_path = Path(args.config).resolve()
     if not config_path.exists():
         raise SystemExit("{}: not found".format(config_path))
     config_text = config_path.read_text(encoding="utf-8")
@@ -135,7 +144,7 @@ def main(argv=None):
         "returncode": rc,
         "ok": rc == 0,
         "command": " ".join(cmd),
-        "config_file": str(config_path.relative_to(REPO_ROOT)),
+        "config_file": _repo_rel(config_path),
         "config": config_text,
         "overrides": {"seed": args.seed, "iters": args.iters,
                       "adapter_path": args.adapter_path},
@@ -152,7 +161,7 @@ def main(argv=None):
         "tokens_per_second": tok_sec,
         "peak_memory_gb": peak_gb,
         "device": "Apple M4, 16 GB unified memory (MLX)",
-        "curve_csv": str(curve_csv.relative_to(REPO_ROOT)),
+        "curve_csv": _repo_rel(curve_csv),
         "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     rec_path = runs / "{}_{}.json".format(stamp, tag)
