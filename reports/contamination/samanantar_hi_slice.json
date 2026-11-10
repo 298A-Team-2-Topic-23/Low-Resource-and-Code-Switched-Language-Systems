@@ -1,0 +1,149 @@
+{
+  "issue": "298-58",
+  "generated_by": "scripts/prepare_parallel_corpus.py",
+  "seed": 42,
+  "input": {
+    "source": "Samanantar, en-hi, Hugging Face ai4bharat/samanantar, hi/hi-train-00000-of-00008.parquet",
+    "path": "data/raw/samanantar/hi-train-00000-of-00008.parquet",
+    "bytes": 239534641,
+    "sha256": "f396924b5c0e17568bde7369d5bc12a92aed21c0cdc0480e75b68bd73886c0a4",
+    "rows": 1265714,
+    "licence": "CC-BY-NC-4.0 (team decision, docs/datasheet.md)"
+  },
+  "hinge_manifest": "data/processed/manifests/hinge_split_manifest.json",
+  "filter_params": {
+    "min_words": 4,
+    "max_words": 25,
+    "max_ratio": 2.0,
+    "min_hindi_devanagari": 0.8,
+    "max_english_devanagari": 0.0
+  },
+  "attrition": {
+    "rows_in": 1265714,
+    "missing_field": 0,
+    "english_not_latin": 0,
+    "hindi_not_devanagari": 39952,
+    "length_bounds": 694439,
+    "length_ratio": 201026,
+    "duplicate_source": 42723,
+    "passed_filters": 287574
+  },
+  "whole_shard_exact_overlap": {
+    "train": {
+      "hinge_sources": 1549,
+      "shard_rows_matching_english": 306,
+      "shard_rows_matching_hindi": 968,
+      "hinge_sources_found_in_shard": 275,
+      "share_of_split_sources_found": 0.1775
+    },
+    "dev": {
+      "hinge_sources": 192,
+      "shard_rows_matching_english": 33,
+      "shard_rows_matching_hindi": 85,
+      "hinge_sources_found_in_shard": 33,
+      "share_of_split_sources_found": 0.1719
+    },
+    "test": {
+      "hinge_sources": 197,
+      "shard_rows_matching_english": 28,
+      "shard_rows_matching_hindi": 107,
+      "hinge_sources_found_in_shard": 27,
+      "share_of_split_sources_found": 0.1371
+    }
+  },
+  "sample": 30000,
+  "contamination_check": {
+    "threshold": 0.7,
+    "protected_splits": [
+      "dev",
+      "test"
+    ],
+    "candidates_checked": 30000,
+    "removed": 4,
+    "kept": 29996,
+    "hits": {
+      "exact": {
+        "train": 12,
+        "dev": 1,
+        "test": 0
+      },
+      "near": {
+        "train": 1,
+        "dev": 0,
+        "test": 0
+      },
+      "hindi_exact": {
+        "train": 25,
+        "dev": 1,
+        "test": 3
+      }
+    },
+    "examples": [
+      {
+        "candidate_index": 7918,
+        "kind": "hindi_exact",
+        "split": "test",
+        "jaccard": 1.0
+      },
+      {
+        "candidate_index": 11467,
+        "kind": "hindi_exact",
+        "split": "test",
+        "jaccard": 1.0
+      },
+      {
+        "candidate_index": 24396,
+        "kind": "hindi_exact",
+        "split": "test",
+        "jaccard": 1.0
+      },
+      {
+        "candidate_index": 29964,
+        "kind": "exact",
+        "split": "dev",
+        "jaccard": 1.0
+      }
+    ],
+    "passed": null
+  },
+  "gate": {
+    "threshold": 0.7,
+    "protected_splits": [
+      "dev",
+      "test"
+    ],
+    "candidates_checked": 29996,
+    "removed": 0,
+    "kept": 29996,
+    "hits": {
+      "exact": {
+        "train": 12,
+        "dev": 0,
+        "test": 0
+      },
+      "near": {
+        "train": 1,
+        "dev": 0,
+        "test": 0
+      },
+      "hindi_exact": {
+        "train": 25,
+        "dev": 0,
+        "test": 0
+      }
+    },
+    "examples": [],
+    "passed": true
+  },
+  "deferred_filters": {
+    "round_trip_chrf": "needs the reverse Hinglish-to-English model (Model 4, 298B); applied to back-translated output, not to this source corpus",
+    "labse_cosine": "not re-applied here: Samanantar's mined pairs were already selected by cross-lingual sentence-embedding similarity (Ramesh et al., 2022); a second pass needs the LaBSE model and a GPU-scale run, and is deferred to the back-translation step"
+  },
+  "output": {
+    "path": "data/interim/samanantar/hi_slice.tsv",
+    "rows": 29996,
+    "sha256": "285b9cacfa5cf3f9a51475e24e92462ebb5855acebf93c4a22f469318fc41000",
+    "committed": false
+  },
+  "elapsed_seconds": 160.3
+}
