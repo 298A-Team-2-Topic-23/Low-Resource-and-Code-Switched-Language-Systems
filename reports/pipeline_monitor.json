@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-07T00:20:04+00:00",
+  "generated_at": "2026-11-10T20:41:07+00:00",
   "source": "hinge",
   "synthetic": false,
-  "pipeline_generated_at": "2026-10-08T04:32:18+00:00",
+  "pipeline_generated_at": "2026-11-10T20:37:37+00:00",
   "input_sha256": "dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3",
   "seed": 42,
   "rows": {
@@ -15,11 +15,11 @@
     "test": 468
   },
   "timings_seconds": {
-    "ingest": 0.23,
-    "clean": 0.54,
-    "split": 9.16,
-    "eda": 2.02,
-    "elapsed": 11.96
+    "ingest": 0.14,
+    "clean": 0.38,
+    "split": 6.58,
+    "eda": 0.39,
+    "elapsed": 7.48
   },
   "leakage_gate": {
     "passed": true,
@@ -28,10 +28,12 @@
     "threshold": 0.7
   },
   "drift": {
-    "compared_to": null,
+    "compared_to": "2026-11-07T00:20:04+00:00",
+    "previous_pipeline_generated_at": "2026-10-08T04:32:18+00:00",
+    "threshold": 0.01,
     "within_threshold": true,
     "alerts": [
-      "no previous monitor report; baseline written"
+      "no drift above threshold"
     ]
   }
 }

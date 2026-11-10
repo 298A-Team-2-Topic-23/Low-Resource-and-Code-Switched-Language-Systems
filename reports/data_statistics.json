@@ -1,7 +1,7 @@
 {
   "source": "hinge",
   "synthetic": false,
-  "generated_at": "2026-11-10T20:27:23+00:00",
+  "generated_at": "2026-11-10T20:37:37+00:00",
   "params": {
     "seed": 42,
     "dup_threshold": 0.7,
@@ -25,7 +25,7 @@
     "source": "hinge",
     "path": "data/raw/hinge.csv",
     "file_mtime": "2026-11-10T20:27:14+00:00",
-    "ingested_at": "2026-11-10T20:27:16+00:00",
+    "ingested_at": "2026-11-10T20:37:29+00:00",
     "bytes": 1591630,
     "sha256": "dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3",
     "column_mapping": {
@@ -524,10 +524,10 @@
   },
   "figures": {},
   "timings_seconds": {
-    "ingest": 0.13,
-    "clean": 0.37,
-    "split": 6.62,
-    "eda": 0.38
+    "ingest": 0.14,
+    "clean": 0.38,
+    "split": 6.58,
+    "eda": 0.39
   },
-  "elapsed_seconds": 7.5
+  "elapsed_seconds": 7.48
 }

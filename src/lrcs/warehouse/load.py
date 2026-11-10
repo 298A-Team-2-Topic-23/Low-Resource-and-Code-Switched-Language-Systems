@@ -52,9 +52,24 @@ def _delete_run(conn, run_id):
 
 
 def _read_split_tsv(path):
+    """Read a split TSV exactly as `lrcs.data.splits` wrote it.
+
+    QUOTE_NONE is required, not cosmetic. The writer joins fields with tabs and
+    does not quote anything, so a double quote in the text is literal data. The
+    csv module's default quotechar is '"', which made it treat 58 quote-bearing
+    HinGE rows as the start of a quoted field and swallow the following lines:
+    train came back as 3,611 rows instead of 3,738 and test as 383 instead of
+    468, with some records emerging with an empty hinglish field that then
+    failed the NOT NULL constraint on prepared_records.
+
+    The files themselves were always correct and the split manifest's hashes
+    always honoured them. Only this reader was wrong. Synthetic data contains no
+    quotes, which is why it took real text to surface it.
+    """
     rows = []
     with open(path, encoding="utf-8", newline="") as fh:
-        reader = csv.DictReader(fh, delimiter="\t")
+        reader = csv.DictReader(fh, delimiter="\t",
+                                quoting=csv.QUOTE_NONE, quotechar=None)
         for row in reader:
             rows.append({
                 "id": row["id"],
