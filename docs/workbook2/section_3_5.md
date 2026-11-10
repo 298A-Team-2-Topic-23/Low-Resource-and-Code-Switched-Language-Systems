@@ -14,7 +14,7 @@ generated on 9 November. None was typed in by hand.
 ## 3.5.1 Why the splits are derived, not downloaded
 
 HinGE itself ships no train, validation or test split. The only released split built on its
-sentences is the HinglishEval shared-task release (INLG 2022), which sits in the same folder as
+sentences is the HinglishEval shared-task release (Srivastava & Singh, 2022), which sits in the same folder as
 `HinGE.pkl` and reuses HinGE's English sources. **Those splits are not disjoint.** Compared on the
 same normalised key our leakage gate uses, the released files give:
 

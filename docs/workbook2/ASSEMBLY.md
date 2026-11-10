@@ -20,8 +20,10 @@ sections. Each file must name who wrote it, for example `Written by Savalia, Jen
    deliberately not guessed.
 3. **Confirm the new references have been read.** Section 1.5 commits to citing only works a member
    has read. Delete the citation and the entry for any that nobody can confirm:
-   Csaki et al. (2023), Husain et al. (2024), Poplack (1980), Pratapa et al. (2018), Ramesh et al.
-   (2022), Rizvi et al. (2021), Roark et al. (2020), Sennrich et al. (2016), Yamaguchi et al. (2026).
+   Aguilar et al. (2020), Csaki et al. (2023), Husain et al. (2024), Kunchukuttan et al. (2018),
+   Poplack (1980), Pratapa et al. (2018), Ramesh et al. (2022), Rizvi et al. (2021), Roark et al.
+   (2020), Sennrich et al. (2016), Srivastava and Singh (2022), Yamaguchi et al. (2026).
+   SQLite was removed because only the unassembled pipeline demo used it.
 4. **Re-sort the references** after adding sources from the other sections, and recount the journal
    or conference share in `self_assessment.md` and `carry_forward.md`.
 5. **Re-rate** every `[PENDING: not on main]` row against the rubric wording when its section lands.
