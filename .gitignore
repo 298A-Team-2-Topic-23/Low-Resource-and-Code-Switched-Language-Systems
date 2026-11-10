@@ -43,3 +43,14 @@ venv/
 # OS / editor
 .DS_Store
 .vscode/
+
+# Derived supervision for MLX LoRA: rebuildable from the frozen splits with
+# scripts/build_sft_data.py, so the JSONL is not committed. Its manifest is,
+# because it records the prompt, and changing the prompt changes the measurement.
+data/sft/*
+!data/sft/*/
+data/sft/*/*.jsonl
+!data/sft/*/manifest.json
+
+# MLX adapters and merged weights: large, and rebuildable from a recorded run.
+models/adapters/

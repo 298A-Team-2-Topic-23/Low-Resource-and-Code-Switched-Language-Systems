@@ -1,0 +1,22 @@
+{
+  "human references (target)": {
+    "n_sentences": 468,
+    "tagger_coverage": 0.6858259736499204,
+    "cmi_mean_all": 25.859581233278536,
+    "cmi_mean_mixed_only": 30.25571004293589,
+    "frac_sentences_mixed": 0.8547008547008547,
+    "switch_point_fraction": 0.23658936519091123,
+    "m_index": 0.6956197663086462,
+    "burstiness": 0.049627369214068844
+  },
+  "English source (floor)": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.9006553984132459,
+    "cmi_mean_all": 0.0,
+    "cmi_mean_mixed_only": 0.0,
+    "frac_sentences_mixed": 0.0,
+    "switch_point_fraction": 0.0,
+    "m_index": 0.0,
+    "burstiness": -0.22823436008953357
+  }
+}
