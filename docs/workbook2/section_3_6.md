@@ -2,10 +2,11 @@
 
 Linear **298-65**. Written by Waghmare, Sarvesh.
 
-Every figure in this section is read from a committed artifact of the 8 October
-run on the real HinGE corpus — `reports/data_statistics.json`,
-`reports/fertility.csv` and `reports/fertility.variants.csv` — and every plot is
-regenerable from a clean clone. Nothing here is typed in by hand.
+Every corpus figure in this section is read from a committed artifact of the 8 October
+run on the real HinGE corpus — `reports/data_statistics.json` and
+`reports/fertility.variants.csv` — and every plot is regenerable from a clean clone.
+The one exception is tokenizer fertility, which has so far been measured only on
+synthetic slices and is labelled as such where it appears. Nothing here is typed in by hand.
 
 ## 3.6.1 What each stage produced
 
@@ -59,9 +60,11 @@ otherwise be removing signal rather than noise.
 **Vocabulary.** English contributes 6,780 types over 71,217 tokens; Hinglish
 contributes **13,204 types over 74,165 tokens** — nearly double the vocabulary for
 the same quantity of text, at a type-token ratio of 0.178. That is the
-orthographic-variance problem stated in plain counts, and it is the same fact the
-tokenizer measurement reports as fertility rising from 1.024 on English to 1.501
-on Hinglish while vocabulary coverage falls from 98.5% to 52.6%.
+orthographic-variance problem stated in plain counts. The tokenizer measurement points
+the same way, with fertility of 1.653 on Hinglish against 1.154 on English, but those
+slices are synthetic (`reports/fertility_ai6.md`) and are illustrative until re-measured
+on HinGE. The coverage contrast once quoted alongside them, 98.5% against 52.6%, did not
+survive re-measurement and is withdrawn (carry-forward table).
 
 **Code-mixing.** Mean CMI is 25.34 across all sentences and 29.42 across the
 mixed ones; 86.1% of sentences are mixed. Switch-point fraction is 0.240 overall
@@ -96,7 +99,7 @@ Three consequences for training:
 2. Because splits are assigned by whole near-duplicate group (section 3.5), a
    heavily-referenced source lands entirely in one split, which makes split
    record counts lumpier than source counts — the reason the splits land at
-   79.98 / 10.01 / 10.01 rather than exactly 80/10/10.
+   79.97 / 10.01 / 10.01 rather than exactly 80/10/10.
 3. Multiple valid references for one input are a *property of the task*, not
    noise. Single-reference chrF++ systematically understates a model that
    produces a legitimate rendering the reference did not happen to use. This is
@@ -139,7 +142,7 @@ Over the 15 most frequent groups: Pearson **r = −0.15**, Spearman **ρ = −0.
 word from spelling variance, nor drive it. Variance appears to be a property of
 the word's phonology and transliteration ambiguity rather than of how often it is
 written — `hai` occurs 934 times and is spelled non-canonically 8.8% of the time,
-while rarer groups in the same panel reach 77% and 90%.
+while rarer groups in the same panel reach 77% and 91%.
 
 The caveat is n: panel (b) rests on the 15 groups retained in
 `spelling_variance.top_groups`, which is too few to exclude a weak effect. The
@@ -200,7 +203,7 @@ should record annotator region and first language even though HinGE did not.
 |---|---|
 | stage rows, attrition, splits, timings | `reports/data_statistics.json` |
 | lengths, vocabulary, code-mixing, spelling variance | same |
-| fertility, coverage, burden | `reports/fertility.csv` |
+| fertility (synthetic slices), burden | `reports/fertility.csv`, `reports/fertility_ai6.md` |
 | per-group variant counts | `reports/fertility.variants.csv` |
 | imbalance and correlation figures | `scripts/workbook2_figures.py` |
 | measured correlation coefficients | `reports/workbook2_figures.json` |

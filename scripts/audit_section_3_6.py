@@ -111,7 +111,7 @@ CLAIMS = [
      + " |", None, None),
     ("**76% of sources have exactly two references**", FIG, S("imbalance.modal_share"), 1, 0),
     ("a 14% tail", FIG, S("imbalance.four_or_more_share"), 1, 0),
-    ("79.98 / 10.01 / 10.01", STATS, lambda a: "{:.2f} / {:.2f} / {:.2f}".format(
+    ("79.97 / 10.01 / 10.01", STATS, lambda a: "{:.2f} / {:.2f} / {:.2f}".format(
         _ratio("train", a), _ratio("dev", a), _ratio("test", a)), None, None),
     ("of 72 spelling-variant groups", STATS, S("spelling_variance.lexicon_groups"), 1, 0),
     ("68 are\nobserved", STATS, S("spelling_variance.groups_observed"), 1, 0),
@@ -125,13 +125,11 @@ CLAIMS = [
     ("Spearman **ρ = −0.10**", FIG, S("correlations.frequency_vs_non_canonical.spearman"), 1, 2),
     ("`hai` occurs 934 times", STATS, lambda a: _top(a, "hai", "occurrences"), 1, 0),
     ("non-canonically 8.8%", STATS, lambda a: _top(a, "hai", "non_canonical_share"), 100, 1),
-    ("reach 77% and 90%", STATS, lambda a: "{:.0f}% and {:.0f}%".format(
+    ("reach 77% and 91%", STATS, lambda a: "{:.0f}% and {:.0f}%".format(
         100 * _top(a, "phir", "non_canonical_share"), 100 * _top(a, "kahan", "non_canonical_share")),
      None, None),
-    ("fertility rising from 1.024 on English", FERT, lambda root: _fert(root, "en", "fertility"), 1, 3),
-    ("to 1.501\non Hinglish", FERT, lambda root: _fert(root, "hinglish", "fertility"), 1, 3),
-    ("coverage falls from 98.5%", FERT, lambda root: _fert(root, "en", "vocab_coverage"), 100, 1),
-    ("to 52.6%", FERT, lambda root: _fert(root, "hinglish", "vocab_coverage"), 100, 1),
+    ("fertility of 1.653", FERT, lambda root: _fert(root, "hinglish", "fertility"), 1, 3),
+    ("against 1.154 on English", FERT, lambda root: _fert(root, "en", "fertility"), 1, 3),
 ]
 
 
