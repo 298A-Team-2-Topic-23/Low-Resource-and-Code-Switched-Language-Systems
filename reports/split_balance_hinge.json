@@ -1,0 +1,62 @@
+{
+  "source": "hinge",
+  "manifest": "data/processed/manifests/hinge_split_manifest.json",
+  "input_sha256": "dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3",
+  "split_files_match_manifest": true,
+  "stratified": false,
+  "assignment": "whole near-duplicate groups, seeded shuffle, each group to the split furthest below its record target (src/lrcs/data/splits.py)",
+  "splits": {
+    "train": {
+      "records": 3738,
+      "share_of_records": 0.7997,
+      "unique_sources": 1549,
+      "groups": 1549,
+      "references_per_source": 2.413,
+      "single_reference_sources": 22,
+      "english_words_mean": 15.31,
+      "english_words_median": 12.0,
+      "hinglish_words_mean": 15.93,
+      "cmi_mean_all": 25.26,
+      "frac_sentences_mixed": 0.8633,
+      "spf": 0.2396,
+      "tagger_coverage": 0.6825
+    },
+    "dev": {
+      "records": 468,
+      "share_of_records": 0.1001,
+      "unique_sources": 192,
+      "groups": 192,
+      "references_per_source": 2.438,
+      "single_reference_sources": 1,
+      "english_words_mean": 15.73,
+      "english_words_median": 12.0,
+      "hinglish_words_mean": 16.32,
+      "cmi_mean_all": 25.47,
+      "frac_sentences_mixed": 0.8526,
+      "spf": 0.2448,
+      "tagger_coverage": 0.6711
+    },
+    "test": {
+      "records": 468,
+      "share_of_records": 0.1001,
+      "unique_sources": 197,
+      "groups": 196,
+      "references_per_source": 2.376,
+      "single_reference_sources": 3,
+      "english_words_mean": 14.14,
+      "english_words_median": 11.0,
+      "hinglish_words_mean": 14.94,
+      "cmi_mean_all": 25.86,
+      "frac_sentences_mixed": 0.8547,
+      "spf": 0.2366,
+      "tagger_coverage": 0.6858
+    }
+  },
+  "merged_groups": [
+    {
+      "split": "test",
+      "sources_in_group": 2,
+      "records": 4
+    }
+  ]
+}
