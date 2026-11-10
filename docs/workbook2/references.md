@@ -1,5 +1,7 @@
 # References
 
+Aguilar, G., Kar, S., & Solorio, T. (2020). LinCE: A centralized benchmark for linguistic code-switching evaluation. In *Proceedings of the Twelfth Language Resources and Evaluation Conference (LREC)* (pp. 1803–1813). European Language Resources Association.
+
 Barnett, R., Codó, E., Eppler, E., Forcadell, M., Gardner-Chloros, P., van Hout, R., Moyer, M., Torras, M. C., Turell, M. T., Sebba, M., Starren, M., & Wensing, S. (2000). The LIDES coding manual: A document for preparing and analysing language interaction data. *International Journal of Bilingualism, 4*(2), 131–270.
 
 Csaki, Z., Pawakapan, P., Thakker, U., & Xu, Q. (2023). Efficiently adapting pretrained language models to new languages. In *Proceedings of the Third NeurIPS Workshop on Efficient Natural Language and Speech Processing (ENLSP-III)*. https://arxiv.org/abs/2311.05741
@@ -17,6 +19,8 @@ Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., & Ch
 Husain, J. A., Dabre, R., Kumar, A., Gala, J., Jayakumar, T., Puduppully, R., & Kunchukuttan, A. (2024). RomanSetu: Efficiently unlocking multilingual capabilities of large language models via romanization. In *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)* (pp. 15593–15615). Association for Computational Linguistics.
 
 Krippendorff, K. (2011). *Computing Krippendorff's alpha-reliability.* Departmental Papers, Annenberg School for Communication, University of Pennsylvania.
+
+Kunchukuttan, A., Mehta, P., & Bhattacharyya, P. (2018). The IIT Bombay English-Hindi parallel corpus. In *Proceedings of the Eleventh International Conference on Language Resources and Evaluation (LREC 2018)*. European Language Resources Association.
 
 Poplack, S. (1980). Sometimes I'll start a sentence in Spanish y termino en español: Toward a typology of code-switching. *Linguistics, 18*(7–8), 581–618.
 
@@ -36,10 +40,10 @@ Roark, B., Wolf-Sonkin, L., Kirov, C., Mielke, S. J., Johny, C., Demirsahin, I.,
 
 Sennrich, R., Haddow, B., & Birch, A. (2016). Improving neural machine translation models with monolingual data. In *Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)* (pp. 86–96). Association for Computational Linguistics.
 
-SQLite Consortium. (n.d.). *SQLite*. https://www.sqlite.org/
-
 Srivastava, V., & Singh, M. (2021). HinGE: A dataset for generation and evaluation of code-mixed Hinglish text. In *Proceedings of the 2nd Workshop on Evaluation and Comparison of NLP Systems (Eval4NLP)* (pp. 200–208). Association for Computational Linguistics.
+
+Srivastava, V., & Singh, M. (2022). HinglishEval Generation Challenge on quality estimation of synthetic code-mixed text: Overview and results. In *Proceedings of the 15th International Conference on Natural Language Generation: Generation Challenges* (pp. 19–25). Association for Computational Linguistics.
 
 Yamaguchi, A., Villavicencio, A., & Aletras, N. (2026). How can we effectively expand the vocabulary of LLMs with 0.01GB of target language text? *Computational Linguistics, 52*(1), 295–330. https://doi.org/10.1162/coli.a.581
 
-[PENDING: add every source introduced by sections 3.1 to 3.5 and 4.2 to 4.4 when those sections reach main, then re-sort.]
+[PENDING: add every source introduced by sections 3.1, 3.2 and 4.2 when they reach main, then re-sort.]
