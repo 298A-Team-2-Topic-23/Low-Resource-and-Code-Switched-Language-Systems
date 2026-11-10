@@ -35,6 +35,7 @@ import argparse
 import csv
 import json
 import re
+import pathlib
 import subprocess
 import sys
 import time
@@ -43,13 +44,46 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# mlx_lm's report lines, e.g.
-#   Iter 10: Train loss 2.145, Learning Rate 1.000e-04, It/sec 0.412, ...
-#   Iter 50: Val loss 1.983, Val took 12.345s
-TRAIN_RE = re.compile(r"Iter\s+(\d+):\s*Train loss\s+([0-9.]+)")
-VAL_RE = re.compile(r"Iter\s+(\d+):\s*Val loss\s+([0-9.]+)")
-TOKSEC_RE = re.compile(r"Tokens/sec\s+([0-9.]+)")
-PEAK_RE = re.compile(r"Peak mem(?:ory)?\s+([0-9.]+)\s*GB")
+# mlx_lm 0.32's table output, after ANSI stripping, e.g.
+#     510    2.383 \u25b2        7     14.8k
+#     550    val 2.025    39.74s
+#    save  0000500_adapters.safetensors
+# An earlier version of this file matched "Iter 10: Train loss 2.145", the
+# format of an older mlx_lm. It silently captured nothing, and a 3,199-second
+# run finished with an empty curve. Hence `recover_from_log` below and the
+# self-test on these exact shapes in tests/test_train_curve_parse.py.
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+VAL_RE = re.compile(r"^\s*(\d+)\s+val\s+(nan|[-+0-9.eE]+)")
+TRAIN_RE = re.compile(r"^\s*(\d+)\s+(nan|[-+0-9.eE]+)\s*[\u25bc\u25b2]?\s")
+TOKSEC_RE = re.compile(r"[Tt]okens?/sec\s+([0-9.]+)")
+PEAK_RE = re.compile(r"[Pp]eak mem(?:ory)?\s+([0-9.]+)\s*GB")
+
+
+def parse_line(line, train_curve, val_curve):
+    """Append whatever this line reports. Val is checked first: a val line also
+    starts with an iteration number and would otherwise match TRAIN_RE."""
+    line = ANSI_RE.sub("", line.rstrip("\n"))
+    if line.strip().startswith("save"):
+        return
+    m = VAL_RE.match(line)
+    if m:
+        val_curve.append((int(m.group(1)), float(m.group(2))))
+        return
+    m = TRAIN_RE.match(line)
+    if m:
+        train_curve.append((int(m.group(1)), float(m.group(2))))
+
+
+def recover_from_log(path):
+    """Rebuild (train_curve, val_curve) from a saved stdout log.
+
+    A run that took the better part of an hour should not have to be repeated
+    because the parser was wrong.
+    """
+    train_curve, val_curve = [], []
+    for line in pathlib.Path(path).read_text(encoding="utf-8", errors="replace").splitlines():
+        parse_line(line, train_curve, val_curve)
+    return train_curve, val_curve
 
 
 def _repo_rel(path):
@@ -64,13 +98,47 @@ def _repo_rel(path):
 def diverged(val_curve, patience=2):
     """True if validation loss rose on the last `patience` consecutive evals.
 
-    Reported rather than hidden. A diverged run is a result about the
-    hyperparameters, and slide 6 asks for it by name.
+    Deliberately strict, so ordinary noise is not called divergence. Use it
+    together with `overfitting` below, which catches the commoner case.
     """
     if len(val_curve) < patience + 1:
         return False
     tail = [v for _, v in val_curve[-(patience + 1):]]
     return all(b > a for a, b in zip(tail, tail[1:]))
+
+
+def overfitting(val_curve, margin=0.05):
+    """True if training ran past its best validation point by more than `margin`.
+
+    The 600-iteration seed-42 run is exactly this case and `diverged` misses it:
+    validation went 2.003, 2.111, 2.025, 2.378, so the last three are not
+    monotonically rising, but the final loss is 18.7% worse than the best and the
+    best point was 150 iterations earlier. Reporting only "not diverged" there
+    would be true and misleading, and it would also licence shipping the final
+    adapter when an earlier checkpoint is better.
+    """
+    if len(val_curve) < 2:
+        return False
+    best_iter, best = min(val_curve, key=lambda t: t[1])
+    last_iter, last = val_curve[-1]
+    return last_iter > best_iter and last > best * (1.0 + margin)
+
+
+def checkpoint_advice(val_curve, save_every):
+    """Which saved checkpoint validation prefers, if not the last one."""
+    if not val_curve:
+        return None
+    best_iter, best = min(val_curve, key=lambda t: t[1])
+    if best_iter == val_curve[-1][0]:
+        return None
+    # Checkpoints exist at every multiple of save_every, not only at the
+    # iterations that happen to carry a validation report.
+    last_iter = max(i for i, _ in val_curve)
+    saved = range(save_every, last_iter + 1, save_every) if save_every else []
+    nearest = max([i for i in saved if i <= best_iter], default=None)
+    return {"best_val_iter": best_iter, "best_val_loss": best,
+            "prefer_saved_checkpoint": nearest,
+            "final_val_loss": val_curve[-1][1]}
 
 
 def main(argv=None):
@@ -106,12 +174,7 @@ def main(argv=None):
         for line in proc.stdout:
             sys.stdout.write(line)
             sys.stdout.flush()
-            m = TRAIN_RE.search(line)
-            if m:
-                train_curve.append((int(m.group(1)), float(m.group(2))))
-            m = VAL_RE.search(line)
-            if m:
-                val_curve.append((int(m.group(1)), float(m.group(2))))
+            parse_line(line, train_curve, val_curve)
             m = TOKSEC_RE.search(line)
             if m:
                 tok_sec = float(m.group(1))
@@ -156,6 +219,8 @@ def main(argv=None):
         "best_val_iter": min(val_curve, key=lambda t: t[1])[0] if val_curve else None,
         "last_val_loss": val_curve[-1][1] if val_curve else None,
         "diverged": diverged(val_curve),
+        "overfitting": overfitting(val_curve),
+        "checkpoint_advice": checkpoint_advice(val_curve, 100),
         "elapsed_seconds": round(elapsed, 2),
         "gpu_hours": round(elapsed / 3600, 5),
         "tokens_per_second": tok_sec,
@@ -176,6 +241,14 @@ def main(argv=None):
     if val_curve:
         print("val loss best {:.4f} at iter {}, last {:.4f}".format(
             record["best_val_loss"], record["best_val_iter"], record["last_val_loss"]))
+    if record.get("overfitting"):
+        adv = record.get("checkpoint_advice") or {}
+        print("\nOVERFITTING: best validation {:.4f} at iter {}, final {:.4f}. "
+              "Do not ship the final adapter; prefer the checkpoint at iter {}."
+              .format(adv.get("best_val_loss", float("nan")),
+                      adv.get("best_val_iter", -1),
+                      adv.get("final_val_loss", float("nan")),
+                      adv.get("prefer_saved_checkpoint")))
     if record["diverged"]:
         print("\nVALIDATION LOSS ROSE on the last evals. This run is kept and "
               "reported as a diverged run (Team Meeting 2 slide 6 asks for it); "
