@@ -540,8 +540,11 @@ Regenerate with `pip install -r requirements-charts.txt && python scripts/charts
 Written down here rather than fixed silently, because each one affects a number that would
 otherwise reach a report unchallenged.
 
-- **HinGE reference count: 4,799 measured vs 4,803 published.** Four apart. It needs a second
-  person to re-count from Table 1 of the paper.
+- **HinGE reference count: 4,799 measured vs 4,803 published — reconciled (298-77).** The
+  released file holds 4,799 references and the pipeline reads all of them; 4,803 cannot be
+  reproduced from either of the authors' releases, and the paper itself gives 1,978 pairs in
+  section 2 against 1,976 in Table 1. See
+  [`reports/hinge_reference_count.md`](reports/hinge_reference_count.md).
 - **HinGE has no stated licence.** It is treated as CC-BY-NC-4.0-equivalent, because its source
   pairs come from the IIT Bombay corpus.
 - **The M1 script and the measured backbone disagree.** §1.4 adopts

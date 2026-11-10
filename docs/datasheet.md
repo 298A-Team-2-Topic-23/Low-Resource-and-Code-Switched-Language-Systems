@@ -34,13 +34,20 @@ them as not yet ingested, so the gap stays visible.
   literature): **1,976 rows**, columns `English, Hindi,
   Human-generated Hinglish (list), WAC, WAC rating1, WAC rating2, PAC,
   PAC rating1, PAC rating2`. Summed human-generated Hinglish references:
-  **4,799** (CLAUDE.md's locked fact states 4,803 — four off from what
-  we measured directly off the pickle; flagging the discrepancy rather
-  than silently matching the expected number. Worth a second person
-  re-counting from Table 1 of the paper directly before either number
-  goes in the final report). 1,973 of the 1,976 English sources are
+  **4,799**. The paper's Table 1 reports 4,803. **Reconciled 9 November
+  2026 (298-77): 4,799 is correct for the released file and the
+  pipeline reads every reference in it.** No reference is blank,
+  malformed or dropped by ingest, and the authors' second release
+  (HinglishEval) holds no source pair missing from `HinGE.pkl`. The
+  paper itself gives 1,978 pairs in section 2 against 1,976 in Table 1,
+  and two pairs at the paper's minimum of two references each would be
+  exactly the missing four. That is the likely origin, and it cannot be
+  confirmed without the authors. Full audit:
+  `reports/hinge_reference_count.md`, re-runnable with
+  `scripts/audit_hinge_count.py`. 1,973 of the 1,976 English sources are
   unique — three sentences appear twice in the base file with separate
-  annotations.
+  annotations — and 23 rows carry a single reference, although the
+  paper describes every pair as having at least two.
 - **What we use as the primary corpus.** The committed pipeline reads
   `data/raw/hinge.csv` and expands only the human-generated Hinglish
   column: 1,976 rows, 4,799 references, 4,674 after the six cleaning
