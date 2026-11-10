@@ -1,0 +1,102 @@
+{
+  "input_sha256": "e78c8f48af3eea0b141e767082189b7b619e9cbe50ad8f0b2a4863b82ebc5960",
+  "published": {
+    "source": "Srivastava & Singh (2021), HinGE, Table 1 and section 2",
+    "parallel_sentences_table1": 1976,
+    "human_generated_sentences_table1": 4803,
+    "machine_generated_sentences_table1": 3952,
+    "sentence_pairs_section2_text": 1978,
+    "min_references_per_pair_claimed": 2
+  },
+  "measured": {
+    "rows": 1976,
+    "unique_english_sources": 1973,
+    "english_sources_appearing_twice": 3,
+    "reference_positions": 4799,
+    "distinct_references_per_row_summed": 4798,
+    "references_per_row": {
+      "1": 23,
+      "2": 1501,
+      "3": 163,
+      "4": 218,
+      "5": 27,
+      "6": 34,
+      "7": 6,
+      "8": 4
+    },
+    "rows_with_fewer_than_two_references": 23,
+    "machine_generated_non_empty": 3952,
+    "index_contiguous": true
+  },
+  "gap_published_minus_measured": 4,
+  "checks": [
+    {
+      "check": "empty_or_whitespace_references",
+      "ruled_out": true,
+      "finding": "0 row(s) hold an empty or whitespace-only reference",
+      "row_indices": []
+    },
+    {
+      "check": "duplicate_references_within_a_row",
+      "ruled_out": true,
+      "finding": "1 row(s) repeat a reference; counting distinct strings gives 4,798, which moves AWAY from 4,803, so it cannot explain the gap",
+      "row_indices": [
+        310
+      ]
+    },
+    {
+      "check": "cells_not_a_list",
+      "ruled_out": true,
+      "finding": "0 cell(s) are not a list",
+      "row_indices": []
+    },
+    {
+      "check": "non_string_references",
+      "ruled_out": true,
+      "finding": "0 row(s) hold a non-string reference",
+      "row_indices": []
+    },
+    {
+      "check": "pipeline_counts_differently_from_file",
+      "ruled_out": true,
+      "finding": "ingest reads 4,799 records from the CSV; the pickle holds 4,799 reference positions",
+      "row_indices": []
+    },
+    {
+      "check": "source_pairs_missing_from_the_release",
+      "ruled_out": true,
+      "finding": "HinglishEval holds 1 source(s) absent from HinGE.pkl, 1 of them near-copies of a HinGE source",
+      "row_indices": []
+    }
+  ],
+  "pipeline_ingest": {
+    "csv": "data/raw/hinge.csv",
+    "sha256": "dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3",
+    "rows_in_file": 1976,
+    "records": 4799,
+    "records_with_empty_hinglish": 0
+  },
+  "hinglisheval_crosscheck": {
+    "files": [
+      "test_human_generated.pkl",
+      "train_human_generated.pkl",
+      "valid_human_generated.pkl"
+    ],
+    "unique_sources": 1974,
+    "sources_also_in_hinge": 1973,
+    "hinge_sources_absent_from_hinglisheval": 0,
+    "sources_absent_from_hinge": 1,
+    "their_references": 2,
+    "best_jaccard_to_a_hinge_source": [
+      0.951
+    ],
+    "absent_sources_that_are_near_copies_of_a_hinge_source": 1
+  },
+  "published_figures_consistency": {
+    "rows_match_table1": true,
+    "machine_generated_match_table1": true,
+    "table1_pairs_vs_section2_pairs": "1976 vs 1978: the paper disagrees with itself by 2",
+    "every_pair_has_two_references": "claimed; 23 row(s) in the release have one"
+  },
+  "verdict": "measured count confirmed: the release holds 4,799 references and the pipeline reads all of them. The 4-reference gap is not a parsing loss."
+}
