@@ -1,0 +1,380 @@
+{
+  "issue": "298-86",
+  "section": "docs/workbook2/section_3_6.md",
+  "claims": 53,
+  "ok": 47,
+  "failed": 6,
+  "results": [
+    {
+      "claim": "1,976 file rows",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "1976",
+      "section_says": "1976",
+      "status": "ok"
+    },
+    {
+      "claim": "**4,799** records",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "4799",
+      "section_says": "4799",
+      "status": "ok"
+    },
+    {
+      "claim": "| Pre-processed | **4,674**",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "4674",
+      "section_says": "4674",
+      "status": "ok"
+    },
+    {
+      "claim": "125 records removed",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "125",
+      "section_says": "125",
+      "status": "ok"
+    },
+    {
+      "claim": "**3,738 / 468 / 468**",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "3,738 / 468 / 468",
+      "section_says": "**3,738 / 468 / 468**",
+      "status": "ok"
+    },
+    {
+      "claim": "runs in 11.96 seconds",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "11.96",
+      "section_says": "11.96",
+      "status": "ok"
+    },
+    {
+      "claim": "ingest 0.23 s",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "0.23",
+      "section_says": "0.23",
+      "status": "ok"
+    },
+    {
+      "claim": "clean 0.54 s",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "0.54",
+      "section_says": "0.54",
+      "status": "ok"
+    },
+    {
+      "claim": "split 9.16 s",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "9.16",
+      "section_says": "9.16",
+      "status": "ok"
+    },
+    {
+      "claim": "figures 2.02 s",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "2.02",
+      "section_says": "2.02",
+      "status": "ok"
+    },
+    {
+      "claim": "English averages 15.24 words",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "15.24",
+      "section_says": "15.24",
+      "status": "ok"
+    },
+    {
+      "claim": "Hinglish averages 15.87",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "15.87",
+      "section_says": "15.87",
+      "status": "ok"
+    },
+    {
+      "claim": "word ratio is 1.062",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "1.062",
+      "section_says": "1.062",
+      "status": "ok"
+    },
+    {
+      "claim": "6,780 types",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "6780",
+      "section_says": "6780",
+      "status": "ok"
+    },
+    {
+      "claim": "71,217 tokens",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "71217",
+      "section_says": "71217",
+      "status": "ok"
+    },
+    {
+      "claim": "**13,204 types",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "13204",
+      "section_says": "13204",
+      "status": "ok"
+    },
+    {
+      "claim": "74,165 tokens**",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "74165",
+      "section_says": "74165",
+      "status": "ok"
+    },
+    {
+      "claim": "type-token ratio of 0.178",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "0.178",
+      "section_says": "0.178",
+      "status": "ok"
+    },
+    {
+      "claim": "Mean CMI is 25.34",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "25.34",
+      "section_says": "25.34",
+      "status": "ok"
+    },
+    {
+      "claim": "29.42 across the mixed ones",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "29.42",
+      "section_says": "29.42",
+      "status": "ok"
+    },
+    {
+      "claim": "86.1% of sentences are mixed",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "86.1",
+      "section_says": "86.1",
+      "status": "ok"
+    },
+    {
+      "claim": "Switch-point fraction is 0.240",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "0.240",
+      "section_says": "0.240",
+      "status": "ok"
+    },
+    {
+      "claim": "0.272 per sentence",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "0.272",
+      "section_says": "0.272",
+      "status": "ok"
+    },
+    {
+      "claim": "10,861 switch points",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "10861",
+      "section_says": "10861",
+      "status": "ok"
+    },
+    {
+      "claim": "3.22 tokens",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "3.22",
+      "section_says": "3.22",
+      "status": "ok"
+    },
+    {
+      "claim": "M-index is 0.693",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "0.693",
+      "section_says": "0.693",
+      "status": "ok"
+    },
+    {
+      "claim": "burstiness 0.056",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "0.056",
+      "section_says": "0.056",
+      "status": "ok"
+    },
+    {
+      "claim": "covering **68.2%**",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "68.2",
+      "section_says": "68.2",
+      "status": "ok"
+    },
+    {
+      "claim": "**19,382 of",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "19382",
+      "section_says": "19382",
+      "status": "ok"
+    },
+    {
+      "claim": "83,922** are `unk`",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "83922",
+      "section_says": "83922",
+      "status": "ok"
+    },
+    {
+      "claim": "1,938 distinct sources",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "1938",
+      "section_says": "1938",
+      "status": "ok"
+    },
+    {
+      "claim": "a mean of 2.41 each",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "2.41",
+      "section_says": "2.41",
+      "status": "ok"
+    },
+    {
+      "claim": "| Source sentences | 26 | 1,470 | 166 | 210 | 37 | 21 | 5 | 3 |",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "| Source sentences | 26 | 1,470 | 166 | 210 | 37 | 21 | 5 | 3 |",
+      "section_says": "| Source sentences | 26 | 1,470 | 166 | 210 | 37 | 21 | 5 | 3 |",
+      "status": "ok"
+    },
+    {
+      "claim": "**76% of sources have exactly two references**",
+      "artifact": "reports/workbook2_figures.json",
+      "artifact_says": "76",
+      "section_says": "76",
+      "status": "ok"
+    },
+    {
+      "claim": "a 14% tail",
+      "artifact": "reports/workbook2_figures.json",
+      "artifact_says": "14",
+      "section_says": "14",
+      "status": "ok"
+    },
+    {
+      "claim": "79.98 / 10.01 / 10.01",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "79.97 / 10.01 / 10.01",
+      "section_says": "79.98 / 10.01 / 10.01",
+      "status": "mismatch"
+    },
+    {
+      "claim": "of 72 spelling-variant groups",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "72",
+      "section_says": "72",
+      "status": "ok"
+    },
+    {
+      "claim": "68 are observed",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "68",
+      "section_says": "68",
+      "status": "ok"
+    },
+    {
+      "claim": "only **28 carry two or more",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "28",
+      "section_says": "28",
+      "status": "ok"
+    },
+    {
+      "claim": "13% of their",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "13",
+      "section_says": "13",
+      "status": "ok"
+    },
+    {
+      "claim": "3,812 occurrences",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "3812",
+      "section_says": "3812",
+      "status": "ok"
+    },
+    {
+      "claim": "burden metric of 1.832",
+      "artifact": "reports/fertility.csv",
+      "artifact_says": "1.832",
+      "section_says": "1.832",
+      "status": "ok"
+    },
+    {
+      "claim": "Pearson **r = +0.29**",
+      "artifact": "reports/workbook2_figures.json",
+      "artifact_says": "0.29",
+      "section_says": "+0.29",
+      "status": "ok"
+    },
+    {
+      "claim": "Spearman **ρ = +0.32**",
+      "artifact": "reports/workbook2_figures.json",
+      "artifact_says": "0.32",
+      "section_says": "+0.32",
+      "status": "ok"
+    },
+    {
+      "claim": "Pearson **r = −0.15**",
+      "artifact": "reports/workbook2_figures.json",
+      "artifact_says": "-0.15",
+      "section_says": "-0.15",
+      "status": "ok"
+    },
+    {
+      "claim": "Spearman **ρ = −0.10**",
+      "artifact": "reports/workbook2_figures.json",
+      "artifact_says": "-0.10",
+      "section_says": "-0.10",
+      "status": "ok"
+    },
+    {
+      "claim": "`hai` occurs 934 times",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "934",
+      "section_says": "934",
+      "status": "ok"
+    },
+    {
+      "claim": "non-canonically 8.8%",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "8.8",
+      "section_says": "8.8",
+      "status": "ok"
+    },
+    {
+      "claim": "reach 77% and 90%",
+      "artifact": "reports/data_statistics.json",
+      "artifact_says": "77% and 91%",
+      "section_says": "reach 77% and 90%",
+      "status": "mismatch"
+    },
+    {
+      "claim": "fertility rising from 1.024 on English",
+      "artifact": "reports/fertility.csv",
+      "artifact_says": "1.154",
+      "section_says": "1.024",
+      "status": "mismatch"
+    },
+    {
+      "claim": "to 1.501 on Hinglish",
+      "artifact": "reports/fertility.csv",
+      "artifact_says": "1.653",
+      "section_says": "1.501",
+      "status": "mismatch"
+    },
+    {
+      "claim": "coverage falls from 98.5%",
+      "artifact": "reports/fertility.csv",
+      "artifact_says": "53.2",
+      "section_says": "98.5",
+      "status": "mismatch"
+    },
+    {
+      "claim": "to 52.6%",
+      "artifact": "reports/fertility.csv",
+      "artifact_says": "54.8",
+      "section_says": "52.6",
+      "status": "mismatch"
+    }
+  ]
+}
