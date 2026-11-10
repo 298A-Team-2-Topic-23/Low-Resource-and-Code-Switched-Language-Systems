@@ -12,7 +12,7 @@ abstract commits us to reporting.
 | Metric | Scale | Role | Why |
 |---|---|---|---|
 | chrF++ | 0-100 | **primary** | character n-grams plus word bigrams; tolerant of Romanised spelling variance in a way BLEU is not |
-| chrF++ (normalised) | 0-100 | secondary | same metric after collapsing spelling variants; the gap against raw chrF++ measures how much of our error is orthographic rather than semantic |
+| chrF++ (normalised) | 0-100 | secondary | same metric after mapping every form in `analysis/spelling_variants.tsv` to its group label; the gap against case- and punctuation-folded chrF++ (`chrf++_fold`) is the **spelling gap**: how much of our error is orthographic rather than semantic |
 | BLEU | 0-100 | secondary | reported for comparability; expected to be pessimistic here |
 | ROUGE-L | 0-1 | secondary | needed to compare against Gahoi et al. (2022), Table 2 |
 | WER | 0-1 | secondary | same reason |
@@ -21,6 +21,28 @@ abstract commits us to reporting.
 Neural metrics (COMET) are deliberately excluded for now: coverage for
 Romanized Hinglish is uncertain, and the abstract commits us to reporting that
 limitation rather than quietly relying on the metric.
+
+Every metric is reported as mean ± standard deviation over seeds **and** a 95%
+confidence interval from a 1,000-sample bootstrap over test items. ROUGE-L and
+WER are computed on case- and punctuation-folded tokens with spelling left
+alone, so they see the words the published baseline was scored on.
+
+## Normalisation
+
+Normalisation is driven by the team's spelling-variant lexicon, the same file
+the pipeline tags with (`src/lrcs/lexicon.py`). It lower-cases, strips
+punctuation, cuts letter runs of three or more to one (`nahiiii` → `nahi`),
+and replaces each lexicon form with its group label. Words outside the lexicon
+are left untouched. Every run prints how many lexicon groups the normaliser
+collapses; quote no normalised figure without it.
+
+It replaced regex rules that collapsed 3 of the 72 groups, missed vowel
+deletion (`nhi`, `kr`, `gya`) and corrupted correct words (`khyal` → `kyal`,
+`sahna` → `sana`). `tests/test_run_eval.py` runs the same checks against a copy
+of those rules and expects them to fail.
+
+Normalisation applies to the metric only. Training data and references are
+never normalised: the variance is what the project measures.
 
 ## Usage
 
@@ -47,6 +69,16 @@ Baseline reproduction check against the published numbers:
 
     python run_eval.py --hyp out/gahoi_repro.txt --ref data/mixmt.test.ref.txt \
         --system "Gahoi et al. repro" --check-baseline
+
+Paired significance test against another system on the same references:
+
+    python run_eval.py --hyp out/m2.s1.txt out/m2.s2.txt out/m2.s3.txt \
+        --ref data/test.hinglish.txt --system "Model 2 QLoRA" \
+        --vs-hyp out/m1.s1.txt out/m1.s2.txt out/m1.s3.txt --vs-system "Model 1"
+
+This prints, for each metric, the difference, its 95% bootstrap interval and a
+one-sided p-value (the share of resamples in which the first system does not
+win). `--bootstrap 0` turns the intervals off for a quick look.
 
 Accumulate results and print the report table:
 
