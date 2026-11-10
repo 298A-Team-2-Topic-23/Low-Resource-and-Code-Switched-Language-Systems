@@ -28,5 +28,15 @@
     "switch_point_fraction": 0.20068694798822376,
     "m_index": 0.7951353548491992,
     "burstiness": 0.1031852279738152
+  },
+  "M2 LoRA it500": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.8716592427616926,
+    "cmi_mean_all": 11.879721013878099,
+    "cmi_mean_mixed_only": 20.71066406844235,
+    "frac_sentences_mixed": 0.5736040609137056,
+    "switch_point_fraction": 0.0950920245398773,
+    "m_index": 0.29783285463597275,
+    "burstiness": 0.09968555002620247
   }
 }
