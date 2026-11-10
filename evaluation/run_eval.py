@@ -6,9 +6,11 @@ One command, all metrics, multi-seed aware.
 Metrics
 -------
   chrF++              primary metric (character n-grams + word bigrams)
-  chrF++ (normalised) same, after collapsing Romanised spelling variants.
-                      The raw-vs-normalised gap quantifies how much of the
-                      "error" is orthographic noise rather than meaning.
+  chrF++ (normalised) same, after mapping every spelling variant in
+                      analysis/spelling_variants.tsv to its group label. The
+                      gap against case- and punctuation-folded chrF++ is the
+                      spelling gap: how much of the "error" is orthographic
+                      noise rather than meaning.
   BLEU                reported for comparability; unreliable here by design
   ROUGE-L             reported to compare against Gahoi et al. (2022), Table 2
   WER                 same reason
@@ -33,14 +35,25 @@ Usage
   python run_eval.py --hyp out/gahoi_repro.txt --ref data/mixmt.test.ref.txt \\
       --system "Gahoi et al. repro" --check-baseline
 
+  # paired bootstrap significance against another system (same refs)
+  python run_eval.py --hyp out/m2.s*.txt --ref data/test.hinglish.txt \\
+      --system "Model 2 QLoRA" --vs-hyp out/m1.s*.txt --vs-system "Model 1"
+
   # append every run to one results file, then print the report table
   python run_eval.py ... --out results/results.jsonl
   python run_eval.py --report results/results.jsonl
 
 Input format: one sentence per line, hypotheses and references aligned.
+
+Every metric is reported as mean +/- std over seeds plus a 95% confidence
+interval from a 1,000-sample bootstrap over test items (--bootstrap N; 0 turns
+it off). ROUGE-L and WER are computed on case- and punctuation-folded tokens
+with spelling left alone, so they see the same words the published baseline
+was scored on.
 """
 import argparse
 import json
+import random
 import re
 import statistics
 import sys
@@ -49,56 +62,85 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 try:
-    import sacrebleu
+    from sacrebleu.metrics import BLEU, CHRF
 except ImportError:
     sys.exit("pip install sacrebleu")
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "src"))
+from lrcs.lexicon import DEFAULT_LEXICON, form_index, load_variant_groups  # noqa: E402
 
 # Published reference point: Gahoi et al. (2022), Table 2, MixMT Subtask-1.
 PUBLISHED_BASELINE = {"rouge_l": 0.617, "wer": 0.633, "tolerance": 0.01}
 
 # ---------------------------------------------------------------- normalisation
-# Romanised Hindi has no standard orthography: nahi / nhi / nahii / nahin are
-# one word. These rules collapse the common variants so we can measure how much
-# of the score difference is spelling rather than meaning.
+# Romanised Hindi has no standard orthography: nahi / nhi / nahin / nahii are one
+# word. Normalisation maps every surface form in the team's spelling-variant
+# lexicon (analysis/spelling_variants.tsv, loaded by lrcs.lexicon -- the same
+# file the pipeline tags with and the fertility analysis measures) to its group
+# label, so the normalised score forgives exactly the variation we have
+# evidence for and nothing else. Tokens outside the lexicon are left as they are.
+#
+# This replaced a set of regex rules (298-59). They targeted vowel lengthening
+# and fully collapsed 3 of the 72 groups, missed vowel deletion (nhi, kr, gya),
+# and corrupted correct words: h-before-consonant turned khyal into kyal and
+# sahna into sana.
+#
 # NOTE: used for the normalised metric ONLY. Never normalise training data or
 # the gold references themselves -- the variance is the phenomenon we study.
-_NORM_RULES = [
-    (re.compile(r"(.)\1{2,}"), r"\1"),       # bhaiiii -> bhai
-    (re.compile(r"aa+"), "a"),
-    (re.compile(r"ee+"), "i"),
-    (re.compile(r"ii+"), "i"),
-    (re.compile(r"oo+"), "u"),
-    (re.compile(r"uu+"), "u"),
-    (re.compile(r"n\b"), ""),                # nahin -> nahi
-    (re.compile(r"h(?=[bcdfgjklmnpqrstvwxyz])"), ""),
-    (re.compile(r"\s+"), " "),
-]
 _PUNCT = re.compile(r"[^\w\sऀ-ॿ]", re.UNICODE)
+_LETTER_RUN = re.compile(r"([^\W\d_])\1{2,}", re.UNICODE)   # bhaiiii -> bhai, not 1000 -> 10
 
 
-def normalise(text: str) -> str:
+def fold(text: str) -> str:
+    """Case, punctuation and whitespace only. Spelling is untouched."""
     t = unicodedata.normalize("NFC", text).lower()
-    t = _PUNCT.sub(" ", t)
-    for pat, rep in _NORM_RULES:
-        t = pat.sub(rep, t)
-    return t.strip()
+    return " ".join(_PUNCT.sub(" ", t).split())
+
+
+def load_lexicon_index(path=DEFAULT_LEXICON):
+    groups = load_variant_groups(path)
+    return groups, form_index(groups)
+
+
+_GROUPS, _INDEX = load_lexicon_index()
+
+
+def normalise(text: str, index=None) -> str:
+    """fold(), then letter runs of three or more cut to one, then every lexicon
+    form replaced by its group label."""
+    index = _INDEX if index is None else index
+    t = _LETTER_RUN.sub(r"\1", fold(text))
+    return " ".join(index.get(tok, tok) for tok in t.split())
+
+
+def collapse_coverage(groups=None, norm=None):
+    """How many lexicon groups the normaliser maps to a single form.
+
+    Reported before any normalised figure, so a near-inert normaliser cannot
+    pass for a working one."""
+    groups = _GROUPS if groups is None else groups
+    norm = normalise if norm is None else norm
+    collapsed = [g for g, forms in groups.items() if len({norm(f) for f in forms}) == 1]
+    return {"collapsed": len(collapsed), "groups": len(groups)}
 
 
 def tokenise(text: str):
-    return normalise(text).split()
+    """Tokens for ROUGE-L and WER: folded, spelling left alone."""
+    return fold(text).split()
 
 
 # ---------------------------------------------------------------------- metrics
-def chrf(hyps, refs, normalised=False):
-    """chrF++ : word_order=2 is what the ++ means."""
-    if normalised:
-        hyps = [normalise(h) for h in hyps]
-        refs = [normalise(r) for r in refs]
-    return sacrebleu.corpus_chrf(hyps, [refs], word_order=2).score
+# Each metric is computed from per-sentence statistics that add up to the
+# corpus score. Scoring a bootstrap sample is then a sum over resampled
+# indices, not a fresh pass over the text, so 1,000 samples take seconds.
+_CHRF = CHRF(word_order=2)          # word_order=2 is what the ++ means
+_BLEU = BLEU()
 
 
-def bleu(hyps, refs):
-    return sacrebleu.corpus_bleu(hyps, [refs]).score
+def _sacre_stats(metric, hyps, refs):
+    return [list(map(float, s)) for s in metric._extract_corpus_statistics(hyps, [refs])]
 
 
 def _lcs(a, b):
@@ -114,25 +156,15 @@ def _lcs(a, b):
     return prev[-1]
 
 
-def rouge_l(hyps, refs):
-    """Corpus ROUGE-L F1, computed per sentence and averaged.
-
-    Gahoi et al. report 0.617 on MixMT Subtask-1, so this is reported on the
-    same 0-1 scale rather than 0-100.
-    """
-    scores = []
-    for h, r in zip(hyps, refs):
-        ht, rt = tokenise(h), tokenise(r)
-        if not ht or not rt:
-            scores.append(0.0)
-            continue
-        l = _lcs(ht, rt)
-        if l == 0:
-            scores.append(0.0)
-            continue
-        p, rec = l / len(ht), l / len(rt)
-        scores.append(2 * p * rec / (p + rec))
-    return sum(scores) / max(len(scores), 1)
+def _rouge_l_sentence(h, r):
+    ht, rt = tokenise(h), tokenise(r)
+    if not ht or not rt:
+        return 0.0
+    l = _lcs(ht, rt)
+    if l == 0:
+        return 0.0
+    p, rec = l / len(ht), l / len(rt)
+    return 2 * p * rec / (p + rec)
 
 
 def _edit_distance(a, b):
@@ -147,24 +179,110 @@ def _edit_distance(a, b):
     return prev[-1]
 
 
+def sentence_stats(hyps, refs):
+    """metric -> one additive statistics vector per sentence."""
+    norm_h, norm_r = [normalise(h) for h in hyps], [normalise(r) for r in refs]
+    fold_h, fold_r = [fold(h) for h in hyps], [fold(r) for r in refs]
+    return {
+        "chrf++": _sacre_stats(_CHRF, hyps, refs),
+        "chrf++_norm": _sacre_stats(_CHRF, norm_h, norm_r),
+        "chrf++_fold": _sacre_stats(_CHRF, fold_h, fold_r),
+        "bleu": _sacre_stats(_BLEU, hyps, refs),
+        "rouge_l": [[_rouge_l_sentence(h, r), 1.0] for h, r in zip(hyps, refs)],
+        "wer": [[float(_edit_distance(tokenise(h), tokenise(r))), float(len(tokenise(r)))]
+                for h, r in zip(hyps, refs)],
+    }
+
+
+def score_from_stats(metric, stats):
+    """Corpus score from summed per-sentence statistics."""
+    total = [sum(col) for col in zip(*stats)] if stats else []
+    if metric.startswith("chrf"):
+        return _CHRF._compute_score_from_stats(total).score
+    if metric == "bleu":
+        return _BLEU._compute_score_from_stats(total).score
+    if metric == "rouge_l":     # mean of sentence F1, on the 0-1 scale of Gahoi et al.
+        return total[0] / max(total[1], 1)
+    if metric == "wer":         # total edits / total reference words, 0-1
+        return total[0] / max(total[1], 1)
+    raise KeyError(metric)
+
+
+ROUNDING = {"chrf++": 3, "chrf++_norm": 3, "chrf++_fold": 3, "bleu": 3, "rouge_l": 4, "wer": 4}
+
+
+def score_all(hyps, refs, stats=None):
+    stats = sentence_stats(hyps, refs) if stats is None else stats
+    return {k: round(score_from_stats(k, v), ROUNDING[k]) for k, v in stats.items()}
+
+
+def chrf(hyps, refs, normalised=False):
+    if normalised:
+        hyps, refs = [normalise(h) for h in hyps], [normalise(r) for r in refs]
+    return score_from_stats("chrf++", _sacre_stats(_CHRF, hyps, refs))
+
+
+def bleu(hyps, refs):
+    return score_from_stats("bleu", _sacre_stats(_BLEU, hyps, refs))
+
+
+def rouge_l(hyps, refs):
+    """Corpus ROUGE-L F1, computed per sentence and averaged (0-1 scale)."""
+    return score_from_stats("rouge_l", sentence_stats(hyps, refs)["rouge_l"])
+
+
 def wer(hyps, refs):
     """Corpus Word Error Rate: total edits / total reference words. 0-1 scale."""
-    edits = words = 0
-    for h, r in zip(hyps, refs):
-        ht, rt = tokenise(h), tokenise(r)
-        edits += _edit_distance(ht, rt)
-        words += len(rt)
-    return edits / max(words, 1)
+    return score_from_stats("wer", sentence_stats(hyps, refs)["wer"])
 
 
-def score_all(hyps, refs):
-    return {
-        "chrf++": round(chrf(hyps, refs), 3),
-        "chrf++_norm": round(chrf(hyps, refs, normalised=True), 3),
-        "bleu": round(bleu(hyps, refs), 3),
-        "rouge_l": round(rouge_l(hyps, refs), 4),
-        "wer": round(wer(hyps, refs), 4),
-    }
+# -------------------------------------------------------------------- bootstrap
+def _percentile(sorted_vals, q):
+    """Linear-interpolated percentile of an already sorted list."""
+    pos = (len(sorted_vals) - 1) * q
+    lo = int(pos)
+    hi = min(lo + 1, len(sorted_vals) - 1)
+    return sorted_vals[lo] + (sorted_vals[hi] - sorted_vals[lo]) * (pos - lo)
+
+
+def _resample_means(per_seed_stats, metric, samples, seed):
+    """Seed-mean of the metric on each bootstrap sample. One set of resampled
+    item indices is shared by every seed (and by both systems in a paired
+    comparison), so the variation measured is over test items only."""
+    n = len(per_seed_stats[0][metric])
+    rng = random.Random(seed)
+    out = []
+    for _ in range(samples):
+        idx = [rng.randrange(n) for _ in range(n)]
+        vals = [score_from_stats(metric, [s[metric][i] for i in idx]) for s in per_seed_stats]
+        out.append(statistics.mean(vals))
+    return out
+
+
+def bootstrap_ci(per_seed_stats, metric, samples=1000, seed=12345, level=0.95):
+    """Percentile bootstrap CI for the seed-mean of one metric."""
+    vals = sorted(_resample_means(per_seed_stats, metric, samples, seed))
+    a = (1 - level) / 2
+    return _percentile(vals, a), _percentile(vals, 1 - a)
+
+
+def paired_bootstrap(stats_a, stats_b, metric, samples=1000, seed=12345, level=0.95):
+    """System A minus system B on the same resampled items.
+
+    Returns the observed difference, its CI, and the share of samples in which
+    A does not beat B (a one-sided p-value; lower is better for WER, so the
+    sign is flipped there)."""
+    if len(stats_a[0][metric]) != len(stats_b[0][metric]):
+        raise ValueError("paired bootstrap needs both systems scored on the same items")
+    a = _resample_means(stats_a, metric, samples, seed)
+    b = _resample_means(stats_b, metric, samples, seed)
+    sign = -1 if metric == "wer" else 1
+    diffs = sorted(x - y for x, y in zip(a, b))
+    observed = (statistics.mean(score_from_stats(metric, s[metric]) for s in stats_a)
+                - statistics.mean(score_from_stats(metric, s[metric]) for s in stats_b))
+    p = sum(1 for d in diffs if sign * d <= 0) / samples
+    lv = (1 - level) / 2
+    return {"diff": observed, "ci95": (_percentile(diffs, lv), _percentile(diffs, 1 - lv)), "p": p}
 
 
 # --------------------------------------------------------------------------- io
@@ -192,19 +310,36 @@ def fmt(mean, std):
 
 
 # ----------------------------------------------------------------------- report
+def fmt_ci(ci):
+    return "—" if not ci else f"[{ci[0]:.3f}, {ci[1]:.3f}]"
+
+
 def print_report(path):
     rows = [json.loads(l) for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
     if not rows:
         sys.exit("no results recorded yet")
     cols = ["chrf++", "chrf++_norm", "bleu", "rouge_l", "wer"]
-    head = "| System | seeds | " + " | ".join(cols) + " | CS penalty |"
+    head = "| System | seeds | " + " | ".join(cols) + " | chrF++ 95% CI | CS penalty |"
     print("\n" + head)
-    print("|" + "---|" * (len(cols) + 3))
+    print("|" + "---|" * (len(cols) + 4))
     for r in rows:
         cells = [fmt(r["metrics"][c]["mean"], r["metrics"][c]["std"]) for c in cols]
+        ci = fmt_ci(r["metrics"]["chrf++"].get("ci95"))
         pen = f"{r['cs_penalty']:.3f}" if r.get("cs_penalty") is not None else "—"
-        print(f"| {r['system']} | {r['n_seeds']} | " + " | ".join(cells) + f" | {pen} |")
+        print(f"| {r['system']} | {r['n_seeds']} | " + " | ".join(cells) + f" | {ci} | {pen} |")
     print()
+
+
+def score_files(hyp_files, refs):
+    """Per-seed sentence statistics and scores for a list of hypothesis files."""
+    stats, scores = [], []
+    for h in hyp_files:
+        hyps = read_lines(h)
+        check_aligned(hyps, refs, f"({h})")
+        st = sentence_stats(hyps, refs)
+        stats.append(st)
+        scores.append(score_all(hyps, refs, st))
+    return stats, scores
 
 
 # ------------------------------------------------------------------------- main
@@ -215,6 +350,12 @@ def main():
     ap.add_argument("--mono-hyp", nargs="+", help="monolingual Hindi hypothesis file(s)")
     ap.add_argument("--mono-ref", help="monolingual Hindi reference file")
     ap.add_argument("--system", default="unnamed", help="system name for the results table")
+    ap.add_argument("--vs-hyp", nargs="+", help="another system's hypothesis file(s), same refs, "
+                                               "for a paired bootstrap comparison")
+    ap.add_argument("--vs-system", default="other system", help="name of the --vs-hyp system")
+    ap.add_argument("--bootstrap", type=int, default=1000,
+                    help="bootstrap samples for confidence intervals (0 turns them off)")
+    ap.add_argument("--bootstrap-seed", type=int, default=12345)
     ap.add_argument("--out", help="append the result as JSON to this file")
     ap.add_argument("--report", help="print the results table from this file and exit")
     ap.add_argument("--check-baseline", action="store_true",
@@ -228,16 +369,15 @@ def main():
         ap.error("--hyp and --ref are required")
 
     refs = read_lines(args.ref)
-    per_seed = []
-    for h in args.hyp:
-        hyps = read_lines(h)
-        check_aligned(hyps, refs, f"({h})")
-        per_seed.append(score_all(hyps, refs))
+    stats, per_seed = score_files(args.hyp, refs)
 
     metrics = {}
     for k in per_seed[0]:
         mean, std = agg([s[k] for s in per_seed])
         metrics[k] = {"mean": mean, "std": std}
+        if args.bootstrap:
+            lo, hi = bootstrap_ci(stats, k, args.bootstrap, args.bootstrap_seed)
+            metrics[k]["ci95"] = [round(lo, ROUNDING[k]), round(hi, ROUNDING[k])]
 
     # code-switching penalty: monolingual quality minus code-switched quality
     cs_penalty = None
@@ -250,16 +390,36 @@ def main():
             mono.append(chrf(mh, mono_refs))
         cs_penalty = round(statistics.mean(mono) - metrics["chrf++"]["mean"], 3)
 
+    coverage = collapse_coverage()
     print(f"\nsystem : {args.system}")
     print(f"seeds  : {len(per_seed)}")
     print(f"lines  : {len(refs)}")
+    print(f"lexicon: normalisation collapses {coverage['collapsed']} of {coverage['groups']} "
+          f"variant groups ({DEFAULT_LEXICON.relative_to(REPO_ROOT)})")
+    if args.bootstrap:
+        print(f"CI     : 95%, {args.bootstrap}-sample bootstrap over test items")
     print("-" * 46)
     for k, v in metrics.items():
-        print(f"  {k:<14} {fmt(v['mean'], v['std'])}")
+        ci = f"   95% CI {fmt_ci(v['ci95'])}" if "ci95" in v else ""
+        print(f"  {k:<14} {fmt(v['mean'], v['std'])}{ci}")
     if cs_penalty is not None:
         print(f"  {'CS penalty':<14} {cs_penalty:.3f}   (monolingual chrF++ − code-switched chrF++)")
-    gap = metrics["chrf++_norm"]["mean"] - metrics["chrf++"]["mean"]
-    print(f"  {'norm gap':<14} {gap:+.3f}   (how much of the error is spelling, not meaning)")
+    gap = metrics["chrf++_norm"]["mean"] - metrics["chrf++_fold"]["mean"]
+    print(f"  {'spelling gap':<14} {gap:+.3f}   (normalised minus case/punctuation-folded chrF++: "
+          f"error that is spelling, not meaning)")
+
+    comparison = None
+    if args.vs_hyp:
+        vs_stats, _ = score_files(args.vs_hyp, refs)
+        samples = args.bootstrap or 1000
+        print(f"\npaired bootstrap: {args.system} vs {args.vs_system}, {samples} samples")
+        comparison = {"vs_system": args.vs_system, "vs_hyp_files": args.vs_hyp, "metrics": {}}
+        for k in ("chrf++", "chrf++_norm", "bleu", "rouge_l", "wer"):
+            r = paired_bootstrap(stats, vs_stats, k, samples, args.bootstrap_seed)
+            comparison["metrics"][k] = {"diff": round(r["diff"], ROUNDING[k]),
+                                        "ci95": [round(x, ROUNDING[k]) for x in r["ci95"]],
+                                        "p": round(r["p"], 4)}
+            print(f"  {k:<14} diff {r['diff']:+.3f}   95% CI {fmt_ci(r['ci95'])}   p {r['p']:.4f}")
 
     if args.check_baseline:
         b = PUBLISHED_BASELINE
@@ -284,6 +444,9 @@ def main():
             "metrics": metrics,
             "per_seed": per_seed,
             "cs_penalty": cs_penalty,
+            "normalisation_coverage": coverage,
+            "bootstrap": {"samples": args.bootstrap, "seed": args.bootstrap_seed},
+            "comparison": comparison,
             "hyp_files": args.hyp,
             "ref_file": args.ref,
         }
