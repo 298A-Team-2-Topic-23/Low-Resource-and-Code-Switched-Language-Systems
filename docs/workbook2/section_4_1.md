@@ -263,6 +263,24 @@ metric nor the arm is innovative alone: the contribution is measuring what spell
 separating a gain from vocabulary from a gain from extra training, which section 1.5.3 found no
 surveyed work doing.
 
+**RomanSetu's factor, measured on our own corpus — which sharpens the claim rather than
+softening it.** The gap argued above depends on romanization's benefit already having been taken.
+That was a citation; it is now a measurement. On the four AI-6 slices
+(`reports/fertility_ai6.md`, 10 November), Devanagari Hindi costs **4.636 tokens per word at 1.2%
+vocabulary coverage**, and the same content in Roman script costs **1.909 at 21.9%** — a **2.4×
+reduction**, inside the two-to-four-fold range Husain et al. (2024) report. Hinglish is cheaper
+still, at **1.636**, because it carries English words the tokenizer already knows.
+
+So the ordering is `Devanagari 4.636 > Romanised Hindi 1.909 > Hinglish 1.636 > English 1.247`.
+Script choice dominates, romanization captures that gain, and Hinglish is written in Roman script
+already. What is left is the 1.636-against-1.247 residue on text that is *already* romanized, and
+`spelling_variant_burden` of 1.832 is the account this project gives of it. M3 acts on that residue
+and Control A isolates it.
+
+One honest limit: the Romanised-Hindi slice is a 30-line team-authored fixture, because no corpus
+in the repository has a Romanised-Hindi column. The 2.4× figure is therefore indicative of the
+direction and magnitude, not a corpus-grade estimate, and closing it needs Dakshina (298-76).
+
 **What the evidence supports today.** The evidence is uneven, and the corpus behind each number
 decides how it can be used.
 
@@ -272,7 +290,8 @@ decides how it can be used.
 | Token cost per occurrence, weighted by what writers actually use | 1.395 over the top 15 groups: 2,789 occurrences, 73% of lexicon occurrences | **Real HinGE** | `reports/variant_cost_hinge.json` | Reportable; partial coverage |
 | Spelling dispersion | 28 of 72 groups have 2+ forms; 12.93% of 3,812 occurrences are non-canonical | **Real HinGE** | `reports/data_statistics.json` | Reportable, at 68.2% tagger coverage |
 | Vocabulary size | 13,204 Hinglish types against 6,780 English, on similar token counts | **Real HinGE** | `reports/data_statistics.json` | Reportable; code-mixing also contributes |
-| Fertility, English to Hinglish | 1.024 to 1.501 | **Synthetic**, 1,091 pairs | `reports/fertility.csv` | Illustrative only |
+| Fertility, English to Hinglish | 1.247 to 1.636 | **Real HinGE**, 1,976 English sentences and 4,799 human references | `reports/fertility.csv` | **Reportable**; re-measured 10 Nov on the fetched corpus |
+| Fertility, Devanagari Hindi | **4.636**, at 1.2% vocabulary coverage | **Real HinGE** | `reports/fertility.csv` | **Reportable**; the fourth AI-6 slice, first measured 10 Nov |
 | Coverage, English to Hinglish | 98.5% to 52.6% | **Synthetic**, 67 and 78 word types | `reports/fertility.csv` | Illustrative only |
 | The same two on another synthetic slice | Fertility 1.150 to 1.660; coverage 54.6% to 53.0% | **Synthetic**, 801 lines | `reports/fertility_recheck_synthetic.csv` | Shows these figures move with the slice |
 
