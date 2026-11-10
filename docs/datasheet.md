@@ -131,6 +131,21 @@ them as not yet ingested, so the gap stays visible.
 - **Known limitations.** AI4Bharat does not claim ownership of the
   underlying mined text; per-source rights for the 37.4M web-mined
   pairs are not individually verified by AI4Bharat or by us.
+- **Ingested slice (298-58, 9 November 2026).** One Hindi shard,
+  `hi/train-00000-of-00008.parquet` from the Hugging Face release:
+  1,265,714 pairs, SHA-256 `f396924b…c0a4`. After six filters, a seeded
+  sample of 30,000 pairs, of which 4 were removed by the contamination
+  check and **29,996** kept (`reports/contamination/samanantar_hi_slice.json`).
+  The slice is in gitignored `data/interim/` and is not redistributed.
+- **Contamination — measured, not assumed.** HinGE's sources come from the
+  IIT Bombay corpus, which Samanantar includes. This one shard (one eighth
+  of the Hindi data) already contains **27 of the 197 HinGE test sources
+  (13.7%)** and 33 of 192 dev sources (17.2%), by exact English match
+  alone. Some matches occur only on the Hindi side, where Samanantar pairs
+  the same Hindi sentence with a different English translation. Any
+  synthetic data built from Samanantar must pass
+  `src/lrcs/data/contamination.py` first; see
+  `reports/contamination/README.md`.
 - **Intended use.** Candidate source for the M4 synthetic
   back-translation / code-mixing pipeline — parallel English–Hindi
   data run through the GCM toolkit, sampled by Switch-Point Fraction to
