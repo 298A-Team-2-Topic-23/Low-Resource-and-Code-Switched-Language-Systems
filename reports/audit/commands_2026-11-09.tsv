@@ -1,0 +1,33 @@
+step	exit_code	seconds	command
+01_python_version	0	0.0	python3 --version; uname -a
+02_venv	0	1.6	python3 -m venv .venv
+03_pip_demo	0	16.0	pip install -q -r requirements-demo.txt
+04_pytest	0	14.0	python -m pytest tests/ -q
+05_repro_selftest	0	0.3	python common/repro.py --selftest
+06_fertility_selftest	0	0.1	python analysis/tokenizer_fertility.py --selftest
+07_pipeline_synthetic	0	1.7	python scripts/run_pipeline.py --synthetic --n-synthetic 1200 --seed 42
+08_convert_pkl_without_file	3	0.0	python scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv --expected-sha256 e78c8f48af3eea0b141e767082189b7b619e9cbe50ad8f0b2a4863b82ebc5960
+09_run_eval_smoke	0	0.2	python evaluation/run_eval.py --hyp evaluation/demo/hyp.seed1.txt evaluation/demo/hyp.seed2.txt --ref evaluation/demo/ref.hinglish.txt --system 'smoke test'
+10_fertility_qwen	1	0.1	python analysis/tokenizer_fertility.py --corpus en=data/slices/en.txt --corpus hinglish=data/slices/hinglish.txt --tokenizer Qwen/Qwen2.5-7B-Instruct --out reports/fertility.csv
+11_make_demo	0	1.9	make demo-298-70 PYTHON=python
+12_convert_pkl	0	0.4	python scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv --expected-sha256 e78c8f48af3eea0b141e767082189b7b619e9cbe50ad8f0b2a4863b82ebc5960
+13_pipeline_real	0	5.0	python scripts/run_pipeline.py --input data/raw/hinge.csv --seed 42
+14_repro_summary	0	0.1	python common/repro.py --summary runs/
+15_agreement_adequacy	1	0.0	python human_eval/agreement.py --csv human_eval/pilot/adequacy.csv --rater-cols rater_a rater_b rater_c
+16_agreement_fluency	1	0.0	python human_eval/agreement.py --csv human_eval/pilot/fluency.csv --rater-cols rater_a rater_b rater_c
+17_validate_gold	0	0.0	python data/goldtestset/validate_gold_set.py data/goldtestset/gold_set.csv --allow-empty
+18_run_eval_report	0	0.1	python evaluation/run_eval.py --report results/results.jsonl
+19_cmi_only	1	0.1	python analysis/tokenizer_fertility.py --cmi-only --conll data/hinge_tagged.conll
+20_make_slices	0	0.1	python scripts/make_slices.py
+21_emit_stage_samples	0	2.3	python scripts/emit_stage_samples.py --input data/raw/hinge.csv --seed 42
+22_workbook2_figures	0	0.5	python scripts/workbook2_figures.py
+23_schedule_figures	0	0.6	python scripts/schedule_figures.py
+24_charts	0	0.6	python scripts/charts.py
+25_variant_cost_hinge	0	0.0	python analysis/variant_cost_hinge.py
+26_build_workbook2	1	0.0	python scripts/build_workbook2.py
+27_build_report	1	0.0	python scripts/build_report.py
+28_make_presubmit	2	0.0	make presubmit SINCE=2026-09-29
+29_make_slices_hideva	0	0.1	python scripts/make_slices.py --hi-deva-from data/raw/hinge.csv
+30_pip_report	0	1.0	pip install -q -r requirements-report.txt
+31_build_workbook2	0	1.0	python scripts/build_workbook2.py
+32_build_report	0	0.4	python scripts/build_report.py
