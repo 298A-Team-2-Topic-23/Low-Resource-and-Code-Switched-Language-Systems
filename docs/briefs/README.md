@@ -1,3 +1,16 @@
+# Briefs index
+
+Work splits by phase, newest first:
+
+| Phase | Window | Briefs |
+|---|---|---|
+| **Phase 3 — results** | Cycles 5–6, 9 Nov – 7 Dec | [phase3/](phase3/README.md) — issues 298-72 to 298-86 |
+| Workbook 2 | Cycle 4 | [workbook2/](workbook2/README.md) |
+| Progress Report 2 | Cycle 3–4 | [progress2/](progress2/README.md) |
+| Workbook 1 | Cycle 2 | this file, below |
+
+---
+
 # Workbook 1 briefs — read this first
 
 One file per member. Find yours, work only your issues, open one PR per issue.
