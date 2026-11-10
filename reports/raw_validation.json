@@ -1,0 +1,136 @@
+{
+  "datasets": {
+    "hinge": {
+      "counts": {
+        "rows": 1976,
+        "human_references": 4799
+      },
+      "usable_triples": 1976,
+      "rows_with_hindi_column": 1976,
+      "hindi_is_devanagari_rate": 0.9995,
+      "hinglish_contains_devanagari_rate": 0.001,
+      "mean_words": {
+        "english": 17.12,
+        "hinglish": 17.4
+      },
+      "probes": {
+        "english_vs_hinglish": {
+          "digit_share": 0.8966,
+          "digit_rows": 224,
+          "tag_share": 1.0,
+          "tag_rows": 1,
+          "latin_share": 0.5662,
+          "latin_rows": 1975,
+          "length_correlation": 0.952,
+          "rows_with_invented_tag": 0,
+          "invented_tag_rate": 0.0
+        },
+        "english_vs_hindi": {
+          "digit_share": 0.7895,
+          "digit_rows": 224,
+          "tag_share": 1.0,
+          "tag_rows": 1,
+          "latin_share": 0.0055,
+          "latin_rows": 1975,
+          "length_correlation": 0.9425,
+          "rows_with_invented_tag": 2,
+          "invented_tag_rate": 0.001
+        }
+      }
+    },
+    "phinc": {
+      "counts": {
+        "rows": 13738
+      },
+      "usable_triples": 13738,
+      "rows_with_hindi_column": 0,
+      "hindi_is_devanagari_rate": null,
+      "hinglish_contains_devanagari_rate": 0.0009,
+      "mean_words": {
+        "english": 12.31,
+        "hinglish": 13.28
+      },
+      "probes": {
+        "english_vs_hinglish": {
+          "digit_share": 0.966,
+          "digit_rows": 3217,
+          "tag_share": 0.9295,
+          "tag_rows": 7313,
+          "latin_share": 0.4067,
+          "latin_rows": 13478,
+          "length_correlation": 0.8606,
+          "rows_with_invented_tag": 1030,
+          "invented_tag_rate": 0.075
+        }
+      }
+    },
+    "cmu_dog": {
+      "counts": {
+        "usable_pairs": 9962,
+        "train": 8060,
+        "validation": 942,
+        "test": 960
+      },
+      "usable_triples": 9962,
+      "rows_with_hindi_column": 0,
+      "hindi_is_devanagari_rate": null,
+      "hinglish_contains_devanagari_rate": 0.0006,
+      "mean_words": {
+        "english": 11.01,
+        "hinglish": 11.68
+      },
+      "probes": {
+        "english_vs_hinglish": {
+          "digit_share": 0.914,
+          "digit_rows": 541,
+          "tag_share": 0.6667,
+          "tag_rows": 3,
+          "latin_share": 0.3858,
+          "latin_rows": 9457,
+          "length_correlation": 0.9626,
+          "rows_with_invented_tag": 0,
+          "invented_tag_rate": 0.0
+        }
+      }
+    },
+    "trilingual": {
+      "counts": {
+        "rows": 21139,
+        "train": 16911,
+        "test": 4228
+      },
+      "usable_triples": 21139,
+      "rows_with_hindi_column": 21139,
+      "hindi_is_devanagari_rate": 0.9995,
+      "hinglish_contains_devanagari_rate": 0.0007,
+      "mean_words": {
+        "english": 12.34,
+        "hinglish": 12.96
+      },
+      "probes": {
+        "english_vs_hinglish": {
+          "digit_share": 0.9682,
+          "digit_rows": 3451,
+          "tag_share": 0.934,
+          "tag_rows": 6241,
+          "latin_share": 0.3826,
+          "latin_rows": 21117,
+          "length_correlation": 0.8965,
+          "rows_with_invented_tag": 749,
+          "invented_tag_rate": 0.0354
+        },
+        "english_vs_hindi": {
+          "digit_share": 0.796,
+          "digit_rows": 3451,
+          "tag_share": 0.5363,
+          "tag_rows": 6241,
+          "latin_share": 0.0566,
+          "latin_rows": 21117,
+          "length_correlation": 0.783,
+          "rows_with_invented_tag": 3347,
+          "invented_tag_rate": 0.1583
+        }
+      }
+    }
+  }
+}

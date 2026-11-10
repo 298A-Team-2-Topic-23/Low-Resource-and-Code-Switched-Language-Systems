@@ -2,6 +2,13 @@
 # never committed. Split manifests ARE committed -- they are what makes a split
 # citable and reproducible without redistributing the data itself.
 data/raw/
+# ...but the provenance manifest IS committed: it records every raw file's
+# source, pinned revision, SHA-256, licence and citation, so the fetch is
+# reproducible and auditable without redistributing the corpora themselves.
+!data/raw/
+!data/raw/MANIFEST.json
+data/raw/*
+!data/raw/MANIFEST.json
 data/interim/
 data/processed/*
 !data/processed/manifests/
