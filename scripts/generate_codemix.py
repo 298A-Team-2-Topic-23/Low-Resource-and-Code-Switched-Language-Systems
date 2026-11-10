@@ -33,6 +33,7 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from lrcs import repo_relative  # noqa: E402
 from lrcs.data import codemix  # noqa: E402
+from lrcs.text import sha256_file  # noqa: E402
 
 DEFAULT_INPUT = REPO_ROOT / "data" / "codemix" / "parallel_fixture.tsv"
 DEFAULT_OUTDIR = REPO_ROOT / "reports" / "codemix"
@@ -63,6 +64,15 @@ def main(argv=None):
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--em-iterations", type=int, default=codemix.DEFAULT_ITERATIONS)
     p.add_argument("--out-dir", default=str(DEFAULT_OUTDIR))
+    p.add_argument("--stats-out", help="where to write the stats JSON (default: <out-dir>/"
+                   "codemix_stats.json). Lets a licensed batch stay in gitignored data/interim "
+                   "while its statistics are committed")
+    p.add_argument("--gate-manifest", metavar="MANIFEST",
+                   help="before writing, re-check every generated row's English source against "
+                        "this split manifest's dev and test sources (lrcs.data.contamination); "
+                        "any match halts with exit 3 and nothing is written")
+    p.add_argument("--processed-dir", default=str(REPO_ROOT / "data" / "processed"),
+                   help="where the split TSVs named by --gate-manifest live")
     args = p.parse_args(argv)
 
     try:
@@ -74,6 +84,23 @@ def main(argv=None):
         print("code-mixing failed: {}".format(exc), file=sys.stderr)
         return 2
 
+    gate_report = None
+    if args.gate_manifest:
+        from lrcs.data import contamination
+        try:
+            threshold, sources = contamination.load_split_sources(
+                args.gate_manifest, args.processed_dir)
+            index = contamination.ContaminationIndex(sources, threshold, seed=args.seed)
+            english = sorted({r["english"] for r in rows})
+            gate_report = contamination.gate([(e, "") for e in english], index)
+        except contamination.ContaminationError as exc:
+            print("HALTED: {}. Nothing written.".format(exc), file=sys.stderr)
+            return 3
+        print("  contamination gate PASSED: {:,} generated sources, 0 matches with {} at "
+              "Jaccard >= {}".format(gate_report["candidates_checked"],
+                                     " or ".join(gate_report["protected_splits"]),
+                                     gate_report["threshold"]))
+
     outdir = Path(args.out_dir)
     outdir.mkdir(parents=True, exist_ok=True)
     tsv = outdir / "codemix_batch.tsv"
@@ -84,7 +111,12 @@ def main(argv=None):
     stats["seed"] = args.seed
     stats["per_sentence"] = args.per_sentence
     stats["fixture"] = Path(args.input).resolve() == DEFAULT_INPUT.resolve()
-    summary = outdir / "codemix_stats.json"
+    stats["input_sha256"] = sha256_file(Path(args.input))
+    stats["output_sha256"] = sha256_file(tsv)
+    if gate_report is not None:
+        stats["contamination_gate"] = gate_report
+    summary = Path(args.stats_out) if args.stats_out else outdir / "codemix_stats.json"
+    summary.parent.mkdir(parents=True, exist_ok=True)
     summary.write_text(json.dumps(stats, indent=2) + "\n", encoding="utf-8")
 
     print("  batch   -> {}".format(stats["output"]))

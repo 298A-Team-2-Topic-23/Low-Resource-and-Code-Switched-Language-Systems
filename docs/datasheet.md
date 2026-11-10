@@ -178,6 +178,28 @@ them as not yet ingested, so the gap stays visible.
   variance in Hindi written in Latin script — feeds the
   `spelling_variant_burden` tokenizer-fertility metric (owned
   separately, per CLAUDE.md section 7).
+- **Ingested (298-76, 9 November 2026).** `dakshina_dataset_v1.0.tar`
+  from the GitHub release, SHA-256 `83530bec…5b03`, with only `hi/`
+  extracted under gitignored `data/raw/dakshina/`. It is used as the
+  Romanisation lexicon for the code-mix generator
+  (`src/lrcs/data/transliterate.py`, `hi.translit.sampled.train.tsv`,
+  most attested spelling per word, rule fallback for the rest).
+- **Transliteration error rate, measured.** On 100 held-out Dakshina
+  test sentences Romanised by a person (seed 42): **character error
+  rate 8.6%**, **word exact match 71.3%** over 1,483 words, scored
+  against one annotator's spelling, so valid variants such as
+  `nahi`/`nahin` count as errors. The rule fallback alone matches some
+  attested spelling for 49.0% of 100 unseen words (CER 17.9%). On the
+  Samanantar slice, 83.2% of Devanagari words came from the lexicon
+  (`reports/codemix/transliteration_spotcheck.json`,
+  `reports/codemix/romanisation_stats.json`).
+- **Licence decision for derived data (298-76).** The Romanised slice and
+  the code-mixed batch combine Samanantar (CC-BY-NC-4.0, team decision)
+  with Dakshina lexicon output (CC BY-SA 4.0). Share-alike and
+  non-commercial terms cannot both be met by one licence, so derived data
+  is **not redistributed**. It stays in gitignored `data/interim/`. Only
+  counts, hashes and a few quoted examples are committed
+  (`reports/codemix/README.md`).
 
 ## Summary table
 
@@ -186,7 +208,7 @@ them as not yet ingested, so the gap stays visible.
 | HinGE | Unstated; inherits IIT Bombay's terms at minimum | Non-commercial (inferred) | Unresolved — confirm with authors |
 | IIT Bombay corpus | CC-BY-NC-4.0 | Non-commercial | Confirmed |
 | Samanantar | CC-BY-NC-4.0 (team decision; conflicts with AI4Bharat's own CC0 claim) | Non-commercial, attribution | Confirmed by team decision, flagged |
-| Dakshina | CC BY-SA 4.0 | Attribution, share-alike | Confirmed |
+| Dakshina | CC BY-SA 4.0 | Attribution, share-alike | Confirmed; derived code-mix data not redistributed (298-76) |
 
 All four sources restrict at least to non-commercial and/or
 attribution/share-alike use. That is consistent with a course research
