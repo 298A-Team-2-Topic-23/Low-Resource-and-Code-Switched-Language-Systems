@@ -1,0 +1,53 @@
+{
+  "pairs_in": 29996,
+  "rows_out": 28559,
+  "skipped": {
+    "low_coverage": 0,
+    "too_few_blocks": 1437,
+    "no_candidates": 0
+  },
+  "target_mean_spf": 0.2398,
+  "mean_spf": 0.2398,
+  "mean_alignment_coverage": 0.9564,
+  "em_iterations": 12,
+  "candidate_pool": 930470,
+  "pool_utilisation": 0.031,
+  "spf_within_0.05_of_target": true,
+  "pool_exhausted": false,
+  "input": "data/interim/samanantar/hi_slice.roman.tsv",
+  "output": "data/interim/codemix/codemix_batch.tsv",
+  "seed": 42,
+  "per_sentence": 1,
+  "fixture": false,
+  "input_sha256": "c5bd6412aab0c03e67e77fa15ead47d5adc4f23c36117f18f86c1e86e89fe7ac",
+  "output_sha256": "87d3d262745c643d1cdb7e22ab95cd69624d8d3b726770ae494f65e9ff86bcbb",
+  "contamination_gate": {
+    "threshold": 0.7,
+    "protected_splits": [
+      "dev",
+      "test"
+    ],
+    "candidates_checked": 28559,
+    "removed": 0,
+    "kept": 28559,
+    "hits": {
+      "exact": {
+        "train": 11,
+        "dev": 0,
+        "test": 0
+      },
+      "near": {
+        "train": 1,
+        "dev": 0,
+        "test": 0
+      },
+      "hindi_exact": {
+        "train": 0,
+        "dev": 0,
+        "test": 0
+      }
+    },
+    "examples": [],
+    "passed": true
+  }
+}

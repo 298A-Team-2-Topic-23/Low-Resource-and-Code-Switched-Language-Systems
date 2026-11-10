@@ -18,5 +18,7 @@
   "output": "reports/codemix/codemix_batch.tsv",
   "seed": 42,
   "per_sentence": 1,
-  "fixture": true
+  "fixture": true,
+  "input_sha256": "3989f96f19015f76b95a8814d9eb4988b2a4da59d5722001d492d2abb0924d8c",
+  "output_sha256": "d13be8dc276c70a609662c8d12d68a3824964c32f129d1614e21e3207ad20bff"
 }
