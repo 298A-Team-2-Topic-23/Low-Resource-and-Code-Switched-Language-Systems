@@ -1,0 +1,390 @@
+{
+  "generated_by": "scripts/model_support_figures.py",
+  "components": {
+    "analysis/": [
+      "analysis/tokenizer_fertility.py",
+      "analysis/variant_cost_hinge.py"
+    ],
+    "common/repro": [
+      "common/repro.py"
+    ],
+    "evaluation/": [
+      "evaluation/run_eval.py"
+    ],
+    "human_eval/": [
+      "human_eval/agreement.py",
+      "human_eval/gold_agreement.py"
+    ],
+    "lrcs": [
+      "src/lrcs/__init__.py"
+    ],
+    "lrcs.analysis": [
+      "src/lrcs/analysis/__init__.py",
+      "src/lrcs/analysis/codemixing.py",
+      "src/lrcs/analysis/eda.py"
+    ],
+    "lrcs.data": [
+      "src/lrcs/data/__init__.py",
+      "src/lrcs/data/clean.py",
+      "src/lrcs/data/codemix.py",
+      "src/lrcs/data/contamination.py",
+      "src/lrcs/data/ingest.py",
+      "src/lrcs/data/leakage.py",
+      "src/lrcs/data/splits.py",
+      "src/lrcs/data/synthetic.py",
+      "src/lrcs/data/transliterate.py"
+    ],
+    "lrcs.lexicon": [
+      "src/lrcs/lexicon.py"
+    ],
+    "lrcs.text": [
+      "src/lrcs/text.py"
+    ],
+    "lrcs.warehouse": [
+      "src/lrcs/warehouse/__init__.py",
+      "src/lrcs/warehouse/load.py",
+      "src/lrcs/warehouse/schema.py"
+    ],
+    "models/": [
+      "models/generate_zeroshot.py",
+      "models/train_mbart_baseline.py",
+      "models/train_qlora.py",
+      "models/transliterate.py"
+    ],
+    "scripts/": [
+      "scripts/audit_hinge_count.py",
+      "scripts/audit_hinglisheval_overlap.py",
+      "scripts/audit_normalisation.py",
+      "scripts/audit_section_3_6.py",
+      "scripts/build_report.py",
+      "scripts/build_workbook2.py",
+      "scripts/charts.py",
+      "scripts/codemix_quality.py",
+      "scripts/convert_hinge_pkl.py",
+      "scripts/emit_stage_samples.py",
+      "scripts/error_analysis_sheet.py",
+      "scripts/generate_codemix.py",
+      "scripts/load_warehouse.py",
+      "scripts/make_slices.py",
+      "scripts/model_support_figures.py",
+      "scripts/monitor_pipeline.py",
+      "scripts/prepare_parallel_corpus.py",
+      "scripts/romanise_parallel.py",
+      "scripts/run_pipeline.py",
+      "scripts/schedule_figures.py",
+      "scripts/split_balance.py",
+      "scripts/warehouse_demo.py",
+      "scripts/workbook2_figures.py"
+    ]
+  },
+  "edges": [
+    {
+      "from": "analysis/",
+      "to": "common/repro",
+      "files": [
+        "analysis/tokenizer_fertility.py"
+      ]
+    },
+    {
+      "from": "evaluation/",
+      "to": "lrcs.lexicon",
+      "files": [
+        "evaluation/run_eval.py"
+      ]
+    },
+    {
+      "from": "lrcs.analysis",
+      "to": "lrcs",
+      "files": [
+        "src/lrcs/analysis/eda.py"
+      ]
+    },
+    {
+      "from": "lrcs.analysis",
+      "to": "lrcs.lexicon",
+      "files": [
+        "src/lrcs/analysis/eda.py"
+      ]
+    },
+    {
+      "from": "lrcs.analysis",
+      "to": "lrcs.text",
+      "files": [
+        "src/lrcs/analysis/eda.py"
+      ]
+    },
+    {
+      "from": "lrcs.data",
+      "to": "lrcs",
+      "files": [
+        "src/lrcs/data/contamination.py",
+        "src/lrcs/data/ingest.py",
+        "src/lrcs/data/splits.py"
+      ]
+    },
+    {
+      "from": "lrcs.data",
+      "to": "lrcs.lexicon",
+      "files": [
+        "src/lrcs/data/clean.py",
+        "src/lrcs/data/synthetic.py"
+      ]
+    },
+    {
+      "from": "lrcs.data",
+      "to": "lrcs.text",
+      "files": [
+        "src/lrcs/data/clean.py",
+        "src/lrcs/data/codemix.py",
+        "src/lrcs/data/contamination.py",
+        "src/lrcs/data/ingest.py",
+        "src/lrcs/data/leakage.py",
+        "src/lrcs/data/splits.py"
+      ]
+    },
+    {
+      "from": "lrcs.lexicon",
+      "to": "lrcs",
+      "files": [
+        "src/lrcs/lexicon.py"
+      ]
+    },
+    {
+      "from": "lrcs.warehouse",
+      "to": "lrcs",
+      "files": [
+        "src/lrcs/warehouse/load.py",
+        "src/lrcs/warehouse/schema.py"
+      ]
+    },
+    {
+      "from": "lrcs.warehouse",
+      "to": "lrcs.data",
+      "files": [
+        "src/lrcs/warehouse/load.py"
+      ]
+    },
+    {
+      "from": "lrcs.warehouse",
+      "to": "lrcs.lexicon",
+      "files": [
+        "src/lrcs/warehouse/load.py"
+      ]
+    },
+    {
+      "from": "models/",
+      "to": "common/repro",
+      "files": [
+        "models/generate_zeroshot.py",
+        "models/train_mbart_baseline.py",
+        "models/train_qlora.py"
+      ]
+    },
+    {
+      "from": "scripts/",
+      "to": "common/repro",
+      "files": [
+        "scripts/run_pipeline.py"
+      ]
+    },
+    {
+      "from": "scripts/",
+      "to": "lrcs",
+      "files": [
+        "scripts/audit_hinge_count.py",
+        "scripts/audit_hinglisheval_overlap.py",
+        "scripts/codemix_quality.py",
+        "scripts/emit_stage_samples.py",
+        "scripts/generate_codemix.py",
+        "scripts/make_slices.py",
+        "scripts/prepare_parallel_corpus.py",
+        "scripts/romanise_parallel.py",
+        "scripts/run_pipeline.py",
+        "scripts/split_balance.py",
+        "scripts/workbook2_figures.py"
+      ]
+    },
+    {
+      "from": "scripts/",
+      "to": "lrcs.analysis",
+      "files": [
+        "scripts/error_analysis_sheet.py",
+        "scripts/model_support_figures.py",
+        "scripts/run_pipeline.py",
+        "scripts/split_balance.py",
+        "scripts/workbook2_figures.py"
+      ]
+    },
+    {
+      "from": "scripts/",
+      "to": "lrcs.data",
+      "files": [
+        "scripts/audit_hinge_count.py",
+        "scripts/emit_stage_samples.py",
+        "scripts/error_analysis_sheet.py",
+        "scripts/generate_codemix.py",
+        "scripts/make_slices.py",
+        "scripts/prepare_parallel_corpus.py",
+        "scripts/romanise_parallel.py",
+        "scripts/run_pipeline.py",
+        "scripts/split_balance.py"
+      ]
+    },
+    {
+      "from": "scripts/",
+      "to": "lrcs.lexicon",
+      "files": [
+        "scripts/emit_stage_samples.py",
+        "scripts/error_analysis_sheet.py",
+        "scripts/run_pipeline.py"
+      ]
+    },
+    {
+      "from": "scripts/",
+      "to": "lrcs.text",
+      "files": [
+        "scripts/audit_hinge_count.py",
+        "scripts/audit_hinglisheval_overlap.py",
+        "scripts/codemix_quality.py",
+        "scripts/emit_stage_samples.py",
+        "scripts/error_analysis_sheet.py",
+        "scripts/generate_codemix.py",
+        "scripts/make_slices.py",
+        "scripts/prepare_parallel_corpus.py",
+        "scripts/romanise_parallel.py",
+        "scripts/split_balance.py"
+      ]
+    },
+    {
+      "from": "scripts/",
+      "to": "lrcs.warehouse",
+      "files": [
+        "scripts/load_warehouse.py",
+        "scripts/warehouse_demo.py"
+      ]
+    }
+  ],
+  "third_party": [
+    {
+      "component": "analysis/",
+      "package": "transformers",
+      "files": [
+        "analysis/tokenizer_fertility.py"
+      ]
+    },
+    {
+      "component": "common/repro",
+      "package": "numpy",
+      "files": [
+        "common/repro.py"
+      ]
+    },
+    {
+      "component": "common/repro",
+      "package": "torch",
+      "files": [
+        "common/repro.py"
+      ]
+    },
+    {
+      "component": "common/repro",
+      "package": "transformers",
+      "files": [
+        "common/repro.py"
+      ]
+    },
+    {
+      "component": "evaluation/",
+      "package": "sacrebleu",
+      "files": [
+        "evaluation/run_eval.py"
+      ]
+    },
+    {
+      "component": "lrcs.analysis",
+      "package": "matplotlib",
+      "files": [
+        "src/lrcs/analysis/eda.py"
+      ]
+    },
+    {
+      "component": "lrcs.warehouse",
+      "package": "sqlite3",
+      "files": [
+        "src/lrcs/warehouse/schema.py"
+      ]
+    },
+    {
+      "component": "models/",
+      "package": "peft",
+      "files": [
+        "models/generate_zeroshot.py",
+        "models/train_qlora.py"
+      ]
+    },
+    {
+      "component": "models/",
+      "package": "torch",
+      "files": [
+        "models/generate_zeroshot.py",
+        "models/train_mbart_baseline.py",
+        "models/train_qlora.py"
+      ]
+    },
+    {
+      "component": "models/",
+      "package": "transformers",
+      "files": [
+        "models/generate_zeroshot.py",
+        "models/train_mbart_baseline.py",
+        "models/train_qlora.py"
+      ]
+    },
+    {
+      "component": "scripts/",
+      "package": "matplotlib",
+      "files": [
+        "scripts/charts.py",
+        "scripts/model_support_figures.py",
+        "scripts/schedule_figures.py",
+        "scripts/workbook2_figures.py"
+      ]
+    },
+    {
+      "component": "scripts/",
+      "package": "numpy",
+      "files": [
+        "scripts/schedule_figures.py"
+      ]
+    },
+    {
+      "component": "scripts/",
+      "package": "pyarrow",
+      "files": [
+        "scripts/prepare_parallel_corpus.py"
+      ]
+    },
+    {
+      "component": "scripts/",
+      "package": "python-docx",
+      "files": [
+        "scripts/build_report.py",
+        "scripts/build_workbook2.py"
+      ]
+    },
+    {
+      "component": "scripts/",
+      "package": "sacrebleu",
+      "files": [
+        "scripts/error_analysis_sheet.py"
+      ]
+    },
+    {
+      "component": "scripts/",
+      "package": "sqlite3",
+      "files": [
+        "scripts/warehouse_demo.py"
+      ]
+    }
+  ]
+}
