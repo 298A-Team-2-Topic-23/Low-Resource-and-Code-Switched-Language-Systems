@@ -80,17 +80,25 @@ PUBLISHED_BASELINE = {"rouge_l": 0.617, "wer": 0.633, "tolerance": 0.01}
 # lexicon (analysis/spelling_variants.tsv, loaded by lrcs.lexicon -- the same
 # file the pipeline tags with and the fertility analysis measures) to its group
 # label, so the normalised score forgives exactly the variation we have
-# evidence for and nothing else. Tokens outside the lexicon are left as they are.
+# evidence for. A token outside the lexicon has its vowel length folded
+# (aa -> a, ee/ii -> i, oo/uu -> u), the one variation human writers show on words
+# the lexicon does not list (vikaas / vikas, vibhaag / vibhag); nothing else about
+# it changes. Folding also merges the odd English pair (book, buk) -- a small
+# over-credit, applied to hypothesis and reference alike.
 #
-# This replaced a set of regex rules (298-59). They targeted vowel lengthening
-# and fully collapsed 3 of the 72 groups, missed vowel deletion (nhi, kr, gya),
-# and corrupted correct words: h-before-consonant turned khyal into kyal and
-# sahna into sana.
+# This replaced a set of regex rules (298-59, 298-78). They fully collapsed 3 of
+# the 72 groups, missed vowel deletion (nhi, kr, gya), and corrupted correct
+# words: n-at-word-end and h-before-consonant turned khyal into kyal, sahna into
+# sana and dhyan into dya. Their vowel-length rules were the sound part and are
+# kept, for out-of-lexicon tokens only. reports/normalisation_audit.md measures
+# the change.
 #
 # NOTE: used for the normalised metric ONLY. Never normalise training data or
 # the gold references themselves -- the variance is the phenomenon we study.
 _PUNCT = re.compile(r"[^\w\sऀ-ॿ]", re.UNICODE)
 _LETTER_RUN = re.compile(r"([^\W\d_])\1{2,}", re.UNICODE)   # bhaiiii -> bhai, not 1000 -> 10
+_VOWEL_LENGTH = [(re.compile(r"aa+"), "a"), (re.compile(r"ee+|ii+"), "i"),
+                 (re.compile(r"oo+|uu+"), "u")]
 
 
 def fold(text: str) -> str:
@@ -107,12 +115,25 @@ def load_lexicon_index(path=DEFAULT_LEXICON):
 _GROUPS, _INDEX = load_lexicon_index()
 
 
+def fold_vowel_length(token: str) -> str:
+    for pat, rep in _VOWEL_LENGTH:
+        token = pat.sub(rep, token)
+    return token
+
+
+def _normalise_token(tok, index):
+    if tok in index:
+        return index[tok]
+    short = fold_vowel_length(tok)
+    return index.get(short, short)
+
+
 def normalise(text: str, index=None) -> str:
     """fold(), then letter runs of three or more cut to one, then every lexicon
-    form replaced by its group label."""
+    form replaced by its group label; any other token has its vowel length folded."""
     index = _INDEX if index is None else index
     t = _LETTER_RUN.sub(r"\1", fold(text))
-    return " ".join(index.get(tok, tok) for tok in t.split())
+    return " ".join(_normalise_token(tok, index) for tok in t.split())
 
 
 def collapse_coverage(groups=None, norm=None):

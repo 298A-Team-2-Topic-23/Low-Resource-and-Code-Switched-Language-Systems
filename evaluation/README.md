@@ -32,9 +32,17 @@ alone, so they see the words the published baseline was scored on.
 Normalisation is driven by the team's spelling-variant lexicon, the same file
 the pipeline tags with (`src/lrcs/lexicon.py`). It lower-cases, strips
 punctuation, cuts letter runs of three or more to one (`nahiiii` → `nahi`),
-and replaces each lexicon form with its group label. Words outside the lexicon
-are left untouched. Every run prints how many lexicon groups the normaliser
+and replaces each lexicon form with its group label. A word outside the lexicon
+only has its vowel length folded (`aa`→`a`, `ee`/`ii`→`i`, `oo`/`uu`→`u`), the
+variation human references show on unlisted words (`vikaas`/`vikas`); it is
+applied to hypothesis and reference alike, and it also merges the odd English
+pair (`book`/`buk`). Every run prints how many lexicon groups the normaliser
 collapses; quote no normalised figure without it.
+
+`reports/normalisation_audit.md` (`scripts/audit_normalisation.py`) measures the
+change against the old rules: 3 → 72 of 72 groups, 30% → 100% of non-canonical
+spellings in the real corpus's 15 commonest groups, eight words the old rules
+corrupted now intact, and scores before and after on two committed files.
 
 It replaced regex rules that collapsed 3 of the 72 groups, missed vowel
 deletion (`nhi`, `kr`, `gya`) and corrupted correct words (`khyal` → `kyal`,

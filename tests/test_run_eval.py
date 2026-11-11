@@ -63,8 +63,10 @@ def _catches_vowel_deletion(norm):
 
 
 def _leaves_correct_words_alone(norm):
-    # Correct words outside the lexicon, each damaged by an old rule.
-    words = ["khyal", "sahna", "pahle", "bhool", "baat", "sooraj"]
+    # Correct words outside the lexicon, each damaged by the old n-at-word-end or
+    # h-before-consonant rule (298-78). None has a long vowel, so the vowel-length
+    # folding the new normaliser applies outside the lexicon leaves them intact.
+    words = ["khyal", "sahna", "pahle", "bahna", "kahna", "rehna", "dhyan", "vyakhya"]
     return all(norm(w) == w for w in words)
 
 
@@ -85,6 +87,12 @@ def test_old_regex_collapsed_three_groups_and_the_lexicon_collapses_all():
     assert groups == 72
     assert ev.collapse_coverage(norm=old_normalise)["collapsed"] == 3
     assert ev.collapse_coverage()["collapsed"] == groups
+
+
+def test_out_of_lexicon_words_have_vowel_length_folded_and_nothing_else():
+    # The variation human references show on words the lexicon does not list.
+    assert ev.normalise("vikaas vibhaag poorv") == ev.normalise("vikas vibhag purv")
+    assert ev.normalise("friend their") == "friend their"     # ie / ei are not length
 
 
 def test_normalise_folds_case_punctuation_and_letter_runs_only():
@@ -152,3 +160,18 @@ def test_paired_bootstrap_of_a_system_against_itself_is_not_significant():
 def test_paired_bootstrap_refuses_different_item_counts():
     with pytest.raises(ValueError):
         ev.paired_bootstrap(_stats(HYPS), _stats(HYPS[:2], REFS[:2]), "chrf++", samples=10)
+
+
+# ------------------------------------------------------------------ the audit
+def test_audit_reports_full_collapse_and_no_corruption():
+    spec = importlib.util.spec_from_file_location(
+        "audit_normalisation", ROOT / "scripts" / "audit_normalisation.py")
+    audit = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(audit)
+    a = audit.audit()
+    assert a["groups"]["before"]["lexicon_groups"] == 3
+    assert a["groups"]["after"]["lexicon_groups"] == a["groups"]["after"]["of_lexicon"] == 72
+    after = a["occurrences_top15"]["after"]
+    assert after["non_canonical_mapped_to_canonical"] == after["non_canonical"]
+    assert all(v["after"] == w for w, v in a["corruption_probes"].items())
+    assert all(v["before"] != w for w, v in a["corruption_probes"].items())
