@@ -12,7 +12,7 @@ interesting finding, and this document keeps both, because the disagreement is t
 | Precision | — | bf16 (native; A100 is Ampere) |
 | Training seen | 600 steps at batch 1 ≈ **0.16 epochs** | 351 steps at effective batch 32 = **3 epochs** |
 | Seeds | 1 (42) | **3 (13, 42, 1337)** |
-| Compute | 1.33 GPU-hours | 1.508 GPU-hours |
+| Compute | 1.332 GPU-hours | 1.508 GPU-hours |
 
 Run B is the reportable one: it is the recipe §4.1 actually specifies, at the scale it specifies,
 with the seed count 298-54 asks for. Run A is kept because it is what exposed the question.
@@ -118,7 +118,7 @@ which makes the 0-shot condition the honest M1 baseline and is worth a line in �
 4. The project's two metric families measure different things and can move in opposite directions.
    Run A is the demonstration, and it is a stronger argument for the evaluation design than any
    result where the metrics agree.
-5. Compute: **2.93 GPU-hours cumulative** against the 145-hour cap, across laptop, T4 smoke and
+5. Compute: **3.039 GPU-hours cumulative** against the 145-hour cap, across laptop, T4 smoke and
    A100.
 
 ## 6. Provenance
