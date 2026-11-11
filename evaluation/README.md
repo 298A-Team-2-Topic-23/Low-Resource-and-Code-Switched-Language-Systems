@@ -88,6 +88,20 @@ This prints, for each metric, the difference, its 95% bootstrap interval and a
 one-sided p-value (the share of resamples in which the first system does not
 win). `--bootstrap 0` turns the intervals off for a quick look.
 
+The pre-registered decision (Workbook 2 section 4.4.6, registered 11 November
+2026): judge one rung against another, or every adjacent pair of the ladder.
+Each system is `Name=glob`, one hypothesis file per seed:
+
+    python run_eval.py --ref data/test.hinglish.txt \
+        --compare "M2=out/m2.s*.txt" "M1=out/m1.s*.txt"
+    python run_eval.py --ref data/test.hinglish.txt --ladder \
+        "M1=out/m1.s*.txt" "M2=out/m2.s*.txt" "ControlA=out/ca.s*.txt" "M3=out/m3.s*.txt"
+
+Each step prints the gain, its paired-bootstrap interval and p-value, the
+verdict (improvement / null / worse) against the null threshold
+max(1.0, 2 × M1's seed std), and whether AI-1's 3.0-point success bar is met.
+The rule lives in `DECISION_RULE`; do not change it once results exist.
+
 Accumulate results and print the report table:
 
     python run_eval.py ... --out results/results.jsonl
