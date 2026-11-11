@@ -102,17 +102,23 @@ SEEDS    = [13, 42, 1337]               # the project's fixed seeds
 
 CFG = {
   "smoke": dict(model="Qwen/Qwen2.5-0.5B-Instruct", train_limit=256, max_steps=30,
-                epochs=1, bsz=1, accum=16, maxlen=256, test_limit=48, seeds=[13]),
+                epochs=1, bsz=1, accum=16, maxlen=256, test_limit=48, seeds=[13],
+                save_steps=0),
   "t4":    dict(model=MODEL_ID, train_limit=None, max_steps=None,
-                epochs=1, bsz=1, accum=32, maxlen=320, test_limit=None, seeds=[42]),
+                epochs=1, bsz=1, accum=32, maxlen=320, test_limit=None, seeds=[42],
+                save_steps=20),
   "a100":  dict(model=MODEL_ID, train_limit=None, max_steps=None,
-                epochs=3, bsz=4, accum=8,  maxlen=512, test_limit=None, seeds=SEEDS),
+                epochs=3, bsz=4, accum=8,  maxlen=512, test_limit=None, seeds=SEEDS,
+                save_steps=50),
 }[PROFILE]
 
 print(f"profile={PROFILE}")
 for k, v in CFG.items():
     print(f"  {k:12s} {v}")
 print(f"\\n  effective batch = {CFG['bsz'] * CFG['accum']}")
+if CFG["save_steps"]:
+    print(f"  checkpoint every {CFG['save_steps']} steps -- a severed session costs "
+          f"minutes, not the run")
 if PROFILE == "smoke":
     print("\\n  SMOKE: a 0.5B stand-in on 256 examples. Nothing from this profile is")
     print("  reportable -- docs/COMPUTE_BUDGET.md already records three such runs that way.")
@@ -350,28 +356,42 @@ import shutil
 for seed in CFG["seeds"]:
     local = pathlib.Path(f"out/m2-seed{seed}")
 
-    if PERSIST and (PERSIST/local.name/"adapter_config.json").exists():
-        if not local.exists():
-            shutil.copytree(PERSIST/local.name, local)
-        print(f"seed {seed}: restored from {PERSIST/local.name}, skipping training\\n")
+    # Where training writes. With PERSIST set, it writes STRAIGHT TO DRIVE, so the
+    # intermediate checkpoints survive the runtime that produced them. Copying
+    # afterwards -- what this cell used to do -- only protects a run that finished,
+    # and a full epoch on a hosted T4 is longer than a hosted session.
+    target = (PERSIST / local.name) if PERSIST else local
+
+    if (target / "adapter_config.json").exists():
+        if target != local:
+            shutil.copytree(target, local, dirs_exist_ok=True)
+        print(f"seed {seed}: finished adapter already in {target}, skipping training\\n")
         continue
+
+    ckpts = sorted(target.glob("checkpoint-*"), key=lambda q: int(q.name.split("-")[1]))
+    if ckpts:
+        print(f"seed {seed}: unfinished run found, resuming from {ckpts[-1].name}")
 
     cmd = [sys.executable, "models/train_qlora.py",
            "--train", f"data/processed/{SOURCE}/train.tsv",
            "--src-col", 2, "--tgt-col", 4,
-           "--out", local, "--model", CFG["model"], "--seed", seed,
+           "--out", target, "--model", CFG["model"], "--seed", seed,
            "--epochs", CFG["epochs"], "--batch-size", CFG["bsz"],
            "--grad-accum", CFG["accum"], "--max-len", CFG["maxlen"]]
     if CFG["train_limit"]: cmd += ["--limit", CFG["train_limit"]]
     if CFG["max_steps"]:   cmd += ["--max-steps", CFG["max_steps"]]
+    if CFG["save_steps"]:  cmd += ["--save-steps", CFG["save_steps"], "--resume"]
     rc = run(cmd)
-    assert rc == 0 and (local/"adapter_config.json").exists(), (
+    assert rc == 0 and (target/"adapter_config.json").exists(), (
         f"training failed for seed {seed} -- read the stderr above; "
         f"runs/*model2-qlora_seed{seed}.json records the exception. Do not continue: "
-        "the next cell would score an adapter that was never written.")
-    if PERSIST:
-        shutil.copytree(local, PERSIST/local.name, dirs_exist_ok=True)
-        print("saved to", PERSIST/local.name)
+        "the next cell would score an adapter that was never written.\\n"
+        + (f"Checkpoints are in {target}; re-run this cell to resume from the newest."
+           if CFG["save_steps"] else
+           "This profile writes no checkpoints, so the run restarts from zero."))
+    if target != local:
+        shutil.copytree(target, local, dirs_exist_ok=True)
+    print("adapter at", target)
 """)
 code("""
 for seed in CFG["seeds"]:
@@ -398,13 +418,24 @@ Compare each system against both anchors. **A system near the English floor is n
 the task, whatever its chrF++ says.**
 """)
 code("""
-args = [sys.executable, "scripts/score_codemixing.py", "--sources", refs_path]
+# Smoke writes somewhere else on purpose. This script's default output is
+# reports/codemixing_systems.json, which holds the 7B numbers that
+# reports/m1_m2_comparison.md cites -- and section 14 zips that file. A smoke run
+# left on the default would put 48-sentence 0.5B numbers into the zip under the
+# real file's name, and unzipping over the clone would silently replace the
+# numbers the report quotes.
+CM_OUT = ("out/codemixing_smoke.json" if PROFILE == "smoke"
+          else "reports/codemixing_systems.json")
+
+args = [sys.executable, "scripts/score_codemixing.py",
+        "--sources", refs_path, "--out", CM_OUT]
 for s in CFG["seeds"]:
     if pathlib.Path(f"out/m1.0shot.s{s}.txt").exists():
         args += ["--hyp", f"M1 0shot s{s}=out/m1.0shot.s{s}.txt"]
     if pathlib.Path(f"out/m2.s{s}.txt").exists():
         args += ["--hyp", f"M2 QLoRA s{s}=out/m2.s{s}.txt"]
 run(args)
+print("\\nwrote", CM_OUT)
 """)
 
 md("""
@@ -431,13 +462,17 @@ md("""
 
 Download `commit_me.zip`, unzip it over your clone, and push on a branch. Keep the run records:
 a number without one is not reportable.
+
+`results/results.jsonl` is append-only, so unzipping it over the clone adds rows rather than
+replacing them. On the smoke profile the code-mixing scores arrive as `out/codemixing_smoke.json`,
+which is gitignored and cannot overwrite the 7B numbers `reports/m1_m2_comparison.md` quotes.
 """)
 code("""
 import zipfile, json
 z = pathlib.Path("/content/commit_me.zip")
 keep = sorted(pathlib.Path("runs").glob("*.json")) + [
     p for p in (pathlib.Path("results/results.jsonl"),
-                pathlib.Path("reports/codemixing_systems.json"),
+                pathlib.Path(CM_OUT),
                 pathlib.Path("reports/raw_validation.json")) if p.exists()]
 with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
     for p in keep:
