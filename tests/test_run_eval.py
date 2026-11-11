@@ -7,6 +7,7 @@ second -- that is the proof the fix changed behaviour, not just code.
 """
 
 import importlib.util
+import sys
 import re
 import unicodedata
 from pathlib import Path
@@ -63,8 +64,10 @@ def _catches_vowel_deletion(norm):
 
 
 def _leaves_correct_words_alone(norm):
-    # Correct words outside the lexicon, each damaged by an old rule.
-    words = ["khyal", "sahna", "pahle", "bhool", "baat", "sooraj"]
+    # Correct words outside the lexicon, each damaged by the old n-at-word-end or
+    # h-before-consonant rule (298-78). None has a long vowel, so the vowel-length
+    # folding the new normaliser applies outside the lexicon leaves them intact.
+    words = ["khyal", "sahna", "pahle", "bahna", "kahna", "rehna", "dhyan", "vyakhya"]
     return all(norm(w) == w for w in words)
 
 
@@ -85,6 +88,12 @@ def test_old_regex_collapsed_three_groups_and_the_lexicon_collapses_all():
     assert groups == 72
     assert ev.collapse_coverage(norm=old_normalise)["collapsed"] == 3
     assert ev.collapse_coverage()["collapsed"] == groups
+
+
+def test_out_of_lexicon_words_have_vowel_length_folded_and_nothing_else():
+    # The variation human references show on words the lexicon does not list.
+    assert ev.normalise("vikaas vibhaag poorv") == ev.normalise("vikas vibhag purv")
+    assert ev.normalise("friend their") == "friend their"     # ie / ei are not length
 
 
 def test_normalise_folds_case_punctuation_and_letter_runs_only():
@@ -152,3 +161,95 @@ def test_paired_bootstrap_of_a_system_against_itself_is_not_significant():
 def test_paired_bootstrap_refuses_different_item_counts():
     with pytest.raises(ValueError):
         ev.paired_bootstrap(_stats(HYPS), _stats(HYPS[:2], REFS[:2]), "chrf++", samples=10)
+
+
+# ------------------------------------------------------------------ the audit
+def test_audit_reports_full_collapse_and_no_corruption():
+    spec = importlib.util.spec_from_file_location(
+        "audit_normalisation", ROOT / "scripts" / "audit_normalisation.py")
+    audit = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(audit)
+    a = audit.audit()
+    assert a["groups"]["before"]["lexicon_groups"] == 3
+    assert a["groups"]["after"]["lexicon_groups"] == a["groups"]["after"]["of_lexicon"] == 72
+    after = a["occurrences_top15"]["after"]
+    assert after["non_canonical_mapped_to_canonical"] == after["non_canonical"]
+    assert all(v["after"] == w for w, v in a["corruption_probes"].items())
+    assert all(v["before"] != w for w, v in a["corruption_probes"].items())
+
+
+# ------------------------------------------------------ decision rule (298-79)
+def test_decision_rule_is_registered_before_results():
+    rule = ev.DECISION_RULE
+    assert rule["registered"] == "2026-11-11"
+    assert (rule["metric"], rule["null_floor"], rule["alpha"], rule["success_gain"]) == \
+        ("chrf++", 1.0, 0.05, 3.0)
+
+
+def test_null_threshold_comes_from_m1_seed_spread_with_a_floor():
+    assert ev.null_threshold(None) == 1.0
+    assert ev.null_threshold(0.3) == 1.0          # 2 x 0.3 is below the floor
+    assert ev.null_threshold(0.8) == 1.6          # noisy M1 raises the bar
+
+
+@pytest.mark.parametrize("diff, ci, p, expected", [
+    (2.0, (0.5, 3.5), 0.01, "improvement"),
+    (2.0, (-0.5, 3.5), 0.08, "null"),           # interval spans zero
+    (0.6, (0.2, 1.0), 0.001, "null"),           # significant but below the threshold
+    (-2.0, (-3.5, -0.5), 0.99, "worse"),
+])
+def test_verdict_on_known_numbers(diff, ci, p, expected):
+    assert ev.verdict(diff, ci, p, threshold=1.0) == expected
+
+
+def test_success_bar_needs_seed_error_bars():
+    assert ev.meets_success_bar({"mean": 40, "std": None}, {"mean": 30, "std": None}) is None
+    assert ev.meets_success_bar({"mean": 40, "std": 1}, {"mean": 30, "std": 1}) is True
+    assert ev.meets_success_bar({"mean": 34, "std": 2}, {"mean": 30, "std": 2}) is False
+
+
+def _write_system(tmp_path, name, lines_per_seed):
+    files = []
+    for seed, lines in enumerate(lines_per_seed):
+        path = tmp_path / f"{name}.s{seed}.txt"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        files.append(str(path))
+    return name, files
+
+
+LADDER_REFS = [f"main aaj {w} ke saath market ja raha hoon" for w in
+               ("dost", "bhai", "papa", "mummy", "didi", "chacha", "nana", "dadi",
+                "mama", "chachi", "bua", "mausi")] * 3
+
+
+def test_identical_systems_are_never_called_different(tmp_path):
+    hyps = [r.replace("raha", "rha") for r in LADDER_REFS]
+    m1 = _write_system(tmp_path, "M1", [hyps] * 3)
+    same = _write_system(tmp_path, "Same", [hyps] * 3)
+    result = ev.compare_ladder([m1, same], LADDER_REFS, samples=200, seed=7)
+    assert result["steps"][0]["verdict"] == "null"
+    assert result["steps"][0]["diff"] == 0
+
+
+def test_a_planted_difference_is_detected_and_deterministic(tmp_path):
+    weak = [" ".join(r.split()[:3]) for r in LADDER_REFS]
+    m1 = _write_system(tmp_path, "M1", [weak] * 3)
+    m2 = _write_system(tmp_path, "M2", [LADDER_REFS] * 3)
+    first = ev.compare_ladder([m1, m2], LADDER_REFS, samples=200, seed=7)
+    again = ev.compare_ladder([m1, m2], LADDER_REFS, samples=200, seed=7)
+    assert first["steps"][0]["verdict"] == "improvement"
+    assert first["steps"] == again["steps"]          # a reported p-value reproduces exactly
+    assert first["threshold_source"] == "M1 seed spread" or first["arms"][0]["std"] == 0
+
+
+def test_compare_cli_prints_the_verdict(tmp_path):
+    import subprocess
+    ref = tmp_path / "ref.txt"
+    ref.write_text("\n".join(LADDER_REFS) + "\n", encoding="utf-8")
+    _write_system(tmp_path, "m1", [[" ".join(r.split()[:3]) for r in LADDER_REFS]] * 2)
+    _write_system(tmp_path, "m2", [LADDER_REFS] * 2)
+    out = subprocess.run([sys.executable, str(ROOT / "evaluation" / "run_eval.py"), "--ref", str(ref),
+                          "--compare", f"M2={tmp_path}/m2.s*.txt", f"M1={tmp_path}/m1.s*.txt",
+                          "--bootstrap", "200"], capture_output=True, text=True, check=True).stdout
+    assert "| M2 vs M1 |" in out and "**improvement**" in out
+    assert "decision rule registered 2026-11-11" in out

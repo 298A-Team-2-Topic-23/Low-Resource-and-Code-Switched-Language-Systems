@@ -39,6 +39,12 @@ Usage
   python run_eval.py --hyp out/m2.s*.txt --ref data/test.hinglish.txt \\
       --system "Model 2 QLoRA" --vs-hyp out/m1.s*.txt --vs-system "Model 1"
 
+  # the pre-registered decision: one rung against another, or the whole ladder
+  python run_eval.py --ref data/test.hinglish.txt \\
+      --compare "M2=out/m2.s*.txt" "M1=out/m1.s*.txt"
+  python run_eval.py --ref data/test.hinglish.txt --ladder "M1=out/m1.s*.txt" \\
+      "M2=out/m2.s*.txt" "ControlA=out/ca.s*.txt" "M3=out/m3.s*.txt"
+
   # append every run to one results file, then print the report table
   python run_eval.py ... --out results/results.jsonl
   python run_eval.py --report results/results.jsonl
@@ -52,6 +58,7 @@ with spelling left alone, so they see the same words the published baseline
 was scored on.
 """
 import argparse
+import glob
 import json
 import random
 import re
@@ -80,17 +87,25 @@ PUBLISHED_BASELINE = {"rouge_l": 0.617, "wer": 0.633, "tolerance": 0.01}
 # lexicon (analysis/spelling_variants.tsv, loaded by lrcs.lexicon -- the same
 # file the pipeline tags with and the fertility analysis measures) to its group
 # label, so the normalised score forgives exactly the variation we have
-# evidence for and nothing else. Tokens outside the lexicon are left as they are.
+# evidence for. A token outside the lexicon has its vowel length folded
+# (aa -> a, ee/ii -> i, oo/uu -> u), the one variation human writers show on words
+# the lexicon does not list (vikaas / vikas, vibhaag / vibhag); nothing else about
+# it changes. Folding also merges the odd English pair (book, buk) -- a small
+# over-credit, applied to hypothesis and reference alike.
 #
-# This replaced a set of regex rules (298-59). They targeted vowel lengthening
-# and fully collapsed 3 of the 72 groups, missed vowel deletion (nhi, kr, gya),
-# and corrupted correct words: h-before-consonant turned khyal into kyal and
-# sahna into sana.
+# This replaced a set of regex rules (298-59, 298-78). They fully collapsed 3 of
+# the 72 groups, missed vowel deletion (nhi, kr, gya), and corrupted correct
+# words: n-at-word-end and h-before-consonant turned khyal into kyal, sahna into
+# sana and dhyan into dya. Their vowel-length rules were the sound part and are
+# kept, for out-of-lexicon tokens only. reports/normalisation_audit.md measures
+# the change.
 #
 # NOTE: used for the normalised metric ONLY. Never normalise training data or
 # the gold references themselves -- the variance is the phenomenon we study.
 _PUNCT = re.compile(r"[^\w\sऀ-ॿ]", re.UNICODE)
 _LETTER_RUN = re.compile(r"([^\W\d_])\1{2,}", re.UNICODE)   # bhaiiii -> bhai, not 1000 -> 10
+_VOWEL_LENGTH = [(re.compile(r"aa+"), "a"), (re.compile(r"ee+|ii+"), "i"),
+                 (re.compile(r"oo+|uu+"), "u")]
 
 
 def fold(text: str) -> str:
@@ -107,12 +122,25 @@ def load_lexicon_index(path=DEFAULT_LEXICON):
 _GROUPS, _INDEX = load_lexicon_index()
 
 
+def fold_vowel_length(token: str) -> str:
+    for pat, rep in _VOWEL_LENGTH:
+        token = pat.sub(rep, token)
+    return token
+
+
+def _normalise_token(tok, index):
+    if tok in index:
+        return index[tok]
+    short = fold_vowel_length(tok)
+    return index.get(short, short)
+
+
 def normalise(text: str, index=None) -> str:
     """fold(), then letter runs of three or more cut to one, then every lexicon
-    form replaced by its group label."""
+    form replaced by its group label; any other token has its vowel length folded."""
     index = _INDEX if index is None else index
     t = _LETTER_RUN.sub(r"\1", fold(text))
-    return " ".join(index.get(tok, tok) for tok in t.split())
+    return " ".join(_normalise_token(tok, index) for tok in t.split())
 
 
 def collapse_coverage(groups=None, norm=None):
@@ -285,6 +313,111 @@ def paired_bootstrap(stats_a, stats_b, metric, samples=1000, seed=12345, level=0
     return {"diff": observed, "ci95": (_percentile(diffs, lv), _percentile(diffs, 1 - lv)), "p": p}
 
 
+# -------------------------------------------------------------- decision rule
+# Pre-registered 11 November 2026 (298-79), before any real result existed:
+# docs/workbook2/section_4_4.md, 4.4.6. Do not change it after results exist.
+#
+# A rung counts as an improvement over the rung below only if all three hold:
+#   * its mean primary-metric gain is at least the null threshold,
+#     max(1.0 chrF++, 2 x M1's seed standard deviation). 1.0 is AI-2's
+#     null-result line from Workbook 1; the seed term stops a gain smaller than
+#     run-to-run noise from counting, and comes from M1, never from the rung
+#     being judged;
+#   * the 95% paired-bootstrap interval of the gain excludes zero;
+#   * the one-sided paired-bootstrap p-value is below 0.05.
+# Worse is the mirror image. Anything else is a null result.
+# AI-1's success bar is reported beside it: a gain of 3.0 or more with
+# non-overlapping seed error bars (mean +/- std).
+DECISION_RULE = {"registered": "2026-11-11", "metric": "chrf++", "null_floor": 1.0,
+                 "seed_std_multiplier": 2.0, "alpha": 0.05, "success_gain": 3.0,
+                 "bootstrap_samples": 1000, "bootstrap_seed": 12345}
+
+
+def null_threshold(m1_seed_std=None, rule=DECISION_RULE):
+    if not m1_seed_std:
+        return rule["null_floor"]
+    return max(rule["null_floor"], rule["seed_std_multiplier"] * m1_seed_std)
+
+
+def verdict(diff, ci, p, threshold, rule=DECISION_RULE):
+    """'improvement', 'worse' or 'null' for a gain of system A over system B."""
+    if diff >= threshold and ci[0] > 0 and p < rule["alpha"]:
+        return "improvement"
+    if diff <= -threshold and ci[1] < 0 and (1 - p) < rule["alpha"]:
+        return "worse"
+    return "null"
+
+
+def meets_success_bar(arm_a, arm_b, rule=DECISION_RULE):
+    """AI-1: gain >= 3.0 and the seed error bars do not overlap. None when either
+    arm has a single seed, because then there are no error bars to compare."""
+    if arm_a["std"] is None or arm_b["std"] is None:
+        return None
+    gain = arm_a["mean"] - arm_b["mean"]
+    return gain >= rule["success_gain"] and arm_a["mean"] - arm_a["std"] > arm_b["mean"] + arm_b["std"]
+
+
+def parse_system(spec):
+    """'Name=glob' or 'glob', or comma-separated files. Returns (name, files)."""
+    name, _, pattern = spec.rpartition("=")
+    files = []
+    for part in pattern.split(","):
+        found = sorted(glob.glob(part))
+        files.extend(found or ([part] if Path(part).exists() else []))
+    if not files:
+        sys.exit(f"no hypothesis files match {pattern!r}")
+    return (name or Path(files[0]).stem), files
+
+
+def compare_ladder(systems, refs, samples=1000, seed=12345, rule=DECISION_RULE):
+    """Judge each rung against the rung below it under the decision rule.
+
+    systems: [(name, hyp_files)] in ladder order, lowest first. The null
+    threshold uses the seed spread of the rung named M1 if there is one."""
+    metric = rule["metric"]
+    arms = []
+    for name, files in systems:
+        stats, scores = score_files(files, refs)
+        mean, std = agg([s[metric] for s in scores])
+        lo, hi = bootstrap_ci(stats, metric, samples, seed)
+        arms.append({"name": name, "files": files, "seeds": len(files), "mean": mean, "std": std,
+                     "ci95": [round(lo, 3), round(hi, 3)], "_stats": stats})
+    m1 = next((a for a in arms if a["name"].upper() == "M1"), None)
+    threshold = null_threshold(m1["std"] if m1 else None, rule)
+    steps = []
+    for lower, upper in zip(arms, arms[1:]):
+        r = paired_bootstrap(upper["_stats"], lower["_stats"], metric, samples, seed)
+        steps.append({"system": upper["name"], "vs": lower["name"], "diff": round(r["diff"], 3),
+                      "ci95": [round(x, 3) for x in r["ci95"]], "p": round(r["p"], 4),
+                      "verdict": verdict(r["diff"], r["ci95"], r["p"], threshold, rule),
+                      "ai1_success": meets_success_bar(upper, lower, rule)})
+    for a in arms:
+        del a["_stats"]
+    return {"rule": rule, "metric": metric, "null_threshold": round(threshold, 3),
+            "threshold_source": "M1 seed spread" if m1 and m1["std"] else "floor (no multi-seed M1)",
+            "arms": arms, "steps": steps}
+
+
+_SUCCESS_LABEL = {True: "met", False: "not met", None: "n/a: needs 2+ seeds per arm"}
+
+
+def print_ladder(result):
+    r = result["rule"]
+    print(f"\ndecision rule registered {r['registered']}: {r['metric']}, null threshold "
+          f"{result['null_threshold']:.3f} ({result['threshold_source']}), alpha {r['alpha']}, "
+          f"{r['bootstrap_samples']}-sample paired bootstrap")
+    print("\n| System | seeds | mean ± std over seeds | 95% CI over test items |")
+    print("|---|---|---|---|")
+    for a in result["arms"]:
+        print(f"| {a['name']} | {a['seeds']} | {fmt(a['mean'], a['std'])} | {fmt_ci(a['ci95'])} |")
+    print("\n| Step | gain | 95% CI of gain | p | verdict | AI-1 success bar |")
+    print("|---|---|---|---|---|---|")
+    for s in result["steps"]:
+        print(f"| {s['system']} vs {s['vs']} | {s['diff']:+.3f} | {fmt_ci(s['ci95'])} | {s['p']:.4f} "
+              f"| **{s['verdict']}** | {_SUCCESS_LABEL[s['ai1_success']]} |")
+    print()
+
+
 # --------------------------------------------------------------------------- io
 def read_lines(path):
     lines = [l.rstrip("\n") for l in Path(path).read_text(encoding="utf-8").splitlines()]
@@ -353,6 +486,11 @@ def main():
     ap.add_argument("--vs-hyp", nargs="+", help="another system's hypothesis file(s), same refs, "
                                                "for a paired bootstrap comparison")
     ap.add_argument("--vs-system", default="other system", help="name of the --vs-hyp system")
+    ap.add_argument("--compare", nargs=2, metavar=("A", "B"),
+                    help="judge system A against system B under the pre-registered decision "
+                         "rule; each is 'Name=glob' (one file per seed)")
+    ap.add_argument("--ladder", nargs="+", metavar="SYSTEM",
+                    help="judge each rung against the one below, lowest first; 'Name=glob' each")
     ap.add_argument("--bootstrap", type=int, default=1000,
                     help="bootstrap samples for confidence intervals (0 turns them off)")
     ap.add_argument("--bootstrap-seed", type=int, default=12345)
@@ -364,6 +502,22 @@ def main():
 
     if args.report:
         print_report(args.report)
+        return
+    if args.compare or args.ladder:
+        if not args.ref:
+            ap.error("--ref is required")
+        refs = read_lines(args.ref)
+        # A, B order on the command line reads as "A against B"; the ladder runs low to high.
+        specs = list(reversed(args.compare)) if args.compare else args.ladder
+        result = compare_ladder([parse_system(s) for s in specs], refs,
+                                args.bootstrap or 1000, args.bootstrap_seed)
+        print_ladder(result)
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            rec = dict(result, timestamp=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                       kind="comparison", ref_file=args.ref)
+            with open(args.out, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(rec) + "\n")
         return
     if not args.hyp or not args.ref:
         ap.error("--hyp and --ref are required")

@@ -32,9 +32,17 @@ alone, so they see the words the published baseline was scored on.
 Normalisation is driven by the team's spelling-variant lexicon, the same file
 the pipeline tags with (`src/lrcs/lexicon.py`). It lower-cases, strips
 punctuation, cuts letter runs of three or more to one (`nahiiii` → `nahi`),
-and replaces each lexicon form with its group label. Words outside the lexicon
-are left untouched. Every run prints how many lexicon groups the normaliser
+and replaces each lexicon form with its group label. A word outside the lexicon
+only has its vowel length folded (`aa`→`a`, `ee`/`ii`→`i`, `oo`/`uu`→`u`), the
+variation human references show on unlisted words (`vikaas`/`vikas`); it is
+applied to hypothesis and reference alike, and it also merges the odd English
+pair (`book`/`buk`). Every run prints how many lexicon groups the normaliser
 collapses; quote no normalised figure without it.
+
+`reports/normalisation_audit.md` (`scripts/audit_normalisation.py`) measures the
+change against the old rules: 3 → 72 of 72 groups, 30% → 100% of non-canonical
+spellings in the real corpus's 15 commonest groups, eight words the old rules
+corrupted now intact, and scores before and after on two committed files.
 
 It replaced regex rules that collapsed 3 of the 72 groups, missed vowel
 deletion (`nhi`, `kr`, `gya`) and corrupted correct words (`khyal` → `kyal`,
@@ -79,6 +87,20 @@ Paired significance test against another system on the same references:
 This prints, for each metric, the difference, its 95% bootstrap interval and a
 one-sided p-value (the share of resamples in which the first system does not
 win). `--bootstrap 0` turns the intervals off for a quick look.
+
+The pre-registered decision (Workbook 2 section 4.4.6, registered 11 November
+2026): judge one rung against another, or every adjacent pair of the ladder.
+Each system is `Name=glob`, one hypothesis file per seed:
+
+    python run_eval.py --ref data/test.hinglish.txt \
+        --compare "M2=out/m2.s*.txt" "M1=out/m1.s*.txt"
+    python run_eval.py --ref data/test.hinglish.txt --ladder \
+        "M1=out/m1.s*.txt" "M2=out/m2.s*.txt" "ControlA=out/ca.s*.txt" "M3=out/m3.s*.txt"
+
+Each step prints the gain, its paired-bootstrap interval and p-value, the
+verdict (improvement / null / worse) against the null threshold
+max(1.0, 2 × M1's seed std), and whether AI-1's 3.0-point success bar is met.
+The rule lives in `DECISION_RULE`; do not change it once results exist.
 
 Accumulate results and print the report table:
 

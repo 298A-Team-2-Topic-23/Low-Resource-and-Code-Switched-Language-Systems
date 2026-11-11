@@ -134,6 +134,50 @@ Each gap is listed here with its issue, rather than described as if it already w
 298-59 is accepted only with a test that **fails against the regex version and passes against
 the lexicon-driven one**, so the fix is shown to change behaviour.
 
+## 4.4.6 The decision rule, registered 11 November 2026
+
+Added on 11 November 2026 (298-79), before any real result existed. On that date the only
+scored output in the repository was still the three 48-line synthetic smoke runs of 22 October.
+The rule is fixed in code as `DECISION_RULE` in `evaluation/run_eval.py`, so the number a
+reader sees and the rule that produced it cannot drift apart.
+
+A rung of the ladder counts as an **improvement** over the rung below only if all three hold:
+
+1. Its mean chrF++ gain over the three seeds is at least the **null threshold**:
+   max(1.0, 2 × M1's seed standard deviation). The 1.0 floor is AI-2's null-result line from
+   Workbook 1. The seed term stops a gain smaller than run-to-run noise from counting. It is
+   taken from M1, the first rung, and never from the rung being judged.
+2. The 95% interval of the gain, from a 1,000-sample paired bootstrap over test items with
+   seed 12345, excludes zero.
+3. The one-sided paired-bootstrap p-value is below 0.05.
+
+**Worse** is the mirror image of these three conditions. Anything else is a **null result**,
+and a null result is published, not left out (AI-2). AI-1's success bar is reported next to
+each verdict: a gain of 3.0 chrF++ or more, with seed error bars (mean ± std) that do not
+overlap. It cannot be judged for an arm with only one seed.
+
+The two kinds of uncertainty are kept apart, because they answer different questions. Each
+arm is reported as mean ± standard deviation over seeds (training noise) **and** as a 95%
+bootstrap interval over test items (test-set noise). Neither is presented as the other.
+
+`python evaluation/run_eval.py --ref <refs> --ladder "M1=<glob>" "M2=<glob>" ...` applies
+the rule to every adjacent pair in ladder order. `--compare "A=<glob>" "B=<glob>"` applies it
+to one pair. Both are deterministic, so a reported p-value can be reproduced exactly.
+
+**Gaps in 4.4.5 closed since this section merged**, recorded here rather than edited above:
+
+- Bootstrap intervals, the paired test, and ROUGE-L and WER on unnormalised tokens: 298-59,
+  10 November.
+- Lexicon-driven normalisation, audited against the old rules in
+  `reports/normalisation_audit.md`: 298-78, 11 November.
+
+Two gaps remain open:
+
+- **Case.** chrF++ keeps sacreBLEU's case-sensitive default, so it stays comparable with
+  published chrF++. The case-folded score is reported beside it, and the spelling gap is
+  measured against the folded score.
+- **Multi-reference scoring** is not yet in the harness.
+
 ## Provenance
 
 | Claim | Source |
