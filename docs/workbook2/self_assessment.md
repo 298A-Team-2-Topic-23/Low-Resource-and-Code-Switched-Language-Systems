@@ -25,7 +25,7 @@ and can be read, so an unwritten section carries no rating rather than an optimi
 | 2 | Section 4.2 is not on `main`, and no GPU allocation is confirmed (298-51, 298-10) | One rubric point, and every model result | Singh | 10 Nov |
 | 3 | Fertility has never been measured on real HinGE. Every committed fertility figure comes from synthetic slices, although the real file is now in team hands (section 3.5.6) | Limits how far the 4.1 claim can be taken | Waghmare | 12 Nov |
 | 4 | Gold set holds 0 of 800 items and the 50-item rater pilot has not run. The first 200 items were due 5 November | The headline success criterion cannot be evaluated on its intended set | Savalia | [PENDING: revised date, to be set at the next meeting] |
-| 5 | Compute estimates total 177 GPU-hours against the 145-hour cap | Arms may be cut, which would weaken attribution (section 4.3.5) | Singh, 298-72 | 11 Nov |
+| 5 | Compute budget resolved (154 planned, 165 cap, both controls kept), but Control A may cost M3's 36 hours rather than the 20 budgeted | If it does, the plan exceeds the cap and a further decision is needed before Control A runs | Singh, 298-72 | After the first measured M3 seed |
 | 6 | No corpus is named for M3's continued pretraining beyond the HinGE train split | M3 may underfit; the arm cannot be scheduled | Savalia (provisional) | 7 Dec |
 | 7 | Multi-reference scoring, committed in section 4.4.2, is not in the harness | Sources with more references weigh more until it lands | Thomas Lnu | [PENDING: issue to be filed] |
 | 8 | No pull request has a recorded review, and `main` is still unprotected (298-60) | Weakens the contribution evidence for all five members | Singh | 12 Nov |

@@ -517,8 +517,9 @@ Exit codes: `0` ok · `2` bad input · `3` leakage gate halted · `4` degenerate
 | M2 QLoRA | Not started | — |
 | M3, M4, serving and web interface | Planned for 298B | — |
 
-**Compute:** 80–145 GPU-hours are committed in the abstract, with 130 as the working allocation
-([§2.3](docs/workbook1/section_2_3_2_4.md)), on single 40GB-class GPUs, one job per GPU. No
+**Compute:** a hard cap of 165 GPU-hours, 145 for training (the abstract's figure) and 20 for
+inference and evaluation, with 154 planned ([298-72](docs/COMPUTE_BUDGET.md), amending
+[§2.3](docs/workbook1/section_2_3_2_4.md)), on single 40GB-class GPUs, one job per GPU. No
 training run is logged yet; `python common/repro.py --summary runs/` prints the running total.
 
 **Schedule:** Workbook 1 sits in Cycle 2 (28 Sep–12 Oct 2026), and its critical path runs
