@@ -400,9 +400,18 @@ for seed in CFG["seeds"]:
                 "--adapter", f"out/m2-seed{seed}", "--shots", "0", "--seed", seed]) == 0
 
 hyps2 = [f"out/m2.s{s}.txt" for s in CFG["seeds"] if pathlib.Path(f"out/m2.s{s}.txt").exists()]
-run([sys.executable, "evaluation/run_eval.py", "--hyp", *hyps2,
-     "--ref-jsonl", refs_path, "--bootstrap", 1000,
-     "--system", f"{label}M2 QLoRA NF4 {CFG['model']}", "--out", "results/results.jsonl"])
+hyps1 = [f"out/m1.0shot.s{s}.txt" for s in CFG["seeds"]
+         if pathlib.Path(f"out/m1.0shot.s{s}.txt").exists()]
+
+# --vs-hyp makes this a PAIRED bootstrap over test items, not two separate
+# intervals compared by eye. Non-overlapping per-system intervals are weaker
+# evidence than a paired test and the report has to say so if this is skipped.
+cmd = [sys.executable, "evaluation/run_eval.py", "--hyp", *hyps2,
+       "--ref-jsonl", refs_path, "--bootstrap", 1000,
+       "--system", f"{label}M2 QLoRA NF4 {CFG['model']}", "--out", "results/results.jsonl"]
+if hyps1:
+    cmd += ["--vs-hyp", *hyps1, "--vs-system", f"{label}M1 0shot {CFG['model']}"]
+run(cmd)
 """)
 
 md("""
@@ -470,10 +479,20 @@ which is gitignored and cannot overwrite the 7B numbers `reports/m1_m2_compariso
 code("""
 import zipfile, json
 z = pathlib.Path("/content/commit_me.zip")
-keep = sorted(pathlib.Path("runs").glob("*.json")) + [
+# The generated text is the PRIMARY artefact: every score is derived from it,
+# the qualitative reading in reports/m1_m2_comparison.md section 2 came from it,
+# and re-scoring or a later paired test needs it. An earlier version of this cell
+# zipped only the derived numbers, so the 11 November A100 outputs died with the
+# runtime and cannot be re-examined. They are small -- 197 lines each.
+outputs = sorted(pathlib.Path("out").glob("m1.*.txt")) + \
+          sorted(pathlib.Path("out").glob("m2.*.txt"))
+keep = sorted(pathlib.Path("runs").glob("*.json")) + outputs + [
     p for p in (pathlib.Path("results/results.jsonl"),
                 pathlib.Path(CM_OUT),
+                pathlib.Path("data/sft/hinge/manifest.json"),
                 pathlib.Path("reports/raw_validation.json")) if p.exists()]
+assert outputs, ("no generated outputs found in out/ -- the zip would carry scores "
+                 "with nothing to verify them against")
 with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
     for p in keep:
         zf.write(p, p.as_posix()); print("+", p)

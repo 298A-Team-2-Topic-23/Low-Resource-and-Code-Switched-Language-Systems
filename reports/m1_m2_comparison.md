@@ -1,131 +1,143 @@
-# M1 against M2, on real data — the first reportable comparison
+# M1 against M2, on real data
 
-Measured 10 November 2026. Qwen2.5-7B-Instruct-4bit, 197 HinGE test sources, multi-reference
-scoring as Workbook 2 §4.4 commits. Apple M4, 16 GB, via MLX. No GPU allocation was used.
+Two independent runs of the same comparison. The second one overturned the first one's most
+interesting finding, and this document keeps both, because the disagreement is the result.
 
-**Headline: M2 wins the primary metric decisively and moves *away* from human code-switching at
-the same time.** Both halves of that sentence are the result.
+| | Run A — laptop | Run B — A100 |
+|---|---|---|
+| Date | 10 November 2026 | 11 November 2026 |
+| Hardware | Apple M4, 16 GB, MLX | NVIDIA A100-SXM4-40GB (Colab) |
+| Base | `mlx-community/Qwen2.5-7B-Instruct-4bit` | `Qwen/Qwen2.5-7B-Instruct` |
+| Quantisation | MLX affine 4-bit, group 64 | **bitsandbytes NF4, double** — the §4.1 recipe |
+| Precision | — | bf16 (native; A100 is Ampere) |
+| Training seen | 600 steps at batch 1 ≈ **0.16 epochs** | 351 steps at effective batch 32 = **3 epochs** |
+| Seeds | 1 (42) | **3 (13, 42, 1337)** |
+| Compute | 1.33 GPU-hours | 1.508 GPU-hours |
 
-## 1. Quality metrics — M2 wins, and it is not close
+Run B is the reportable one: it is the recipe §4.1 actually specifies, at the scale it specifies,
+with the seed count 298-54 asks for. Run A is kept because it is what exposed the question.
 
-| Metric | M1 zero-shot | M2 LoRA (it500) | Paired difference, 2,000-sample bootstrap |
-|---|---:|---:|---|
-| **chrF++** (primary) | 43.270 | **57.808** | **+14.538** 95% CI [10.776, 18.241], p < 0.0001 |
-| chrF++ normalised | 44.189 | 59.017 | +14.828 [10.984, 18.560], p < 0.0001 |
-| BLEU | 30.740 | 51.482 | +20.742 [14.141, 27.445], p < 0.0001 |
-| ROUGE-L | 0.444 | 0.551 | +0.107 [0.075, 0.138], p < 0.0001 |
-| WER (lower better) | 0.763 | 0.684 | −0.079 [−0.166, 0.003], p = 0.031 |
+## 1. The headline: at three epochs, M2 improves on *both* axes at once
 
-The 95% intervals on chrF++ do not overlap at all (M1 [40.324, 46.461], M2 [55.592, 60.026]).
+**Run A found a contradiction.** M2 won chrF++ by +14.538 while its code-mixing moved *away* from
+human — CMI 15.40 → 11.88 against a human 25.86. Section 4 of this document recorded that the model
+was deliberately undertrained and that the direction might reverse with a longer run.
 
-**Devanagari leakage is fixed.** M1 produced 12 outputs containing Devanagari despite an explicit
-instruction not to. M2 produced **zero**. For a project whose target is Romanised Hinglish, that
-is a real gain that no quality metric above shows clearly.
+**It reversed.** Run B, at three full epochs:
 
-## 2. Code-mixing metrics — M2 goes the wrong way
+| Code-mixing metric | Human target | M1 zero-shot | **M2, 3 seeds** | M2 − human |
+|---|---:|---:|---:|---:|
+| CMI | 25.860 | 22.707 | **24.782** ± 0.42 | −1.078 |
+| CMI (mixed only) | 30.256 | 32.415 | **28.550** ± 0.48 | −1.706 |
+| % sentences mixed | 85.47% | 70.05% | **86.80%** ± 0.00 | +1.33 |
+| Switch-point fraction | 0.2366 | 0.3063 | **0.2446** ± 0.004 | +0.008 |
+| M-index | 0.6956 | 0.9228 | **0.6918** ± 0.024 | −0.004 |
+| Tagger coverage | 0.686 | 0.718 | 0.729 ± 0.012 | +0.043 |
 
-Measured with the same LinCE-style tagger the pipeline uses, so these are comparable with
-`reports/data_statistics.json`.
+M2 lands essentially **on** the human target on every code-mixing measure. M-index differs from the
+human references by 0.004; switch-point fraction by 0.008. For comparison, run A's M2 sat at CMI
+11.88, SPF 0.0951, M-index 0.2978 — less than half the human value on two of the three.
 
-| System | CMI | CMI (mixed only) | % sentences mixed | SPF | M-index | Tagger coverage |
-|---|---:|---:|---:|---:|---:|---:|
-| **Human references (target)** | **25.86** | **30.26** | **85.5%** | **0.2366** | **0.6956** | 0.686 |
-| M1 zero-shot | 15.40 | 30.04 | 51.3% | 0.2007 | 0.7951 | 0.679 |
-| M2 LoRA (it500) | 11.88 | 20.71 | 57.4% | 0.0951 | 0.2978 | 0.872 |
-| English source (floor) | 0.00 | 0.00 | 0.0% | 0.0000 | 0.0000 | 0.901 |
+And it does this while also winning the quality metrics:
 
-M2 is further from the human target than M1 on CMI, on mixing strength, on switch-point fraction,
-and on M-index. Only "% sentences mixed" improved, 51.3% to 57.4%.
+| Metric | M1 0-shot (3 seeds) | M1 5-shot (3 seeds) | **M2 QLoRA NF4 (3 seeds)** |
+|---|---:|---:|---:|
+| **chrF++** (primary) | 40.666 ± 0.000 | 38.474 ± 1.004 | **51.683 ± 1.154** |
+| chrF++ normalised | 41.796 ± 0.000 | 39.436 ± 1.017 | 52.948 ± 1.043 |
+| BLEU | 23.120 ± 0.000 | 16.110 ± 1.829 | 38.749 ± 1.287 |
+| ROUGE-L | 0.416 ± 0.000 | 0.362 ± 0.021 | 0.506 ± 0.012 |
+| WER (lower better) | 0.750 ± 0.000 | 0.824 ± 0.020 | 0.639 ± 0.023 |
+| chrF++ 95% CI | [38.565, 42.962] | [36.662, 40.336] | [49.641, 53.730] |
 
-**This is not a tagger artifact, and I checked that before reporting it.** The obvious worry is
-that M2 writes spellings the tagger cannot resolve, deflating its CMI. The opposite is true:
-M2's tagger coverage is **0.872**, close to the English floor's 0.901, while M1 (0.679) and the
-human references (0.686) sit far below. M2's output is *more* resolvable because *more of it is
-recognisable English*.
+**+11.017 chrF++ from M1 to M2.** The 95% intervals do not overlap: M1 tops out at 42.962, M2
+starts at 49.641.
 
-## 3. The mechanism: the two systems mix in opposite directions
+**Devanagari leakage is eliminated, confirmed on three seeds.** M1 produced 3 Devanagari-bearing
+outputs of 197; M2 produced **0, on all three seeds**. For a project targeting Romanised Hinglish
+that is a categorical fix, invisible to every quality metric above.
 
-| | Example |
-|---|---|
-| Source | `install the standard and TSC pumps` |
-| Human | `Manak aur TSC pump install kre` |
-| M1 | `install the standard aur TSC pumps` |
-| M2 | `Install the standard and TSC pumps.` |
+## 2. What run A's contradiction actually was
 
-| | Example |
-|---|---|
-| Source | `Project Manager Plugin for Anjuta.` |
-| Human | `Pariyojana prabandhak plugin for Anjuta.` |
-| M1 | `Project Manager Plugin for Anjuta.` |
-| M2 | `Anjuta ke liye Project Manager Plugin.` |
+Undertraining, not the recipe. Section 3 of the earlier version of this document proposed a
+mechanism from reading outputs: humans write a Hindi frame with English content words inserted,
+while run A's M2 wrote an English frame with Hindi function words inserted. The two runs together
+support that reading:
 
-| | Example |
-|---|---|
-| Source | `The Englishman ' s eyes lit up .` |
-| Human | `Angrej ki eyes lit up.` |
-| M1 | `The Englishman's eyes lit up.` |
-| M2 | `The Englishman ka aankh lit up.` |
+| | Training seen | chrF++ | CMI | Reading |
+|---|---:|---:|---:|---|
+| Run A M2 | ~0.16 epochs | 57.808 | 11.88 | stays near the English source |
+| Run B M2 | 3 epochs | 51.683 | 24.78 | code-switches like the references |
 
-**Humans write a Hindi frame and insert English content words.** `Manak aur TSC pump install kre`
-is mostly Hindi, with `TSC pump` and `install` kept in English.
+A model that has barely moved off its base keeps the English source's words, and chrF++ rewards
+exactly that, because the references share those words too. Three epochs later it has learned to
+restructure into Hindi word order, which costs surface n-gram agreement and buys genuine
+code-switching.
 
-**M2 learned to write an English frame and insert Hindi function words.** `Anjuta ke liye Project
-Manager Plugin` keeps every content word in English and adds the postpositional phrase `ke liye`,
-reordering to Hindi word order. `The Englishman ka aankh lit up` is the same move.
+**This is a real trade-off between the two metric families, and it is the project's most defensible
+finding.** It is also why §4.4 committed to both before any result was in: run A's chrF++ alone
+would have been read as "M2 learned to code-switch", and it had not.
 
-Those are opposite directions of insertion, and they explain the contradiction. chrF++ rewards
-M2's direction, because preserving the English source words preserves exactly the character n-grams
-that also appear in the references. CMI punishes it, because CMI counts the share of tokens from
-the non-dominant language and M2's outputs stay English-dominant.
+**Caveat on that comparison.** Runs A and B differ in quantisation, inference precision and
+framework as well as in training length, so the 57.808 → 51.683 drop is *consistent with* the
+mechanism, not a controlled demonstration of it. Only the within-run M1→M2 contrasts are clean.
+Isolating length alone would need run B's recipe at 0.16 epochs, which has not been done.
 
-**So M2's gain is partly a gain in surface agreement rather than in code-switching.** That is a
-finding about the metric as much as about the model, and it is the concern Srivastava & Singh raise
-in the HinGE paper itself: standard generation metrics behave poorly on code-mixed text. Our own
-§4.4 anticipated it, which is why chrF++ was never the only committed measure.
+## 3. Few-shot prompting makes M1 worse
 
-## 4. What this does not establish
+M1 5-shot scores **below** M1 0-shot on every metric: chrF++ 38.474 against 40.666, BLEU 16.110
+against 23.120, WER 0.824 against 0.750. The smoke profile showed the same direction on a 0.5B
+stand-in. Five in-context Hinglish examples do not help this base model and measurably hurt it,
+which makes the 0-shot condition the honest M1 baseline and is worth a line in §4.3.
 
-- **M2 is undertrained, deliberately.** 600 iterations at batch size 1 is ~0.16 epochs over 3,738
-  pairs, and the evaluated checkpoint is iteration 500, so about 500 examples were seen. The
-  direction of the code-mixing result may reverse with a longer run. **This is a preliminary
-  comparison, not the ablation result.**
-- **One seed.** 298-54 asks for three. Everything here is seed 42, so none of these numbers carries
-  a seed-variance estimate, and the bootstrap intervals are over test items only.
-- **M2's outputs are about 20% longer** than the references (18.6 words against 15.5; M1 is 16.1).
-  chrF++ is an F-score and so not freely gamed by length, but some of the +14.5 is plausibly length
-  agreement rather than content agreement, and that is not separated here.
-- **Checkpoint selection was constrained.** Validation loss was 2.003 at iteration 450, 2.111 at
-  500, 2.025 at 550 and 2.378 at 600. The best measured point, 450, was not saved; the final
-  adapter is the worst of the three saved. Iteration 500 is the best *saved* checkpoint with a
-  *measured* validation loss, so it is what was evaluated. A cleaner run would align `save_every`
-  with `steps_per_eval`.
-- **Both systems still copy the source verbatim** on about 17% of sentences: M1 on 35 of 197, M2 on
-  33. Fine-tuning barely touched that failure.
+## 4. What this still does not establish
 
-## 5. What it does establish, for Team Meeting 2
+- **M1 0-shot's "± 0.000" is not evidence of stability.** Decoding is greedy, so the seed cannot
+  change the output; all three seeds produced identical text. Three seeds of M1 0-shot is
+  structurally redundant compute, and the zero should be read as "seed is inapplicable here", not
+  as a measured variance. M1 5-shot does vary (± 1.004) because the exemplars are seed-sampled, and
+  M2 varies (± 1.154) because training does.
+- **No paired bootstrap on run B yet.** The +11.017 is a difference of means with non-overlapping
+  per-system intervals, not a paired test over test items. Run A's +14.538 [10.776, 18.241] was
+  paired. Producing the equivalent for run B needs `run_eval.py --vs-hyp`, which was not called in
+  the notebook, and the generated outputs were not collected from the runtime — see §6.
+- **Checkpoint selection was not validated.** Run B trains three epochs and keeps the final
+  adapter. No validation loss was computed during training, so there is no evidence the final
+  checkpoint is the best one. Run A's curve showed validation worsening after iteration 450, so the
+  concern is live. Training loss alone (1.4951 / 1.5011 / 1.5004 across seeds, strikingly
+  consistent) cannot answer it.
+- **One corpus, one language pair.** Everything here is HinGE Hindi–English.
 
-1. The ablation ladder produces a large, significant, reproducible improvement from M1 to M2 on the
-   committed primary metric, measured on real data with run records for both.
-2. Training on real Hinglish eliminates Devanagari leakage entirely.
-3. **The project needs its code-mixing metrics, and this run is the proof.** A reader shown only
-   chrF++ would conclude M2 had learned to code-switch. It had partly learned to agree with the
-   references' surface while code-switching less. Slide 4's question — "when would your preferred
-   model lose?" — now has a measured answer rather than a hypothetical one.
-4. Compute: M1 inference 0.222 GPU-hours, M2 training 0.889, M2 inference 0.216. **1.33 GPU-hours
-   total on a laptop**, against a 145-hour cap.
+## 5. What it establishes for Team Meeting 2
+
+1. The spec-faithful recipe — NF4 double quantisation, rank 32, alpha 64, all seven projections —
+   runs, converges, and produces a large improvement on the committed primary metric, on three
+   seeds, with a run record each.
+2. **Fine-tuning on real Hinglish teaches genuine code-switching**, to within 0.004 M-index of human
+   references, not merely surface agreement with them.
+3. Training eliminates Devanagari leakage outright.
+4. The project's two metric families measure different things and can move in opposite directions.
+   Run A is the demonstration, and it is a stronger argument for the evaluation design than any
+   result where the metrics agree.
+5. Compute: **2.93 GPU-hours cumulative** against the 145-hour cap, across laptop, T4 smoke and
+   A100.
 
 ## 6. Provenance
 
 | Item | Value |
 |---|---|
-| Base model | `mlx-community/Qwen2.5-7B-Instruct-4bit` |
 | Corpus | HinGE, `LingoIITGN/HinGE` rev `e25a1038`, CC-BY-4.0, input SHA-256 `dcfaf37c…` |
-| Splits | `data/processed/manifests/hinge_split_manifest.json`, 3,738/468/468, leakage gate passed |
+| Splits | `hinge_split_manifest.json`, 3,738/468/468, hashes reproduced in Colab, leakage gate passed |
 | Test set | 197 sources, 468 references, mean 2.376 per source |
-| Supervision | `data/sft/hinge/manifest.json` (carries the exact prompt) |
-| Recipe | `configs/m2_lora_qwen7b.yaml` |
-| M1 run record | `runs/20261110T210413Z_m1-zero-shot-qwen2-5-7b-4bit_seed42.json` |
-| M2 train record | `runs/20261110T220440Z_m2-lora-qwen2-5-7b-4bit-seed-42.json` |
-| M2 inference record | `runs/20261110T221902Z_m2-lora-qwen2-5-7b-4bit-seed42-it500_seed42.json` |
+| Recipe (run B) | `models/train_qlora.py`, 3 epochs, effective batch 32, max_len 512, lr 2e-4 |
+| Recipe (run A) | `configs/m2_lora_qwen7b.yaml` |
+| Run B records | `runs/20261111T21*.json`, `runs/20261111T22*.json`, `runs/20261111T23*.json` |
+| Run A records | `runs/20261110T2*.json` |
 | Scores | `results/results.jsonl`, `reports/codemixing_systems.json` |
-| Learning curve | `reports/figures/fig7_training_curves.png` |
+| Notebook | `notebooks/m1_m2_colab.ipynb`, profile `a100` |
+
+**Known gap in the evidence chain.** The notebook's collection cell zips run records and scores but
+**not the generated outputs** (`out/m1.*.txt`, `out/m2.*.txt`). Those are the primary artefact —
+every number here is derived from them, the §2 qualitative reading came from them, and the paired
+test in §4 needs them. They died with the runtime. Run B's text cannot be re-examined or re-scored
+without re-running it. The collection cell should carry them, and until it does, no run of this
+notebook is fully reproducible after the fact.
