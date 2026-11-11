@@ -8,19 +8,31 @@ is `runs/*.json`, one record per run; this file is the human-readable roll-up.
 inference and evaluation**. The plan uses **154**, leaving 11 in reserve. Decided under
 [298-72](https://linear.app/298a-team-2-topic-23/issue/298-72) on 11 November 2026; the
 decision and its arithmetic are [below](#budget-decision--298-72-11-november-2026).
-`python common/repro.py --summary runs/` prints the running total against it.
+`python scripts/run_summary.py` prints the running total against it.
 
 ## Running total
 
-| | GPU-hours |
-|---|---|
-| Spent to date | **0.112** |
-| Planned, all arms | 154 |
-| Hard cap | 165 |
-| Unspent against the cap | 164.888 |
+This file no longer keeps a hand-maintained total. The number is whatever the roll-up prints:
 
-“Unspent” is planning allowance, not funded capacity or an allocated quota: no allocation
-or fallback is confirmed (next section). The logged total is 0.112 GPU-hours, all smoke tests.
+```bash
+python scripts/run_summary.py                    # spent and projected, per arm, against 165
+python scripts/run_summary.py --fail-over-cap    # exit 2 if the projection exceeds the cap
+```
+
+It reads every record under `runs/`: the 298-73 contract records at
+`runs/<model>/<seed>/run.json` (with archived earlier attempts beside them, because failed runs
+spend budget), and the `RunLogger` records from before the contract. A run that is not on disk did
+not happen. As of 11 November it prints **0.112 GPU-hours spent**, all seven pre-contract smoke
+tests, and a projection of 154.11 against the 165-hour cap.
+
+The projection replaces an arm's allocation with measured hours, mean per seed times three, as
+soon as one reportable training seed of that arm finishes. That is the check the decision below
+requires before M3 and Control A are scheduled.
+
+**Every new run must use the contract** (`common/run_contract.py`, `ExperimentRun`): it records
+the commit, the split-manifest SHA-256, the tokenizer, the hyperparameters, GPU-hours and peak
+memory, and refuses to let a dirty tree pass unrecorded. 298-83 builds the results table from
+these files.
 
 ## Allocation checkpoint — 22 October 2026 (298-10 / 298-51)
 
