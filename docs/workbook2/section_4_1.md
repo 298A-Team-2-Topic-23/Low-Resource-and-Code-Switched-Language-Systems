@@ -21,7 +21,7 @@ stand-in model, and `docs/COMPUTE_BUDGET.md` records that none of them is a repo
 | 1 | M1 zero-shot | Prompt the instruction-tuned backbone with no training. Reported as 0-shot and 5-shot | Unmodified backbone, greedy decoding | 298A | Waghmare | Script merged; smoke-tested only |
 | 2 | M2 PEFT | Add task supervision through parameter-efficient fine-tuning | QLoRA: rank 32, alpha 64, all seven linear projections, 4-bit NF4 base, loss masked to the completion | 298A | Waghmare | Trainer merged; smoke-tested only |
 | 3 | M3 vocabulary extension + CPT | Change how Hinglish is tokenized, then continue pretraining | SentencePiece diff supplies new tokens; embeddings start as the mean of constituent subwords; two-stage training with replay | 298B | Savalia (provisional) | Not started |
-| 4 | M4 augmented | Change the training distribution with synthetic code-switched text | Back-translation plus Equivalence-Constraint synthesis, sampled to match the natural switch-point distribution; M2 recipe | 298B | Shevkar (provisional) | Input stage only, on a 30-sentence fixture |
+| 4 | M4 augmented | Change the training distribution with synthetic code-switched text | Back-translation plus Equivalence-Constraint synthesis, sampled to match the natural switch-point distribution; M2 recipe | 298B | Shevkar (provisional) | Input stage run on a 30,000-pair real slice; not yet fit to train on |
 | 5 | Control A | Continued pretraining **without** vocabulary extension | M3 with the original tokenizer | 298B | Savalia (provisional) | Not started |
 | 6 | Control B | M2 given M3's compute | M2 recipe trained to M3's exact GPU-hour total | 298B | Waghmare (provisional) | Not started |
 | — | Reproduced baseline, **not one of the four** | The published MixMT Subtask-1 system, rebuilt from its description | mBART with transliteration post-processing (Gahoi et al., 2022) | 298A | Thomas Lnu | Not run; no code exists |
@@ -181,17 +181,22 @@ data did not. So how the text is sampled matters as much as how it is generated.
 **Features.** Real HinGE pairs plus two synthetic sources: back-translated pairs (Sennrich et al.,
 2016) and code-mixed sentences licensed by the Equivalence Constraint, under which a switch may
 occur only where the word orders of the two languages agree (Poplack, 1980). Samanantar is the
-candidate parallel source (`docs/datasheet.md`).
+parallel source (Ramesh et al., 2022; `docs/datasheet.md`).
 
 **Architecture.** The M2 architecture and recipe, unchanged, so that any difference comes from the
 training distribution. Generation additionally needs a reverse Hinglish-to-English model.
 
 **Algorithm.**
 
-1. Run the contamination check first (298-58). HinGE's English comes from the IIT Bombay corpus,
-   which is part of Samanantar, so test sources could leak into synthetic training data.
-2. Romanise the Hindi side, since the generator refuses Devanagari input. Dakshina is the candidate
-   and needs a share-alike licence decision (`docs/datasheet.md`).
+1. Run the contamination check first (298-58). HinGE's English comes from the IIT Bombay corpus
+   (Kunchukuttan et al., 2018), which is part of Samanantar, so test sources could leak into
+   synthetic training data. The check found that one Samanantar shard contains at least 13.7% of
+   HinGE's test sources, and removed the 4 matching pairs from the slice used
+   (`reports/contamination/README.md`).
+2. Romanise the Hindi side, since the generator refuses Devanagari input, with a romaniser
+   checked against held-out Dakshina romanisations (Roark et al., 2020;
+   `reports/codemix/transliteration_spotcheck.json`). Dakshina's share-alike licence still needs
+   a decision before anything derived from it is released (`docs/datasheet.md`).
 3. Align with IBM Model 1, cut the alignment into maximal monotonic blocks, and realise each block
    in one language or the other, dropping the two monolingual realisations
    (`src/lrcs/data/codemix.py`).
@@ -202,9 +207,10 @@ training distribution. Generation additionally needs a reverse Hinglish-to-Engli
 **Stated precisely.** Step 3 applies the Equivalence Constraint to alignments rather than parse
 trees. It approximates the constraint and is **not output of the GCM toolkit** (Rizvi et al., 2021),
 which `docs/datasheet.md` names as the intended generator. Whether M4 moves to GCM itself is a 298B
-decision. The pipeline has run only on a 30-sentence test fixture, reaching 0.2365 against the
-0.2398 target with 17 of 30 sentences skipped (`reports/codemix/README.md`), which is not a corpus
-and supports no claim about distribution.
+decision. On 9 November the pipeline ran on a 29,996-pair contamination-checked Samanantar slice
+and produced 28,559 sentences at a switch-point fraction of 0.2398, on target (298-76,
+`reports/codemix/samanantar_stats.json`). Its own status note says the output is not yet fit to
+train on, and no model has been trained on it (`reports/codemix/README.md`).
 
 ### Control A: continued pretraining without vocabulary extension
 
@@ -324,6 +330,6 @@ the claim remains a hypothesis under test.
 | M1 and M2 recipes | `models/generate_zeroshot.py`, `models/train_qlora.py` |
 | Requirements cited (AI-, FR-) | `docs/workbook1/section_1_2.md` |
 | Compute charging for Control B | `docs/workbook1/section_2_3_2_4.md` |
-| M4 input stage and its limits | `src/lrcs/data/codemix.py`, `reports/codemix/README.md` |
+| M4 input stage, contamination and the real-corpus run | `src/lrcs/data/codemix.py`, `reports/codemix/`, `reports/contamination/README.md` |
 | Burden, per-occurrence cost, recheck | `analysis/variant_cost_hinge.py`, `reports/variant_cost_hinge.json`, `reports/fertility_recheck_synthetic.csv` |
 | Baseline figures | `docs/workbook1/section_1_5.md`, `docs/progress2/part_d_risks.md` |

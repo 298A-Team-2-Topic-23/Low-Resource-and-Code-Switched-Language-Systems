@@ -20,3 +20,6 @@ numpy==1.26.4
 # [298-38] data pipeline stage-4 figures. 3.9.4 is the last line that still
 # supports Python 3.9 (one team machine) and works with numpy 1.26.
 matplotlib==3.9.4
+# [298-58] reading Samanantar's parquet shards in scripts/prepare_parallel_corpus.py.
+# 21.0.0 still ships Python 3.9 wheels.
+pyarrow==21.0.0

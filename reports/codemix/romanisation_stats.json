@@ -1,0 +1,27 @@
+{
+  "issue": "298-76",
+  "generated_by": "scripts/romanise_parallel.py",
+  "input": {
+    "path": "data/interim/samanantar/hi_slice.tsv",
+    "sha256": "285b9cacfa5cf3f9a51475e24e92462ebb5855acebf93c4a22f469318fc41000",
+    "rows": 29996
+  },
+  "output": {
+    "path": "data/interim/samanantar/hi_slice.roman.tsv",
+    "sha256": "c5bd6412aab0c03e67e77fa15ead47d5adc4f23c36117f18f86c1e86e89fe7ac",
+    "rows": 29996,
+    "committed": false
+  },
+  "lexicon": {
+    "file": "data/raw/dakshina/dakshina_dataset_v1.0/hi/lexicons/hi.translit.sampled.train.tsv",
+    "sha256": "4b3f872d3363a91f949dfb640acab6a968ed7d2d65829a22af662c3e99ef7803"
+  },
+  "paths": {
+    "devanagari_words": 267818,
+    "from_lexicon": 222781,
+    "from_rules": 45037,
+    "lexicon_share": 0.8318,
+    "passthrough_tokens": 21971
+  },
+  "rows_still_above_generator_devanagari_limit": 0
+}

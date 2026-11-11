@@ -31,12 +31,13 @@ What it does NOT implement
   the difference matters if these outputs are ever reported as GCM output.
 * **Transliteration.** Input must already be Romanised on both sides. Devanagari
   input is refused rather than silently mixed, because the target task is
-  Romanised Hinglish and a mixed-script output would be neither. Lifting this
-  needs Dakshina, which `docs/datasheet.md` lists and the repository does not
-  have.
-* **Validation.** Nothing here has been run on Samanantar or IIT Bombay, and no
-  model has been trained on its output. It is a stood-up pipeline, not a
-  validated data source.
+  Romanised Hinglish and a mixed-script output would be neither. Romanising is a
+  separate, measured step in front of this refusal (`lrcs.data.transliterate`,
+  `scripts/romanise_parallel.py`, Dakshina lexicon plus rules, 298-76); anything
+  it fails to Romanise is still refused here.
+* **Validation.** Run once on a contamination-checked Samanantar slice (298-76,
+  `reports/codemix/README.md`). No model has been trained on its output. It is
+  a working pipeline, not a validated data source.
 """
 
 import math
@@ -265,9 +266,9 @@ def read_parallel(path):
             if devanagari_fraction(hindi) > 0.05:
                 raise CodeMixError(
                     "line {}: the Hindi side is in Devanagari. This generator "
-                    "produces Romanised Hinglish and does not transliterate; "
-                    "that needs Dakshina (docs/datasheet.md), which is not in "
-                    "the repository. Supply Romanised Hindi.".format(lineno))
+                    "produces Romanised Hinglish and does not transliterate. "
+                    "Romanise it first with scripts/romanise_parallel.py, which "
+                    "needs the Dakshina lexicon (docs/datasheet.md).".format(lineno))
             pairs.append((word_tokens(english), word_tokens(hindi)))
     if not pairs:
         raise CodeMixError("{}: no usable parallel pairs".format(path))

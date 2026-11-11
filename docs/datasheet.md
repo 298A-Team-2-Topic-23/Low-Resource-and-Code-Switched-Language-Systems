@@ -54,13 +54,20 @@ them as not yet ingested, so the gap stays visible.
   literature): **1,976 rows**, columns `English, Hindi,
   Human-generated Hinglish (list), WAC, WAC rating1, WAC rating2, PAC,
   PAC rating1, PAC rating2`. Summed human-generated Hinglish references:
-  **4,799** (CLAUDE.md's locked fact states 4,803 — four off from what
-  we measured directly off the pickle; flagging the discrepancy rather
-  than silently matching the expected number. Worth a second person
-  re-counting from Table 1 of the paper directly before either number
-  goes in the final report). 1,973 of the 1,976 English sources are
+  **4,799**. The paper's Table 1 reports 4,803. **Reconciled 9 November
+  2026 (298-77): 4,799 is correct for the released file and the
+  pipeline reads every reference in it.** No reference is blank,
+  malformed or dropped by ingest, and the authors' second release
+  (HinglishEval) holds no source pair missing from `HinGE.pkl`. The
+  paper itself gives 1,978 pairs in section 2 against 1,976 in Table 1,
+  and two pairs at the paper's minimum of two references each would be
+  exactly the missing four. That is the likely origin, and it cannot be
+  confirmed without the authors. Full audit:
+  `reports/hinge_reference_count.md`, re-runnable with
+  `scripts/audit_hinge_count.py`. 1,973 of the 1,976 English sources are
   unique — three sentences appear twice in the base file with separate
-  annotations.
+  annotations — and 23 rows carry a single reference, although the
+  paper describes every pair as having at least two.
 - **What we use as the primary corpus.** The committed pipeline reads
   `data/raw/hinge.csv` and expands only the human-generated Hinglish
   column: 1,976 rows, 4,799 references, 4,674 after the six cleaning
@@ -151,6 +158,21 @@ them as not yet ingested, so the gap stays visible.
 - **Known limitations.** AI4Bharat does not claim ownership of the
   underlying mined text; per-source rights for the 37.4M web-mined
   pairs are not individually verified by AI4Bharat or by us.
+- **Ingested slice (298-58, 9 November 2026).** One Hindi shard,
+  `hi/train-00000-of-00008.parquet` from the Hugging Face release:
+  1,265,714 pairs, SHA-256 `f396924b…c0a4`. After six filters, a seeded
+  sample of 30,000 pairs, of which 4 were removed by the contamination
+  check and **29,996** kept (`reports/contamination/samanantar_hi_slice.json`).
+  The slice is in gitignored `data/interim/` and is not redistributed.
+- **Contamination — measured, not assumed.** HinGE's sources come from the
+  IIT Bombay corpus, which Samanantar includes. This one shard (one eighth
+  of the Hindi data) already contains **27 of the 197 HinGE test sources
+  (13.7%)** and 33 of 192 dev sources (17.2%), by exact English match
+  alone. Some matches occur only on the Hindi side, where Samanantar pairs
+  the same Hindi sentence with a different English translation. Any
+  synthetic data built from Samanantar must pass
+  `src/lrcs/data/contamination.py` first; see
+  `reports/contamination/README.md`.
 - **Intended use.** Candidate source for the M4 synthetic
   back-translation / code-mixing pipeline — parallel English–Hindi
   data run through the GCM toolkit, sampled by Switch-Point Fraction to
@@ -176,6 +198,28 @@ them as not yet ingested, so the gap stays visible.
   variance in Hindi written in Latin script — feeds the
   `spelling_variant_burden` tokenizer-fertility metric (owned
   separately, per CLAUDE.md section 7).
+- **Ingested (298-76, 9 November 2026).** `dakshina_dataset_v1.0.tar`
+  from the GitHub release, SHA-256 `83530bec…5b03`, with only `hi/`
+  extracted under gitignored `data/raw/dakshina/`. It is used as the
+  Romanisation lexicon for the code-mix generator
+  (`src/lrcs/data/transliterate.py`, `hi.translit.sampled.train.tsv`,
+  most attested spelling per word, rule fallback for the rest).
+- **Transliteration error rate, measured.** On 100 held-out Dakshina
+  test sentences Romanised by a person (seed 42): **character error
+  rate 8.6%**, **word exact match 71.3%** over 1,483 words, scored
+  against one annotator's spelling, so valid variants such as
+  `nahi`/`nahin` count as errors. The rule fallback alone matches some
+  attested spelling for 49.0% of 100 unseen words (CER 17.9%). On the
+  Samanantar slice, 83.2% of Devanagari words came from the lexicon
+  (`reports/codemix/transliteration_spotcheck.json`,
+  `reports/codemix/romanisation_stats.json`).
+- **Licence decision for derived data (298-76).** The Romanised slice and
+  the code-mixed batch combine Samanantar (CC-BY-NC-4.0, team decision)
+  with Dakshina lexicon output (CC BY-SA 4.0). Share-alike and
+  non-commercial terms cannot both be met by one licence, so derived data
+  is **not redistributed**. It stays in gitignored `data/interim/`. Only
+  counts, hashes and a few quoted examples are committed
+  (`reports/codemix/README.md`).
 
 ## 5. Trilingual Hinglish Corpus
 
@@ -268,7 +312,7 @@ them as not yet ingested, so the gap stays visible.
 | Trilingual Hinglish | CC-BY-NC-SA-4.0 | Non-commercial, share-alike | Confirmed — `debajyotimaz/trilingual-hinglish-corpus`, rev `ea41ce29`. **Hindi column unusable, see §5** |
 | IIT Bombay corpus | CC-BY-NC-4.0 | Non-commercial | Confirmed |
 | Samanantar | CC-BY-NC-4.0 (team decision; conflicts with AI4Bharat's own CC0 claim) | Non-commercial, attribution | Confirmed by team decision, flagged |
-| Dakshina | CC BY-SA 4.0 | Attribution, share-alike | Confirmed |
+| Dakshina | CC BY-SA 4.0 | Attribution, share-alike | Confirmed; derived code-mix data not redistributed (298-76) |
 
 HinGE, PHINC and CMU Hinglish DoG are attribution-only, so the primary
 training and evaluation path is not restricted to non-commercial use. The

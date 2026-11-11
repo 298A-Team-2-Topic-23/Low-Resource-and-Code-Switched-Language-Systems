@@ -59,7 +59,7 @@ them would throw away legitimate alternative references.
 
 ## 3.3.3 Language tagging
 
-Every token of a surviving reference is tagged in the LinCE scheme. `lang1` is English and
+Every token of a surviving reference is tagged in the LinCE scheme (Aguilar et al., 2020). `lang1` is English and
 `lang2` is Romanized Hindi; `ambiguous`, `ne` (named entity), `other` and `unk` cover the rest.
 The tagger is a documented rule list, not a learned model. Its rules are applied in order and
 listed in the `clean.py` docstring. Its Hindi markers include every surface form in

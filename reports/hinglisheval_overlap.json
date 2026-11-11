@@ -1,0 +1,35 @@
+{
+  "files": {
+    "train": {
+      "sha256": "1e7b09167b56515a617a90f8b83c61711df9e2e3796557f7c54dc4f7e036a666",
+      "rows": 2766,
+      "unique_sources": 1800
+    },
+    "valid": {
+      "sha256": "2cb738dd9d7caedb363838263b43df04b077ecf0bfca410d652023767ea83dec",
+      "rows": 395,
+      "unique_sources": 376
+    },
+    "test": {
+      "sha256": "840480e9e1bbdff52b568f76cce4dc4fb91c46e5e823b498897b4ed80c4776fb",
+      "rows": 791,
+      "unique_sources": 707
+    }
+  },
+  "key": "lrcs.text.dedup_key",
+  "valid_sources_also_in_train": {
+    "shared_sources": 285,
+    "of": 376,
+    "share": 0.758
+  },
+  "test_sources_also_in_train": {
+    "shared_sources": 552,
+    "of": 707,
+    "share": 0.7808
+  },
+  "test_sources_also_in_valid": {
+    "shared_sources": 73,
+    "of": 707,
+    "share": 0.1033
+  }
+}

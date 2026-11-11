@@ -1,0 +1,92 @@
+{
+  "lexicon": "analysis/spelling_variants.tsv",
+  "groups": {
+    "before": {
+      "lexicon_groups": 3,
+      "of_lexicon": 72,
+      "attested_2plus": 0,
+      "of_attested_2plus": 11
+    },
+    "after": {
+      "lexicon_groups": 72,
+      "of_lexicon": 72,
+      "attested_2plus": 11,
+      "of_attested_2plus": 11
+    }
+  },
+  "groups_attested_2plus_in_hinge": 28,
+  "groups_attested_2plus_with_committed_counts": 11,
+  "occurrences_top15": {
+    "before": {
+      "occurrences": 2789,
+      "non_canonical": 351,
+      "non_canonical_mapped_to_canonical": 106,
+      "share_mapped": 0.302
+    },
+    "after": {
+      "occurrences": 2789,
+      "non_canonical": 351,
+      "non_canonical_mapped_to_canonical": 351,
+      "share_mapped": 1.0
+    }
+  },
+  "occurrences_top15_share_of_all": 0.7316,
+  "corruption_probes": {
+    "khyal": {
+      "before": "kyal",
+      "after": "khyal"
+    },
+    "sahna": {
+      "before": "sana",
+      "after": "sahna"
+    },
+    "pahle": {
+      "before": "pale",
+      "after": "pahle"
+    },
+    "bahna": {
+      "before": "bana",
+      "after": "bahna"
+    },
+    "kahna": {
+      "before": "kana",
+      "after": "kahna"
+    },
+    "rehna": {
+      "before": "rena",
+      "after": "rehna"
+    },
+    "dhyan": {
+      "before": "dya",
+      "after": "dhyan"
+    },
+    "vyakhya": {
+      "before": "vyakya",
+      "after": "vyakhya"
+    }
+  },
+  "scores": {
+    "evaluation/demo": {
+      "seed1": {
+        "chrf++": 77.09,
+        "chrf++_fold": 76.659,
+        "chrf++_norm_before": 80.799,
+        "chrf++_norm_after": 85.709
+      },
+      "seed2": {
+        "chrf++": 81.305,
+        "chrf++_fold": 80.962,
+        "chrf++_norm_before": 83.014,
+        "chrf++_norm_after": 83.531
+      }
+    },
+    "hinge_row3_reference_pairs": {
+      "chrf++": 43.94,
+      "chrf++_fold": 45.135,
+      "chrf++_norm_before": 46.76,
+      "chrf++_norm_after": 47.486,
+      "pairs": 56,
+      "references": 8
+    }
+  }
+}

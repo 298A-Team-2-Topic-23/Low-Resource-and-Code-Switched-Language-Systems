@@ -9,3 +9,5 @@
 - [ ] Run `validate_gold_set.py` with the frozen item count.
 - [ ] Have a second teammate review flagged rows and a sample of unflagged rows.
 - [ ] Record the final row count and validation command in the project report.
+- [ ] Record each annotator's region and first language, with no names, in `human_eval/iaa/annotators.csv` (298-80).
+- [ ] Once the first 200 rows validate, run the agreement protocol in `human_eval/iaa/PROTOCOL.md`.

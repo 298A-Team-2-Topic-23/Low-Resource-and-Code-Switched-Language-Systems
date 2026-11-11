@@ -1,0 +1,12 @@
+{
+  "batch": "data/interim/codemix/codemix_batch.tsv",
+  "sha256": "87d3d262745c643d1cdb7e22ab95cd69624d8d3b726770ae494f65e9ff86bcbb",
+  "rows": 28559,
+  "rows_with_repeated_token": 8127,
+  "share_with_repeated_token": 0.2846,
+  "rows_with_english_order_inversion": 15630,
+  "share_with_english_order_inversion": 0.5473,
+  "english_word_pairs_inverted": 0.3063,
+  "rows_with_neither_defect": 10307,
+  "share_with_neither_defect": 0.3609
+}
