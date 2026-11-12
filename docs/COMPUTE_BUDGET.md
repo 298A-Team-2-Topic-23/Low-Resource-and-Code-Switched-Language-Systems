@@ -4,25 +4,31 @@ Every training and inference run is logged here in the same commit as the run, s
 GPU-hour claim in the report is evidenced rather than asserted. The machine-readable source
 is `runs/*.json`, one record per run; this file is the human-readable roll-up.
 
-**Budget: 80–145 GPU-hours** across both semesters, plus roughly 20 for inference and
-evaluation. `python common/repro.py --summary runs/` prints the running total against it.
+**Hard cap: 165 GPU-hours** across both semesters: **145 for training** and **20 for
+inference and evaluation**. The plan uses **154**, leaving 11 in reserve. Decided under
+[298-72](https://linear.app/298a-team-2-topic-23/issue/298-72) on 11 November 2026; the
+decision and its arithmetic are [below](#budget-decision--298-72-11-november-2026).
+`python common/repro.py --summary runs/` prints the running total against it.
 
 ## Running total
 
 | | GPU-hours |
 |---|---|
 | Spent to date | **3.039** |
-| Budget (lower bound) | 80 |
-| Remaining | 77.0 |
+| Planned, all arms | 154 |
+| Hard cap | 165 |
+| Unspent against the cap | 161.961 |
 
-Models 1 and 2 are both trained and scored on the real corpus, on three seeds, and together
-they cost **3.04 GPU-hours** including every smoke test — about 2% of the 145-hour cap for half
-the ablation ladder. That is a data point against the 177-hour estimate in "What the budget is
-reserved for" below, which was built before any arm had run. The estimate has not been redone
-here; rewriting it is 298-72's call, not a side effect of logging a run.
+“Unspent” is planning allowance, not funded capacity or an allocated quota: no university
+allocation or funded fallback is confirmed (next section). The logged total is 3.039 GPU-hours
+across 24 GPU runs — **0.199 of smoke tests and 2.840 of real work**. Models 1 and 2 are both
+trained and scored on the real corpus on three seeds, and together they cost 1.508 GPU-hours
+against a 27-hour reservation. That is a measured counterweight to the estimates below, which
+were built before any arm had run; it is recorded rather than acted on, because resizing the
+plan is a team decision and not a side effect of logging a run.
 
 The departmental allocation is still unconfirmed (298-51, open since 26 September) and has
-stopped being a blocker: the work ran on an Apple M4 and a hosted Colab A100 instead.
+stopped being a blocker: the work ran on an Apple M4 and then a hosted Colab A100.
 
 ## Allocation checkpoint — 22 October 2026 (298-10 / 298-51)
 
@@ -50,21 +56,9 @@ pilot commands and closure checklist. A successful synthetic pilot establishes
 infrastructure only; it cannot close the real-corpus M1/M2 research issues — those
 were closed on 11 November by running them.
 
-### Budget discrepancy requiring a team decision
-
-The arm estimates at the end of this file sum to **177 GPU-hours**, including
-20 for inference/evaluation (157 excluding that row). That exceeds even a reading
-of the abstract as 145 training hours **plus** 20 inference hours by 12 hours.
-[Workbook 1 §2.3](workbook1/section_2_3_2_4.md) instead allocates 130 total hours
-with a 145-hour cap, and `common/repro.py` uses 80–145 for its summary.
-
-These are conflicting plans, not approved capacity. Retain the original numbers
-for audit; agree which scope the cap covers and resize the allocations or obtain
-an explicit budget revision before committing full-run spend. Controls remain in
-scope. No purchase or revised methodological budget is authorized by this entry.
-
-298-72 resolves this, and its measured counterweight is now available: M1 and M2
-together were reserved 27 GPU-hours and cost 1.508.
+The discrepancy this checkpoint raised — arm estimates summing to 177 against a 145-hour cap —
+is resolved below under **Budget decision — 298-72**, which is why no "budget discrepancy"
+subsection follows here any more.
 
 ## Runs
 
@@ -111,20 +105,92 @@ fix has regressed.
 
 ## What the budget is reserved for
 
-| Arm | Estimate | Status |
-|---|---|---|
-| M1 zero-shot, 3 seeds, 0- and 5-shot | ~2 | 298-53, not started on the real corpus |
-| M2 QLoRA, 3 seeds | ~25 | 298-54, blocked on 298-51 |
-| Baseline reproduction (mBART), both input conditions | ~15 | 298-52 |
-| M3 vocabulary extension + CPT, 3 seeds | ~45 | 298B |
-| Control A: CPT without vocabulary extension | ~20 | 298B, required for attribution |
-| Control B: M2 re-trained to M3's GPU-hours | ~25 | 298B, required for attribution |
-| M4 augmented, 3 seeds | ~25 | 298B |
-| Inference and evaluation | ~20 | throughout |
+Allocations, not measured runtimes. The 177-hour column is kept for audit.
 
-The two control arms account for roughly 45 GPU-hours between them. They are not optional:
-without Control A an M3 gain cannot be attributed to the vocabulary rather than the extra
-training, and without Control B it cannot be separated from simply having had more compute.
+| Arm | Before 298-72 | Now | Status |
+|---|---|---|---|
+| M1 zero-shot, 3 seeds, 0- and 5-shot | 2 | **2** | 298-53, not started on the real corpus |
+| M2 QLoRA, 3 seeds | 25 | **25** | 298-54, blocked on 298-51 |
+| Baseline reproduction (mBART-large-cc25), both input conditions | 15 | **15** | 298-52 |
+| M3 vocabulary extension + CPT, 3 seeds, **one K** | 45 | **36** | 298B |
+| Control A: CPT without vocabulary extension | 20 | **20** | 298B, required for attribution. See open risk 1 |
+| Control B: each M2 seed **continued** to M3's GPU-hours | 25 | **11** | 298B, required for attribution |
+| M4 augmented, 3 seeds | 25 | **25** | 298B |
+| Inference and evaluation | 20 | **20** | throughout; chrF++ scoring itself is CPU work |
+| **Total** | **177** | **154** | |
+| Reserve against the 165 cap | — | **11** | failed runs count against it |
+
+Both control arms stay. Without Control A an M3 gain cannot be attributed to the vocabulary
+rather than the extra training, and without Control B it cannot be separated from simply having
+had more compute.
 
 Synthetic generation and continued pretraining count **inside** the budget of the arm that
 uses them, not as separate lines.
+
+## Budget decision — 298-72, 11 November 2026
+
+**The conflict.** The reservations above summed to **177 GPU-hours**. Workbook 1 section 2.3
+committed to a 130-hour target and a **145-hour hard cap**, and said not to exceed it "without
+an explicit documented change to the abstract and logger budget". The plan could not be run as
+written: 32 hours over the cap.
+
+**Options considered.**
+
+| Option | Plan | Cap | What it costs |
+|---|---|---|---|
+| Raise the cap only | 177 | 180 | Nothing cut. $360 at $2/GPU-hour; widest change to the commitment |
+| Shrink to fit 145 total | 144 | 145 | Also cuts the baseline to 8 hours (unmeasured), M2 and M4 to 24 and inference to 18, leaving **1 hour** of reserve. One failed seed breaks it |
+| **Two cuts, cap made explicit (chosen)** | **154** | **165** | Below |
+
+**The decision.**
+
+1. **M3 trains one vocabulary size on the GPU: 45 → 36.** Section 4.1 proposes sweeping
+   K over {500, 1K, 3K, 5K, 8K} *at the tokenizer level, which needs no GPU*, and fixing K on the
+   dev split before any GPU time is spent. The Phase 3 brief attributes the 45 hours to the K
+   sweep; on the GPU, only the chosen K needs training. **What the experiment loses:** if the dev-chosen K trains poorly, there is no budgeted
+   second K. Section 4.1 already names the mitigation (Align initialisation instead of Mean),
+   which costs no extra GPU arm.
+2. **Control B continues each M2 seed instead of retraining it: 25 → 11.** Section 4.1 defines
+   Control B as the M2 recipe trained until its GPU-hours equal M3's, and section 2.3 already
+   charged it "as the increment beyond M2's own run". The 25-hour figure re-ran M2 from scratch.
+   The increment is M3 − M2 = 36 − 25 = **11**. **What the experiment loses:** Control B's
+   learning-rate schedule becomes two segments (M2's full cosine, then a second schedule) rather
+   than one longer run. A reviewer could argue the continued run is under-tuned; the results
+   section must state the schedule. `models/train_qlora.py` has no resume-from-adapter option
+   yet, so this arm needs one.
+3. **The cap is made explicit: 145 for training plus 20 for inference and evaluation, 165
+   total.** Workbook 1 counted inference inside 145; this file has carried "plus roughly 20 for
+   inference and evaluation" since 298-26. The 145-hour figure the abstract commits to is now the
+   **training** cap. Section 2.3 is amended in place (with the original text kept) and
+   `common/repro.py` reports against 165.
+
+**Arithmetic.** 2 + 25 + 15 + 36 + 20 + 11 + 25 + 20 = **154**. Training alone is 134 against the
+145 training cap. 165 − 154 = **11 hours of reserve**. At the $2/GPU-hour planning assumption the
+cap costs **$330**, against $290 at the old 145-hour cap: $40 more, and only if the hours are
+actually used. No purchase is authorised by this entry; funding still follows
+`docs/COMPUTE_ALLOCATION.md`.
+
+**Open risks carried with the decision.**
+
+1. **Control A may cost what M3 costs.** It runs M3's two stages on the original vocabulary, so
+   at equal steps it would take about M3's 36 hours, not 20. That would put the plan at 170, over
+   the cap. Control A must be step-matched to M3 to isolate the vocabulary, so the 20-hour
+   figure, not the step count, is what gives. **The first measured M3 seed settles it, and
+   Control A is not scheduled until that measurement exists.** If it is 36, the team decides
+   between a further cap change and fewer Control A seeds, and records the decision here.
+2. **Every figure is an estimate.** No 7B job has run. After the first real M2 seed, replace
+   the per-seed figures with measured ones (298-73's roll-up projects from them) and re-check
+   the total before M3 is scheduled.
+
+**Sign-off.** Proposed by Singh, Prakhar Kumar, 11 November 2026. Agreed by:
+
+| Member | Agreed | Date |
+|---|---|---|
+| Singh, Prakhar Kumar | yes | 11 Nov 2026 |
+| Thomas Lnu, Shibin | | |
+| Savalia, Jenil Sanjaybhai | | |
+| Shevkar, Yash | | |
+| Waghmare, Sarvesh | | |
+
+To be confirmed at Team Meeting 2 on 12 November. Until the table is complete, the plan is the
+owner's proposal, not a team commitment.

@@ -70,9 +70,18 @@ fallback in PR #33 has to be funded and tested, not only documented.
 
 ## Descoped
 
-**Nothing yet.** 298-72 has to resolve 177 estimated GPU-hours against the 145-hour cap
-(`docs/COMPUTE_BUDGET.md`). The carry-forward table still records it as `[PENDING: team
-decision]`. When an arm is cut, list it here with the date and the decision record.
+**No arm is descoped.** 298-72 (11 November) resolved 177 estimated GPU-hours against the
+145-hour cap by shrinking two arms without dropping any, and by making the cap 145 training plus
+20 inference, 165 in all (`docs/COMPUTE_BUDGET.md`):
+
+| Arm | Change | What it gives up |
+|---|---|---|
+| M3 | One K trained on the GPU, 45 → 36 GPU-hours. K is chosen on dev at the tokenizer level | A second K if the chosen one trains poorly |
+| Control B | Each M2 seed continued to M3's hours, 25 → 11 | A single uninterrupted learning-rate schedule. Needs a resume option in `models/train_qlora.py` |
+
+Before scheduling Control A, measure an M3 seed: if Control A, step-matched to M3, costs 36 hours
+rather than 20, the plan exceeds the cap. When an arm is cut, list it here with the date and the
+decision record.
 
 ## Not attempted
 

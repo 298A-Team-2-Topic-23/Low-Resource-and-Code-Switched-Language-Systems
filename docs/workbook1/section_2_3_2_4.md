@@ -71,6 +71,15 @@ summary means “no runs recorded”, not proof that no external compute was use
 At 130 hours, review the remaining 15-hour headroom; do not exceed 145 without
 an explicit documented change to the abstract and logger budget.
 
+> **Amended 11 November 2026 under 298-72.** The per-arm reservations in
+> `docs/COMPUTE_BUDGET.md` summed to 177 GPU-hours, over the cap above. The documented
+> change: the abstract's 145 hours is now the **training** cap; inference and evaluation
+> are budgeted separately at 20, so the hard cap is **165 GPU-hours**. M3 trains one K on
+> the GPU (45 → 36) and Control B continues each M2 seed rather than retraining it
+> (25 → 11), bringing the plan to **154** with 11 in reserve. `common/repro.py` reports
+> against 165. The text above is kept as submitted; the decision record, options and
+> sign-off are in `docs/COMPUTE_BUDGET.md`.
+
 ## 2.4 Schedule
 
 All Workbook 1 issues belong to **Cycle 2, 28 September–12 October 2026**.
