@@ -177,12 +177,23 @@ def sha256_of(path):
 
 
 def download(url, dest):
-    """Fetch to a temporary file, then move. A partial download must never be
-    left where the next run would hash it and call it good."""
+    """Fetch to a temporary file, then move, retrying on transient failures.
+
+    A partial download must never be left where the next run would hash it and
+    call it good, hence the .part file.
+
+    Returns (bytes, attempts_log). The log is not decoration: a nightly job that
+    quietly needed three attempts is a job that is about to start failing, and
+    ISA demonstration row 4 asks for retries to be *observable* rather than
+    merely present. The attempts are recorded in data/raw/MANIFEST.json, so a
+    retry that happened leaves a trace somebody can find afterwards.
+    """
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(dest.suffix + ".part")
     last = None
+    attempts = []
     for attempt in range(1, RETRIES + 1):
+        t0 = time.time()
         try:
             req = urllib.request.Request(
                 url, headers={"User-Agent": "lrcs-fetch-data/1.0"})
@@ -194,14 +205,23 @@ def download(url, dest):
                         break
                     out.write(block)
             tmp.replace(dest)
-            return dest.stat().st_size
+            attempts.append({"attempt": attempt, "ok": True,
+                             "seconds": round(time.time() - t0, 2)})
+            return dest.stat().st_size, attempts
         except (urllib.error.URLError, urllib.error.HTTPError, OSError) as exc:
             last = exc
+            attempts.append({"attempt": attempt, "ok": False,
+                             "seconds": round(time.time() - t0, 2),
+                             "error": "{}: {}".format(type(exc).__name__, exc)})
             if tmp.exists():
                 tmp.unlink()
             if attempt < RETRIES:
-                time.sleep(2 * attempt)
-    raise FetchError("{}: {}".format(url, last))
+                backoff = 2 * attempt
+                print("    attempt {} of {} failed ({}); retrying in {}s"
+                      .format(attempt, RETRIES, type(exc).__name__, backoff),
+                      file=sys.stderr)
+                time.sleep(backoff)
+    raise FetchError("{}: {} after {} attempts".format(url, last, RETRIES))
 
 
 def load_manifest():
@@ -257,7 +277,7 @@ def fetch_one(name, spec, manifest, verify_only):
             results.append((local, "cached", dest.stat().st_size))
             continue
 
-        size = download(url, dest)
+        size, attempts = download(url, dest)
         actual = sha256_of(dest)
         if known and known != actual:
             raise FetchError(
@@ -271,6 +291,10 @@ def fetch_one(name, spec, manifest, verify_only):
             "bytes": size,
             "sha256": actual,
             "retrieved": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "attempts": len(attempts),
+            # Only kept when something actually went wrong, so a clean manifest
+            # stays readable and a retry stands out.
+            "retry_log": [a for a in attempts if not a["ok"]] or None,
         }
         results.append((local, "fetched", size))
     return results
