@@ -20,6 +20,7 @@ SPEC.loader.exec_module(msf)
 
 @pytest.mark.parametrize("module,names,level,own,expected", [
     ("repro", ["RunLogger"], 0, "models/", "common/repro"),
+    ("run_contract", ["ExperimentRun"], 0, "scripts/", "common/repro"),
     ("lrcs", ["repo_relative"], 0, "scripts/", "lrcs"),
     ("lrcs", ["text"], 0, "scripts/", "lrcs.text"),
     ("lrcs.data.splits", ["write_splits"], 0, "scripts/", "lrcs.data"),
