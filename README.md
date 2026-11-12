@@ -129,8 +129,9 @@ designed but not built yet.
 flowchart TB
     subgraph D["1 · Data in"]
         direction LR
-        PKL["HinGE.pkl<br/>authors' release"] --> CONV["convert_hinge_pkl.py<br/>restricted unpickler<br/>SHA-256 pin"] --> CSV["data/raw/hinge.csv<br/><i>gitignored</i>"]
-        SYN["--synthetic<br/>offline generator"] ~~~ PKL
+        HF["LingoIITGN/HinGE<br/>CC-BY-4.0, pinned rev"] --> FETCH["fetch_data.py<br/>SHA-256 verified<br/>licence recorded"] --> VAL["validate_raw.py<br/>alignment probes"] --> CSV["data/raw/hinge.csv<br/><i>gitignored</i>"]
+        PKL["HinGE.pkl<br/><i>legacy path</i>"] -.-> CONV["convert_hinge_pkl.py<br/>restricted unpickler"] -.-> CSV
+        SYN["--synthetic<br/>offline generator"] ~~~ HF
     end
     subgraph P["2 · Data pipeline: scripts/run_pipeline.py + src/lrcs"]
         direction LR
@@ -368,7 +369,7 @@ prove the harness is correct.
 | No data in Git | `data/raw/`, `data/interim/` and `data/processed/` gitignored; only hashed manifests are committed | [`.gitignore`](.gitignore) |
 | Every run is on record | `RunLogger` writes seed, config, metrics, commit, packages and GPU-hours; CPU jobs log `n_gpus=0` | [`runs/`](runs) |
 | Runs on the demo laptop | The pipeline needs only the standard library plus matplotlib, and avoids 3.10-only syntax | Verified on Python 3.9.6 and 3.14 (PR #18) |
-| Changes are tested | `python -m pytest tests/` | **24 passed, 1 skipped** on `main` at `c3e884a` |
+| Changes are tested | `python -m pytest tests/` | **239 passed, 8 skipped** from a clean clone with `requirements-demo.txt`, verified 11 Nov 2026. With the full stack installed it is 261 passed, 4 skipped — the four extra skips are tests that need packages the CPU subset leaves out |
 
 ---
 
@@ -397,18 +398,44 @@ python analysis/tokenizer_fertility.py --selftest
 python scripts/run_pipeline.py --synthetic --n-synthetic 1200 --seed 42
 ```
 
-**Run it on the real corpus.** Get `HinGE.pkl` from the authors (the link is in
-[`docs/datasheet.md`](docs/datasheet.md)) and put it in `data/raw/`:
+**Run it on the real corpus.** Nothing to download by hand: `fetch_data.py` pulls HinGE at a
+pinned revision and checks it against a recorded SHA-256. It is CC-BY-4.0, published by the
+authors' own lab.
 
 ```bash
-python scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv \
-  --expected-sha256 e78c8f48af3eea0b141e767082189b7b619e9cbe50ad8f0b2a4863b82ebc5960
+python scripts/fetch_data.py --only hinge
+cp data/raw/hinge/HinGE.csv data/raw/hinge.csv
+python scripts/validate_raw.py --only hinge
 python scripts/run_pipeline.py --input data/raw/hinge.csv --seed 42
 ```
+
+This reproduces the committed splits **byte for byte** — compare the hashes it prints against
+`data/processed/manifests/hinge_split_manifest.json`. If they differ, something upstream moved
+and every number measured on those splits is unverified. The nightly
+[pipeline workflow](.github/workflows/pipeline.yml) makes that same check and fails on it.
 
 Or walk through it stage by stage in
 [`notebooks/tm1_data_pipeline_demo.ipynb`](notebooks/tm1_data_pipeline_demo.ipynb), which is
 committed with the outputs of the real-corpus run.
+
+**Try the model.** A local prototype that puts the untrained base model and the fine-tuned
+adapter side by side on any sentence you type, each scored for code-mixing as you go:
+
+```bash
+make demo
+```
+
+It serves `http://127.0.0.1:8000`. It is not cloud-deployed — it runs on your machine, and
+Linear 298-56 tracks the deployment that would change that. Needs the M2 adapter under
+`models/adapters/` and roughly 8 GB free; `make demo-light` halves that by serving only M2.
+
+**Load the warehouse and watch the pipeline**, which is the source-to-warehouse path:
+
+```bash
+make warehouse        # SQLite at data/warehouse/lrcs.sqlite
+make warehouse-demo   # six queries over it
+make monitor          # stage counts, latency, gate result, drift
+```
 
 <details>
 <summary><b>Scoring a run with the evaluation harness</b></summary>

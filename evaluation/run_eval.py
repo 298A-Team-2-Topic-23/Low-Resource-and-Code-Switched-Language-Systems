@@ -167,8 +167,61 @@ _CHRF = CHRF(word_order=2)          # word_order=2 is what the ++ means
 _BLEU = BLEU()
 
 
+def ref_streams(refs):
+    """Normalise a reference argument into sacreBLEU's list-of-streams form.
+
+    Accepts either one reference per hypothesis (`["a", "b"]`) or a reference
+    *set* per hypothesis (`[["a1", "a2"], ["b1"]]`). Ragged sets are padded with
+    None, which sacreBLEU 2.x treats as "this stream has no reference here" --
+    verified to give the same score as repeat-padding, without inventing a
+    duplicate reference that would skew the n-gram counts.
+
+    Section 4.4 commits to scoring each source once against all of its
+    references, because HinGE's test split holds 468 records over only 197
+    sources and scoring per reference counts a five-reference source five times.
+    It also records that this harness could not yet do it. This closes that gap.
+    """
+    if not refs:
+        return [[]]
+    if isinstance(refs[0], (list, tuple)):
+        width = max(len(r) for r in refs)
+        if width == 0:
+            raise ValueError("every reference set is empty")
+        return [[(r[i] if i < len(r) else None) for r in refs] for i in range(width)]
+    return [list(refs)]
+
+
+def _map_streams(fn, streams):
+    """Apply a text transform across reference streams, preserving None."""
+    return [[None if r is None else fn(r) for r in stream] for stream in streams]
+
+
 def _sacre_stats(metric, hyps, refs):
-    return [list(map(float, s)) for s in metric._extract_corpus_statistics(hyps, [refs])]
+    """`refs` is always per-hypothesis: a string, or a list of alternatives."""
+    return [list(map(float, s))
+            for s in metric._extract_corpus_statistics(hyps, ref_streams(refs))]
+
+
+def _as_sets(refs):
+    """Per-hypothesis reference lists, whether one reference was given or many."""
+    if refs and isinstance(refs[0], (list, tuple)):
+        return [list(r) for r in refs]
+    return [[r] for r in refs]
+
+
+def _best_ref(hyp, candidates, score, prefer_high=True):
+    """The reference this hypothesis scores best against.
+
+    Section 4.4: "ROUGE-L and WER take the best-matching reference for each
+    source." Those two metrics have no multi-reference formulation the way
+    sacreBLEU's chrF++ and BLEU do, so the committed method is an oracle choice
+    over the reference set.
+    """
+    usable = [c for c in candidates if c]
+    if not usable:
+        return ""
+    key = (lambda r: score(hyp, r)) if prefer_high else (lambda r: -score(hyp, r))
+    return max(usable, key=key)
 
 
 def _lcs(a, b):
@@ -208,17 +261,37 @@ def _edit_distance(a, b):
 
 
 def sentence_stats(hyps, refs):
-    """metric -> one additive statistics vector per sentence."""
-    norm_h, norm_r = [normalise(h) for h in hyps], [normalise(r) for r in refs]
-    fold_h, fold_r = [fold(h) for h in hyps], [fold(r) for r in refs]
+    """metric -> one additive statistics vector per sentence.
+
+    `refs` is per-hypothesis and may be a single string or a list of
+    alternatives. chrF++ and BLEU use sacreBLEU's multi-reference mode; ROUGE-L
+    and WER take the best-matching reference. Both behaviours are what section
+    4.4 committed to before any result existed.
+    """
+    sets = _as_sets(refs)
+    norm_h = [normalise(h) for h in hyps]
+    fold_h = [fold(h) for h in hyps]
+    norm_sets = [[normalise(r) for r in s] for s in sets]
+    fold_sets = [[fold(r) for r in s] for s in sets]
+
+    rouge, wer_stats = [], []
+    for h, s in zip(hyps, sets):
+        r = _best_ref(h, s, _rouge_l_sentence)
+        rouge.append([_rouge_l_sentence(h, r), 1.0])
+        # WER's best reference is the one with the lowest error rate, which is
+        # not always the one ROUGE-L prefers, so it is chosen separately.
+        rw = _best_ref(h, s, lambda a, b: -(
+            _edit_distance(tokenise(a), tokenise(b)) / max(len(tokenise(b)), 1)))
+        wer_stats.append([float(_edit_distance(tokenise(h), tokenise(rw))),
+                          float(len(tokenise(rw)))])
+
     return {
-        "chrf++": _sacre_stats(_CHRF, hyps, refs),
-        "chrf++_norm": _sacre_stats(_CHRF, norm_h, norm_r),
-        "chrf++_fold": _sacre_stats(_CHRF, fold_h, fold_r),
-        "bleu": _sacre_stats(_BLEU, hyps, refs),
-        "rouge_l": [[_rouge_l_sentence(h, r), 1.0] for h, r in zip(hyps, refs)],
-        "wer": [[float(_edit_distance(tokenise(h), tokenise(r))), float(len(tokenise(r)))]
-                for h, r in zip(hyps, refs)],
+        "chrf++": _sacre_stats(_CHRF, hyps, sets),
+        "chrf++_norm": _sacre_stats(_CHRF, norm_h, norm_sets),
+        "chrf++_fold": _sacre_stats(_CHRF, fold_h, fold_sets),
+        "bleu": _sacre_stats(_BLEU, hyps, sets),
+        "rouge_l": rouge,
+        "wer": wer_stats,
     }
 
 
@@ -246,7 +319,8 @@ def score_all(hyps, refs, stats=None):
 
 def chrf(hyps, refs, normalised=False):
     if normalised:
-        hyps, refs = [normalise(h) for h in hyps], [normalise(r) for r in refs]
+        hyps = [normalise(h) for h in hyps]
+        refs = [[normalise(r) for r in s] for s in _as_sets(refs)]
     return score_from_stats("chrf++", _sacre_stats(_CHRF, hyps, refs))
 
 
@@ -419,6 +493,29 @@ def print_ladder(result):
 
 
 # --------------------------------------------------------------------------- io
+def read_reference_sets(path):
+    """One reference SET per source, from JSONL of {"english", "references"}.
+
+    Section 4.4: HinGE's test split holds 468 records over 197 sources, so
+    scoring per reference counts a five-reference source five times. Hypotheses
+    must be aligned to the sources in this file, in its order.
+    """
+    sets = []
+    with open(path, encoding="utf-8") as fh:
+        for lineno, line in enumerate(fh, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            obj = json.loads(line)
+            refs = [r for r in obj.get("references", []) if str(r).strip()]
+            if not refs:
+                sys.exit("{}:{}: no usable references".format(path, lineno))
+            sets.append(refs)
+    if not sets:
+        sys.exit("{}: no reference sets".format(path))
+    return sets
+
+
 def read_lines(path):
     lines = [l.rstrip("\n") for l in Path(path).read_text(encoding="utf-8").splitlines()]
     if not lines:
@@ -479,7 +576,13 @@ def score_files(hyp_files, refs):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--hyp", nargs="+", help="hypothesis file(s); one per seed")
-    ap.add_argument("--ref", help="code-switched (Hinglish) reference file")
+    ap.add_argument("--ref", help="code-switched (Hinglish) reference file, one per line")
+    ap.add_argument("--ref-jsonl", metavar="PATH",
+                    help="multi-reference scoring: JSONL of {\"english\", \"references\"} "
+                         "with one object per SOURCE, as scripts/build_sft_data.py writes to "
+                         "data/sft/<corpus>/test_references.jsonl. This is the method section "
+                         "4.4 committed to; --ref scores one line per reference instead, which "
+                         "counts a source once per reference it happens to have")
     ap.add_argument("--mono-hyp", nargs="+", help="monolingual Hindi hypothesis file(s)")
     ap.add_argument("--mono-ref", help="monolingual Hindi reference file")
     ap.add_argument("--system", default="unnamed", help="system name for the results table")
@@ -503,9 +606,19 @@ def main():
     if args.report:
         print_report(args.report)
         return
+    if args.ref and args.ref_jsonl:
+        sys.exit("pass --ref or --ref-jsonl, not both: they define different "
+                 "denominators and their scores are not comparable")
+
     if args.compare or args.ladder:
+        # NOTE (merge, 11 Nov): the ladder reads single-reference streams only.
+        # Section 4.4 commits the primary metric to multi-reference scoring, so a
+        # ladder verdict and a --ref-jsonl score are not on the same denominator
+        # and must not be quoted side by side. Teaching compare_ladder to take
+        # reference *sets* is tracked separately; it is not done here, because
+        # changing the gate's arithmetic in a merge would be invisible.
         if not args.ref:
-            ap.error("--ref is required")
+            ap.error("--ref is required (--compare/--ladder are single-reference)")
         refs = read_lines(args.ref)
         # A, B order on the command line reads as "A against B"; the ladder runs low to high.
         specs = list(reversed(args.compare)) if args.compare else args.ladder
@@ -519,10 +632,11 @@ def main():
             with open(args.out, "a", encoding="utf-8") as fh:
                 fh.write(json.dumps(rec) + "\n")
         return
-    if not args.hyp or not args.ref:
-        ap.error("--hyp and --ref are required")
 
-    refs = read_lines(args.ref)
+    if not args.hyp or not (args.ref or args.ref_jsonl):
+        ap.error("--hyp and one of --ref / --ref-jsonl are required")
+
+    refs = read_reference_sets(args.ref_jsonl) if args.ref_jsonl else read_lines(args.ref)
     stats, per_seed = score_files(args.hyp, refs)
 
     metrics = {}

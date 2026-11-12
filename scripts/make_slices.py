@@ -98,6 +98,70 @@ def synthetic_columns(n, seed):
     return english, hinglish
 
 
+def hinge_columns(csv_path):
+    """English, Hinglish and Devanagari Hindi from the real HinGE release.
+
+    Preferred over `synthetic_columns` now that the corpus is fetchable: AI-6
+    asks what the tokenizer does to real text, and fertility measured on
+    generated text answers a weaker question. `scripts/fetch_data.py` puts the
+    file in place from a pinned revision, so a clean clone still reproduces.
+
+    The 'Human-generated Hinglish' column is a Python list literal holding one
+    to eight human renderings of the same English sentence; every rendering is
+    its own line, because each is a real observation of how a person wrote it.
+    """
+    import ast
+    import csv as _csv
+
+    path = Path(csv_path)
+    if not path.exists():
+        raise SliceError(
+            "{}: not found. Fetch the corpus first:\n"
+            "  python3 scripts/fetch_data.py --only hinge".format(path))
+    with path.open(encoding="utf-8") as fh:
+        rows = list(_csv.DictReader(fh))
+    if not rows:
+        raise SliceError("{}: empty".format(path))
+
+    def column(*names):
+        for want in names:
+            for c in rows[0]:
+                if str(c).strip().lower() == want:
+                    return c
+        raise SliceError("{}: no {} column (columns: {})".format(
+            path, " / ".join(names), ", ".join(map(str, rows[0]))))
+
+    c_en, c_hi = column("english"), column("hindi")
+    c_hg = column("human-generated hinglish", "hinglish")
+
+    english, hinglish, hindi = [], [], []
+    for r in rows:
+        en = str(r.get(c_en) or "").strip()
+        hi = str(r.get(c_hi) or "").strip()
+        if en:
+            english.append(en)
+        if hi:
+            hindi.append(hi)
+        raw = str(r.get(c_hg) or "").strip()
+        refs = []
+        if raw.startswith("["):
+            try:
+                parsed = ast.literal_eval(raw)
+                refs = [str(x).strip() for x in parsed if str(x).strip()]
+            except (ValueError, SyntaxError):
+                refs = []
+        elif raw:
+            refs = [raw]
+        hinglish.extend(refs)
+
+    if not (english and hinglish and hindi):
+        raise SliceError(
+            "{}: expected all three of English, Hindi and Hinglish to be "
+            "populated, got {} / {} / {}".format(
+                path, len(english), len(hindi), len(hinglish)))
+    return english, hinglish, hindi
+
+
 def fixture_romanised_hindi(path=FIXTURE):
     """The Romanised Hindi side of the committed team-authored parallel fixture."""
     if not Path(path).exists():
@@ -121,18 +185,39 @@ def fixture_romanised_hindi(path=FIXTURE):
     return out
 
 
-def build(out_dir, n=DEFAULT_N, seed=DEFAULT_SEED):
-    """Returns the manifest. Writes a .txt per available slice."""
+def build(out_dir, n=DEFAULT_N, seed=DEFAULT_SEED, hinge_csv=None):
+    """Returns the manifest. Writes a .txt per available slice.
+
+    With `hinge_csv`, English and Hinglish come from the real corpus and the
+    Devanagari slice is built in the same pass, so AI-6 is answered on real
+    text. Without it the seeded generator is used, which keeps the offline
+    path working on a machine that has not fetched anything.
+    """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    english, hinglish = synthetic_columns(n, seed)
+    hinge_deva = None
+    if hinge_csv:
+        english, hinglish, hinge_deva = hinge_columns(hinge_csv)
+        src = repo_relative(Path(hinge_csv))
+        en_source = "{} English column (real corpus)".format(src)
+        hg_source = "{} Human-generated Hinglish column, every human reference " \
+                    "on its own line (real corpus)".format(src)
+        regen = "python3 scripts/fetch_data.py --only hinge && " \
+                "python3 scripts/make_slices.py --from-hinge {}".format(src)
+        en_regen = hg_regen = regen
+    else:
+        english, hinglish = synthetic_columns(n, seed)
+        en_source = "lrcs.data.synthetic generate(n={}, seed={}) english column".format(n, seed)
+        hg_source = "lrcs.data.synthetic generate(n={}, seed={}) hinglish column".format(n, seed)
+        en_regen = hg_regen = "python3 scripts/make_slices.py --seed {}".format(seed)
+
     available = OrderedDict([
         ("en", {
             "lines": english,
             "script": "roman",
-            "source": "lrcs.data.synthetic generate(n={}, seed={}) english column".format(n, seed),
-            "regenerate": "python3 scripts/make_slices.py --seed {}".format(seed),
+            "source": en_source,
+            "regenerate": en_regen,
         }),
         ("hi_roman", {
             "lines": fixture_romanised_hindi(),
@@ -143,29 +228,39 @@ def build(out_dir, n=DEFAULT_N, seed=DEFAULT_SEED):
         ("hinglish", {
             "lines": hinglish,
             "script": "roman",
-            "source": "lrcs.data.synthetic generate(n={}, seed={}) hinglish column".format(n, seed),
-            "regenerate": "python3 scripts/make_slices.py --seed {}".format(seed),
+            "source": hg_source,
+            "regenerate": hg_regen,
         }),
     ])
 
-    # The one slice the repository cannot supply. Recorded with the reason and
-    # the command that closes it, so the gap is actionable rather than a blank.
-    absent = OrderedDict([
-        ("hi_deva", {
+    if hinge_deva is not None:
+        available["hi_deva"] = {
+            "lines": hinge_deva,
+            "script": "devanagari",
+            "source": "{} Hindi column (real corpus)".format(
+                repo_relative(Path(hinge_csv))),
+            "regenerate": "python3 scripts/fetch_data.py --only hinge && "
+                          "python3 scripts/make_slices.py --from-hinge {}".format(
+                              repo_relative(Path(hinge_csv))),
+        }
+
+    # Any slice the repository cannot supply is recorded with the reason and the
+    # command that closes it, so a gap is actionable rather than a blank.
+    absent = OrderedDict()
+    if hinge_deva is None:
+        absent["hi_deva"] = {
             "reason": "no Devanagari text is committed anywhere in this repository "
-                      "(verified: git grep over the Devanagari block returns nothing). "
-                      "The synthetic generator produces an empty hindi column, and "
-                      "data/goldtestset/gold_set.csv holds its header row only, so "
-                      "its Devanagari column is empty too.",
-            "supplied_by": "HinGE.pkl, whose released 'Hindi' column is Devanagari. "
-                           "It is not committed (data/raw/ is gitignored) and is not "
-                           "on this machine. A licensed Devanagari corpus under "
-                           "298-76 would also supply it.",
+                      "(data/raw/ is gitignored), and this run was given no corpus "
+                      "to read it from. The synthetic generator produces an empty "
+                      "hindi column.",
+            "supplied_by": "The HinGE release, whose 'Hindi' column is Devanagari. "
+                           "It is published by the authors' own lab at "
+                           "https://huggingface.co/datasets/LingoIITGN/HinGE under "
+                           "CC-BY-4.0 and is fetched by scripts/fetch_data.py.",
             "command_that_closes_it":
-                "python3 scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv "
-                "&& python3 scripts/make_slices.py --hi-deva-from data/raw/hinge.csv",
-        }),
-    ])
+                "python3 scripts/fetch_data.py --only hinge && "
+                "python3 scripts/make_slices.py --from-hinge data/raw/hinge/HinGE.csv",
+        }
 
     manifest = OrderedDict([
         ("slices_required_by_ai6", ["en", "hi_deva", "hi_roman", "hinglish"]),
@@ -188,10 +283,14 @@ def build(out_dir, n=DEFAULT_N, seed=DEFAULT_SEED):
             ("regenerate", spec["regenerate"]),
         ])
 
-    manifest["ai6_status"] = (
-        "not met: {} of 4 slices measurable ({}). Missing: {}.".format(
-            len(manifest["present"]), ", ".join(manifest["present"]),
-            ", ".join(absent)))
+    if absent:
+        manifest["ai6_status"] = (
+            "not met: {} of 4 slices measurable ({}). Missing: {}.".format(
+                len(manifest["present"]), ", ".join(manifest["present"]),
+                ", ".join(absent)))
+    else:
+        manifest["ai6_status"] = "met: 4 of 4 slices measured."
+    manifest["sources_are_real"] = bool(hinge_csv)
 
     (out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -205,13 +304,19 @@ def main(argv=None):
                    help="rows from the synthetic generator (default 1200, the "
                         "size the committed pipeline run used)")
     p.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    p.add_argument("--from-hinge", metavar="CSV",
+                   help="build English, Hinglish and Devanagari Hindi from the "
+                        "real HinGE release (data/raw/hinge/HinGE.csv after "
+                        "scripts/fetch_data.py). This is the reported path: it "
+                        "answers AI-6 on real text rather than generated text")
     p.add_argument("--hi-deva-from", metavar="CSV",
-                   help="a CSV with a Devanagari 'Hindi' column, e.g. the HinGE "
-                        "conversion. Supplying it closes AI-6's fourth slice")
+                   help="add only the Devanagari slice from a CSV with a 'Hindi' "
+                        "column, leaving the other slices as built")
     args = p.parse_args(argv)
 
     try:
-        manifest = build(args.out_dir, n=args.n, seed=args.seed)
+        manifest = build(args.out_dir, n=args.n, seed=args.seed,
+                         hinge_csv=args.from_hinge)
         if args.hi_deva_from:
             manifest = add_hi_deva(args.out_dir, args.hi_deva_from, manifest)
     except SliceError as exc:

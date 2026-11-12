@@ -104,6 +104,47 @@ make demo-298-70
 ```
 
 That runs the synthetic pipeline, loads SQLite, prints the six queries, and
-refreshes the monitor report. For the real corpus, convert `HinGE.pkl` once
-(see `docs/datasheet.md`), run `scripts/run_pipeline.py --input data/raw/hinge.csv --seed 42`,
-then `make warehouse warehouse-demo monitor`.
+refreshes the monitor report.
+
+For the real corpus, fetch it first — no conversion step is needed, because the
+authors publish HinGE as CSV under CC-BY-4.0:
+
+```bash
+python3 scripts/fetch_data.py --only hinge        # pinned revision, hash-checked
+python3 scripts/validate_raw.py --samples          # validate before building
+python3 scripts/run_pipeline.py --input data/raw/hinge.csv --seed 42
+make warehouse warehouse-demo monitor
+```
+
+### Measured on the real corpus, 10 November 2026
+
+Run `hinge_42_dcfaf37ca9d7`, seed 42, on the fetched HinGE at revision
+`e25a1038`:
+
+| Stage | Rows loaded |
+|---|---:|
+| Raw | 4,799 |
+| Pre-processed | 4,674 |
+| Transformed | 4,674 |
+| Prepared | 4,674 (train 3,738 / dev 468 / test 468) |
+
+Leakage gate **passed** (0 exact, 0 near-duplicate overlaps across 1,938
+sources at Jaccard ≥ 0.7). Stage latency: ingest 0.14 s, clean 0.38 s, split
+6.58 s, EDA 0.39 s, total 7.48 s. The monitor reports no drift above threshold.
+All six demo queries return rows, including the CMI summary (mean 25.34,
+switch-point fraction 0.2398, M-index 0.693) computed from the warehouse rather
+than from the statistics file.
+
+This run also reproduced `data/processed/manifests/hinge_split_manifest.json`
+byte for byte against the copy committed in October, so the warehouse contents
+are tied to a split that is itself verifiable from a pinned corpus revision.
+
+**One defect this run found.** The first attempt aborted with a NOT NULL
+constraint failure on `prepared_records.hinglish`. The split TSVs are written
+unquoted, so a double quote is literal text, but both readers used the csv
+module's default quote character; 57 train fields begin with a quote, so train
+parsed as 3,611 rows instead of 3,738 and test as 383 instead of 468. The files
+and their hashes were correct — only the readers were wrong. Fixed in
+`lrcs/warehouse/load.py` and `lrcs/data/ingest.py`, pinned by
+`tests/test_tsv_quoting.py`. The synthetic generator emits no quotes, which is
+why this could only be found on real text.
