@@ -16,13 +16,55 @@ evaluation. `python common/repro.py --summary runs/` prints the running total ag
 | Remaining | 77.0 |
 
 Models 1 and 2 are both trained and scored on the real corpus, on three seeds, and together
-they cost **3.04 GPU-hours** including every smoke test, — about 2% of the 145-hour cap for half the ablation ladder.
-That is a data point against the 177-hour estimate in "What the budget is reserved for"
-below, which was built before any arm had run. The estimate has not been redone here;
-rewriting it is 298-72's call, not a side effect of logging a run.
+they cost **3.04 GPU-hours** including every smoke test — about 2% of the 145-hour cap for half
+the ablation ladder. That is a data point against the 177-hour estimate in "What the budget is
+reserved for" below, which was built before any arm had run. The estimate has not been redone
+here; rewriting it is 298-72's call, not a side effect of logging a run.
 
 The departmental allocation is still unconfirmed (298-51, open since 26 September) and has
 stopped being a blocker: the work ran on an Apple M4 and a hosted Colab A100 instead.
+
+## Allocation checkpoint — 22 October 2026 (298-10 / 298-51)
+
+**Written 22 October; the allocation is still unconfirmed, and since 11 November it is no longer
+blocking.** The owner confirmed on 22 October that there is no confirmed university allocation
+and no funded cloud fallback, and that part is unchanged. What changed is that the reportable
+M1 and M2 runs were done without one, on a hosted Colab A100 — so the rows below are the state
+of the *request*, not a statement that no GPU work has happened.
+
+| Required evidence | Current state | What closes the gap |
+|---|---|---|
+| University response | Request reported submitted on 26 September in the 298-10 audit comment; quota unconfirmed | Written approval or formal refusal for this project |
+| Concurrent slots | Unknown; request is three independent single-GPU jobs | Approved slot count, access period and account/project scope |
+| Card and memory | Unknown; request includes at least one GPU with 40 GB or more VRAM | Exact card class and VRAM; confirm separately from host RAM |
+| Hours / charge | No allocation or approved spend evidenced | Written GPU-hour allowance, charging basis and access instructions |
+| Funded fallback | Not funded | Owner-approved purchase, usable balance and measured runtime hardware |
+| Fallback training proof | **Satisfied 11 November on a hosted A100**: real 7B, real corpus, three seeds, adapters saved, reloaded through `--adapter`, scored, run JSON committed | Nothing further for M1/M2. M3 still needs a 40 GB card for a longer job |
+| 24 GB contingency | Availability unknown | Profile memory before M3; record an agreed smaller common backbone if needed |
+
+The September request date above is a board claim, not a newly verified submission
+receipt. Earlier personal lab reservations do not establish this project's quota.
+Keep both issues open until their acceptance evidence exists. Follow
+[the allocation and fallback runbook](COMPUTE_ALLOCATION.md) for the request fields,
+pilot commands and closure checklist. A successful synthetic pilot establishes
+infrastructure only; it cannot close the real-corpus M1/M2 research issues — those
+were closed on 11 November by running them.
+
+### Budget discrepancy requiring a team decision
+
+The arm estimates at the end of this file sum to **177 GPU-hours**, including
+20 for inference/evaluation (157 excluding that row). That exceeds even a reading
+of the abstract as 145 training hours **plus** 20 inference hours by 12 hours.
+[Workbook 1 §2.3](workbook1/section_2_3_2_4.md) instead allocates 130 total hours
+with a 145-hour cap, and `common/repro.py` uses 80–145 for its summary.
+
+These are conflicting plans, not approved capacity. Retain the original numbers
+for audit; agree which scope the cap covers and resize the allocations or obtain
+an explicit budget revision before committing full-run spend. Controls remain in
+scope. No purchase or revised methodological budget is authorized by this entry.
+
+298-72 resolves this, and its measured counterweight is now available: M1 and M2
+together were reserved 27 GPU-hours and cost 1.508.
 
 ## Runs
 
