@@ -1,0 +1,25 @@
+$ /tmp/rehearsal-clone-2-jewi49bw/venv/bin/python scripts/model_support_figures.py --check --out-dir /tmp/rehearsal-clone-2-jewi49bw/figures
+figure -> /tmp/rehearsal-clone-2-jewi49bw/figures/fig4_2_1_platform.png
+figure -> /tmp/rehearsal-clone-2-jewi49bw/figures/fig4_2_2_ml_dataflow.png
+figure -> /tmp/rehearsal-clone-2-jewi49bw/figures/fig4_2_3_components.png
+edges  -> /tmp/rehearsal-clone-2-jewi49bw/figures/fig4_2_3_components.json
+  analysis/      -> common/repro   1 file(s)
+  evaluation/    -> lrcs.lexicon   1 file(s)
+  lrcs.analysis  -> lrcs           1 file(s)
+  lrcs.analysis  -> lrcs.lexicon   1 file(s)
+  lrcs.analysis  -> lrcs.text      1 file(s)
+  lrcs.data      -> lrcs           3 file(s)
+  lrcs.data      -> lrcs.lexicon   2 file(s)
+  lrcs.data      -> lrcs.text      6 file(s)
+  lrcs.lexicon   -> lrcs           1 file(s)
+  lrcs.warehouse -> lrcs           2 file(s)
+  lrcs.warehouse -> lrcs.data      1 file(s)
+  lrcs.warehouse -> lrcs.lexicon   1 file(s)
+  models/        -> common/repro   3 file(s)
+  scripts/       -> common/repro   2 file(s)
+  scripts/       -> lrcs           11 file(s)
+  scripts/       -> lrcs.analysis  5 file(s)
+  scripts/       -> lrcs.data      9 file(s)
+  scripts/       -> lrcs.lexicon   3 file(s)
+  scripts/       -> lrcs.text      10 file(s)
+  scripts/       -> lrcs.warehouse 2 file(s)

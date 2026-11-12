@@ -1,0 +1,3 @@
+$ /tmp/rehearsal-clone-2-jewi49bw/venv/bin/python analysis/tokenizer_fertility.py --selftest
+[selftest] variant lexicon: 72 groups, 227 surface forms
+[selftest] ok

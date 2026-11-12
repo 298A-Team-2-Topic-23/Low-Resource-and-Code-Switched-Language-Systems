@@ -1,0 +1,15 @@
+$ /tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python evaluation/run_eval.py --hyp evaluation/demo/hyp.seed1.txt evaluation/demo/hyp.seed2.txt --ref evaluation/demo/ref.hinglish.txt --system rehearsal
+
+system : rehearsal
+seeds  : 2
+lines  : 5
+lexicon: normalisation collapses 72 of 72 variant groups (analysis/spelling_variants.tsv)
+CI     : 95%, 1000-sample bootstrap over test items
+----------------------------------------------
+  chrf++         79.198 ± 2.980   95% CI [74.111, 82.989]
+  chrf++_norm    84.620 ± 1.540   95% CI [79.695, 89.357]
+  chrf++_fold    78.811 ± 3.043   95% CI [74.111, 82.391]
+  bleu           57.895 ± 11.663   95% CI [34.717, 69.206]
+  rouge_l        0.833 ± 0.012   95% CI [0.787, 0.873]
+  wer            0.194 ± 0.000   95% CI [0.162, 0.239]
+  spelling gap   +5.809   (normalised minus case/punctuation-folded chrF++: error that is spelling, not meaning)

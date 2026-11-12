@@ -43,9 +43,12 @@ would change everything at once, and the comparison would answer nothing about t
 | **Control B** M2 at M3's GPU-hours | Is an M3 gain only more compute? | The unchanged M2 recipe trained until its logged GPU-hours equal M3's | Cheapest way to test the compute explanation; uses an already working trainer | About 25 GPU-hours; more epochs on 3,738 references may overfit, which would itself be informative | **Separates method from compute.** M3 above A but not above B means the method is no better than spending the same hours on M2 |
 | **Baseline**, reproduced, *not one of the four* | Does our evaluation harness reproduce a published number? | mBART fine-tuned on English and Hindi input with transliteration afterwards, rebuilt from the paper; run as published and English-only (Gahoi et al., 2022) | A published figure to check the harness against | No code released. The headline 0.617 ROUGE-L depends on an unreleased dictionary, so only the paper's rows 1 and 2 (0.391 and 0.484) can be rebuilt (`docs/baseline/gahoi_reproduction.md`); it uses two input languages where our task uses one | **Rules out a broken harness.** No model result is interpreted until the reproduction lands within tolerance of a row we can rebuild |
 
-The compute figures are the reservations in `docs/COMPUTE_BUDGET.md`. Together with the baseline
-and inference they sum to 177 GPU-hours against the 145-hour cap in section 2.3. That conflict is
-recorded in the carry-forward table and is being resolved under 298-72.
+The compute figures are the reservations in `docs/COMPUTE_BUDGET.md`. They summed to 177 GPU-hours
+against the 145-hour cap in section 2.3. Under 298-72 no arm was dropped: M3 trains one K on the
+GPU (45 to 36 hours) and Control B continues each M2 seed rather than retraining it (25 to 11), for
+154 hours against a cap made explicit as 145 for training plus 20 for inference. Both controls, and
+so the attribution argument of this section, are intact. The change is recorded in the
+carry-forward table.
 
 ## 4.3.3 What each comparison isolates
 

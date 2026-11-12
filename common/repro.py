@@ -23,6 +23,11 @@ Then:
     python common/repro.py --summary runs/     # every run + total GPU-hours
     python common/repro.py --selftest          # sanity check
 
+Model runs (M1-M4, controls, baseline) use the 298-73 contract instead:
+common/run_contract.py writes runs/<model>/<seed>/run.json with the commit,
+split-manifest hash and dirty-tree guard, and scripts/run_summary.py rolls
+every record, old and new, up against the 298-72 cap.
+
 Notes
 -----
 * GPU-hours are wall-clock hours of the run on ONE GPU. Our jobs are
@@ -45,7 +50,13 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_RUNS_DIR = REPO_ROOT / "runs"
-BUDGET_GPU_HOURS = (80, 145)   # from the abstract
+# 298-72, 11 Nov 2026 (docs/COMPUTE_BUDGET.md): the abstract's 80-145 is the TRAINING
+# budget; inference and evaluation get 20 more, so the hard cap is 165.
+TRAINING_CAP_GPU_HOURS = 145
+INFERENCE_GPU_HOURS = 20
+HARD_CAP_GPU_HOURS = TRAINING_CAP_GPU_HOURS + INFERENCE_GPU_HOURS   # 165
+PLANNED_GPU_HOURS = 154
+BUDGET_GPU_HOURS = (80, HARD_CAP_GPU_HOURS)
 
 
 # ------------------------------------------------------------------- seeding
@@ -225,8 +236,9 @@ def summary(outdir):
     if failed:
         print(f"{'  of which failed runs':<49}{failed:>9.3f}")
     lo, hi = BUDGET_GPU_HOURS
-    print(f"\nBudget in the abstract: {lo}-{hi} GPU-hours. Used so far: {total:.2f} "
-          f"({100 * total / hi:.1f}% of the upper bound).")
+    print(f"\nBudget (298-72): {lo}-{hi} GPU-hours, {TRAINING_CAP_GPU_HOURS} training + "
+          f"{INFERENCE_GPU_HOURS} inference; {PLANNED_GPU_HOURS} planned. Used so far: "
+          f"{total:.2f} ({100 * total / hi:.1f}% of the cap).")
 
 
 if __name__ == "__main__":

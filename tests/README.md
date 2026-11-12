@@ -18,6 +18,7 @@ node with nothing installed:
 ```bash
 python common/repro.py --selftest
 python analysis/tokenizer_fertility.py --selftest
+python common/run_contract.py --smoke --runs-root /tmp/runs   # writes and validates one record
 ```
 
 Neither needs a GPU, a model download, or any dataset.

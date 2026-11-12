@@ -46,4 +46,4 @@ Srivastava, V., & Singh, M. (2022). HinglishEval Generation Challenge on quality
 
 Yamaguchi, A., Villavicencio, A., & Aletras, N. (2026). How can we effectively expand the vocabulary of LLMs with 0.01GB of target language text? *Computational Linguistics, 52*(1), 295–330. https://doi.org/10.1162/coli.a.581
 
-[PENDING: add every source introduced by sections 3.1, 3.2 and 4.2 when they reach main, then re-sort.]
+[PENDING: add every source introduced by sections 3.1 and 3.2 when they reach main, then re-sort.]

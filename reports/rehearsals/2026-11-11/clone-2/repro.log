@@ -1,0 +1,4 @@
+$ /tmp/rehearsal-clone-2-jewi49bw/venv/bin/python common/repro.py --selftest
+[run] selftest started, seed=42
+[run] selftest ok in 0.000 GPU-hours -> /tmp/rehearsal-clone-2-jewi49bw/repo/runs/20261112T000801Z_selftest_seed42.json
+selftest OK: seeding deterministic, run log written

@@ -1,0 +1,72 @@
+{
+  "label": "clone-2",
+  "source": "/home/claude/298a-team-2-topic-23/low-resource-and-code-switched-language-systems",
+  "ref": "6da38f66f18564360aefc5761ebfb9997ca862de",
+  "started_at": "2026-11-12T00:07:44+00:00",
+  "python": "3.13.18",
+  "platform": "Linux-6.18.44-fc-v378-x86_64-with-glibc2.39",
+  "steps": [
+    {
+      "step": "clone",
+      "exit": 0,
+      "seconds": 0.18
+    },
+    {
+      "step": "install (network on)",
+      "exit": 0,
+      "seconds": 5.24
+    },
+    {
+      "step": "tests",
+      "exit": 0,
+      "seconds": 11.56
+    },
+    {
+      "step": "repro",
+      "exit": 0,
+      "seconds": 0.13
+    },
+    {
+      "step": "fertility",
+      "exit": 0,
+      "seconds": 0.04
+    },
+    {
+      "step": "pipeline",
+      "exit": 0,
+      "seconds": 2.24
+    },
+    {
+      "step": "samples",
+      "exit": 0,
+      "seconds": 0.77
+    },
+    {
+      "step": "codemix",
+      "exit": 0,
+      "seconds": 0.05
+    },
+    {
+      "step": "harness",
+      "exit": 0,
+      "seconds": 0.24
+    },
+    {
+      "step": "budget",
+      "exit": 0,
+      "seconds": 0.04
+    },
+    {
+      "step": "figures",
+      "exit": 0,
+      "seconds": 1.02
+    }
+  ],
+  "broke": [],
+  "commit": "6da38f66f18564360aefc5761ebfb9997ca862de",
+  "fresh": true,
+  "network": "off (unshare -rn)",
+  "tracked_files_changed": [],
+  "finished_at": "2026-11-12T00:08:06+00:00",
+  "demo_seconds": 16.09
+}
