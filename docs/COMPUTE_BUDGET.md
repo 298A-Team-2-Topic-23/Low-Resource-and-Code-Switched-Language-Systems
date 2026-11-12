@@ -8,27 +8,38 @@ is `runs/*.json`, one record per run; this file is the human-readable roll-up.
 inference and evaluation**. The plan uses **154**, leaving 11 in reserve. Decided under
 [298-72](https://linear.app/298a-team-2-topic-23/issue/298-72) on 11 November 2026; the
 decision and its arithmetic are [below](#budget-decision--298-72-11-november-2026).
-`python common/repro.py --summary runs/` prints the running total against it.
+`python scripts/run_summary.py` prints the running total against it.
 
 ## Running total
 
-| | GPU-hours |
-|---|---|
-| Spent to date | **3.039** |
-| Planned, all arms | 154 |
-| Hard cap | 165 |
-| Unspent against the cap | 161.961 |
+This file no longer keeps a hand-maintained total. The number is whatever the roll-up prints:
 
-“Unspent” is planning allowance, not funded capacity or an allocated quota: no university
-allocation or funded fallback is confirmed (next section). The logged total is 3.039 GPU-hours
-across 24 GPU runs — **0.199 of smoke tests and 2.840 of real work**. Models 1 and 2 are both
-trained and scored on the real corpus on three seeds, and together they cost 1.508 GPU-hours
-against a 27-hour reservation. That is a measured counterweight to the estimates below, which
-were built before any arm had run; it is recorded rather than acted on, because resizing the
-plan is a team decision and not a side effect of logging a run.
+```bash
+python scripts/run_summary.py                    # spent and projected, per arm, against 165
+python scripts/run_summary.py --fail-over-cap    # exit 2 if the projection exceeds the cap
+```
 
-The departmental allocation is still unconfirmed (298-51, open since 26 September) and has
-stopped being a blocker: the work ran on an Apple M4 and then a hosted Colab A100.
+It reads every record under `runs/`: the 298-73 contract records at
+`runs/<model>/<seed>/run.json` (with archived earlier attempts beside them, because failed runs
+spend budget), and the `RunLogger` records from before the contract. A run that is not on disk did
+not happen. As of 11 November it prints **3.039 GPU-hours spent** across 33 records — 0.199 of smoke tests
+and 2.840 of real work — and a projection of **157.04** against the 165-hour cap.
+
+That projection is deliberately pessimistic and should be read with one caveat. Every record so
+far is pre-contract (`RunLogger`, not `ExperimentRun`), so none of them is attributed to an arm:
+M1 and M2 are complete, but their rows still project the full 27-hour allocation *on top of* the
+1.508 hours they actually cost. The projection drops once their runs are re-recorded through the
+contract, or once the allocations are revised. Until then 157.04 is an upper bound, not an
+estimate.
+
+The projection replaces an arm's allocation with measured hours, mean per seed times three, as
+soon as one reportable training seed of that arm finishes. That is the check the decision below
+requires before M3 and Control A are scheduled.
+
+**Every new run must use the contract** (`common/run_contract.py`, `ExperimentRun`): it records
+the commit, the split-manifest SHA-256, the tokenizer, the hyperparameters, GPU-hours and peak
+memory, and refuses to let a dirty tree pass unrecorded. 298-83 builds the results table from
+these files.
 
 ## Allocation checkpoint — 22 October 2026 (298-10 / 298-51)
 

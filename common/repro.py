@@ -23,6 +23,11 @@ Then:
     python common/repro.py --summary runs/     # every run + total GPU-hours
     python common/repro.py --selftest          # sanity check
 
+Model runs (M1-M4, controls, baseline) use the 298-73 contract instead:
+common/run_contract.py writes runs/<model>/<seed>/run.json with the commit,
+split-manifest hash and dirty-tree guard, and scripts/run_summary.py rolls
+every record, old and new, up against the 298-72 cap.
+
 Notes
 -----
 * GPU-hours are wall-clock hours of the run on ONE GPU. Our jobs are

@@ -32,7 +32,7 @@ between two arms can only come from the arm.
 | Evaluation | `sacrebleu==2.6.0` | `requirements.txt` | chrF++ (Popović, 2017), the primary metric, and BLEU, scored by `evaluation/run_eval.py` |
 | Data and storage | Python's `sqlite3`, `pyarrow` | standard library, `requirements.txt` | The pipeline warehouse (`data/warehouse/lrcs.sqlite`, gitignored) and Samanantar's parquet shards |
 | Reproducibility | `common/repro.py`: `set_seed` and `RunLogger` | repository | One seeding function for every source of randomness, and one JSON record per run with its seed, commit and GPU-hours under `runs/` |
-| Testing | `pytest` | `tests/` | 22 test modules; 218 tests pass and 7 skip on this branch, 277 and 4 once 298-53 and 298-54 are also on `main`. The CPU paths of every trainer are covered, including argument handling, prompt assembly and completion-only label masking in `tests/test_train_qlora.py` |
+| Testing | `pytest` | `tests/` | 27 test modules; **301 tests pass and 4 skip** on this branch with 298-53 and 298-54 merged. The CPU paths of every trainer are covered, including argument handling, prompt assembly and completion-only label masking in `tests/test_train_qlora.py` |
 | Version control and tracking | GitHub, Linear | repository, board | Every commit names its issue with `Closes 298-NN` or `Refs 298-NN` |
 
 The backbone for every arm except the baseline is `Qwen/Qwen2.5-7B-Instruct`, adopted in section
@@ -175,7 +175,7 @@ exceeds the reserve. The first measured M3 seed settles that, before Control A i
 
 ```bash
 python scripts/model_support_figures.py --check     # the three figures and the edge list
-python -m pytest -q                                 # 218 pass, 7 skip here; 277 and 4 with 298-53/298-54
+python -m pytest -q                                 # 301 pass, 4 skip on this branch
 python common/repro.py --summary runs/              # GPU-hours spent against the cap
 ```
 

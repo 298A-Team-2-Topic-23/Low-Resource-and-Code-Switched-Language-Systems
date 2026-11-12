@@ -160,7 +160,7 @@ def draw_platform(out):
     pipe = _box(ax, 0.04, 0.45, 0.23, 0.08, "Data pipeline + tokenizer analysis\nscripts/run_pipeline.py, analysis/")
     wh = _box(ax, 0.04, 0.335, 0.23, 0.08, "SQLite warehouse + monitor\ndata/warehouse/lrcs.sqlite",
               fill=FILL_LOCAL)
-    tests = _box(ax, 0.04, 0.215, 0.23, 0.08, "pytest: 22 test modules\nCPU paths of every trainer")
+    tests = _box(ax, 0.04, 0.215, 0.23, 0.08, "pytest: 23 test modules\nCPU paths of every trainer")
 
     # Zone 2: GitHub
     _zone(ax, 0.365, 0.17, 0.27, 0.72, "GitHub  298A-Team-2-Topic-23\nversion-controlled, public")
@@ -343,7 +343,7 @@ def resolve_import(module, names, level, package):
         module = f"{base}.{module}" if module else base
     if module is None:
         return None
-    if module == "repro":
+    if module in ("repro", "run_contract"):   # both live in common/, imported by bare name
         return "common/repro"
     if module == "lrcs":
         # `from lrcs import text` names a submodule; `from lrcs import REPO_ROOT` the core
@@ -415,7 +415,7 @@ ROOT_BAR = "lrcs"
 EDGE_RAD = {("scripts/", "lrcs.text"): 0.32}
 ROLE = {
     "lrcs": "repo paths", "lrcs.text": "normalisation", "lrcs.lexicon": "spelling variants",
-    "common/repro": "set_seed, RunLogger", "lrcs.data": "ingest, clean, splits,\ncodemix, leakage",
+    "common/repro": "set_seed, RunLogger,\nrun contract", "lrcs.data": "ingest, clean, splits,\ncodemix, leakage",
     "lrcs.analysis": "EDA, CMI", "lrcs.warehouse": "schema, load",
     "models/": "M1, M2, baseline", "evaluation/": "chrF++ harness", "scripts/": "pipeline, audits,\nfigures",
     "analysis/": "fertility, variant cost", "human_eval/": "agreement",
