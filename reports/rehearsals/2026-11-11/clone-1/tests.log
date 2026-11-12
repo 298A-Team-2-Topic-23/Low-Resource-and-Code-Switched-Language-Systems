@@ -1,0 +1,17 @@
+# Trimmed by Singh, 11 Nov: tracebacks removed. Each of the 12 errors was the test fixture's
+# 'git commit' exiting 128 because the sandbox's global commit-signing service was unreachable
+# with networking off. Result lines kept verbatim.
+$ /tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python -m pytest tests/ -q -p no:cacheprovider
+ERROR tests/test_run_contract.py::test_no_gpu_records_zero_gpu_hours_not_a_crash
+ERROR tests/test_run_contract.py::test_path_is_runs_model_seed_run_json - sub...
+ERROR tests/test_run_contract.py::test_gpu_hours_are_wall_clock_on_the_gpu - ...
+ERROR tests/test_run_contract.py::test_split_manifest_is_hashed - subprocess....
+ERROR tests/test_run_contract.py::test_missing_manifest_fails_before_the_run
+ERROR tests/test_run_contract.py::test_record_exists_while_running - subproce...
+ERROR tests/test_run_contract.py::test_unknown_arm_or_phase_rejected - subpro...
+ERROR tests/test_run_contract.py::test_clean_tree_records_commit_and_no_patch
+ERROR tests/test_run_contract.py::test_dirty_tree_records_diff_hash_and_saves_patch
+ERROR tests/test_run_contract.py::test_untracked_outputs_do_not_mark_the_tree_dirty
+ERROR tests/test_run_contract.py::test_failed_run_is_written_then_archived_by_the_retry
+ERROR tests/test_run_contract.py::test_finished_run_is_never_silently_overwritten
+240 passed, 5 skipped, 1 warning, 12 errors in 16.00s

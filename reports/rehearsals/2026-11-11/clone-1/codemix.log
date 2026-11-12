@@ -1,0 +1,11 @@
+$ /tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python scripts/generate_codemix.py
+  batch   -> reports/codemix/codemix_batch.tsv
+  stats   -> reports/codemix/codemix_stats.json
+
+30 pairs in, 13 sentences out
+mean SPF 0.2365 against target 0.2398
+mean alignment coverage 0.93
+pool 34 candidates, 38% consumed
+skipped: 17 too_few_blocks
+
+This is the 30-sentence fixture. It proves the pipeline runs; it is not a corpus and nothing should be trained on it.

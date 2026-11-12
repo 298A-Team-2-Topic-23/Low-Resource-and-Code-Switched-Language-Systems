@@ -1,0 +1,1 @@
+$ /usr/local/bin/python3 -m venv /tmp/rehearsal-clone-1-e7pcht6o/venv && /tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python -m pip install -q -r requirements-demo.txt

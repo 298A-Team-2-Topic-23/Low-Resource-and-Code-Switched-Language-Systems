@@ -1,0 +1,8 @@
+$ /tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python scripts/emit_stage_samples.py --synthetic --n-synthetic 1200 --seed 42
+stage samples -> reports/samples/synthetic
+  reports/samples/synthetic/index.md
+  reports/samples/synthetic/raw.md
+  reports/samples/synthetic/preprocessed.md
+  reports/samples/synthetic/transformed.md
+  reports/samples/synthetic/prepared.md
+  reports/samples/synthetic/edge_cases.md

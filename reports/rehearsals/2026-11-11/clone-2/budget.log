@@ -1,0 +1,16 @@
+$ /tmp/rehearsal-clone-2-jewi49bw/venv/bin/python scripts/run_summary.py
+
+line             plan     spent   ok  fail  run  projected  basis
+------------------------------------------------------------------------------
+M1                  2     0.000    0     0    0       2.00  298-72 allocation
+M2                 25     0.000    0     0    0      25.00  298-72 allocation
+baseline           15     0.000    0     0    0      15.00  298-72 allocation
+M3                 36     0.000    0     0    0      36.00  298-72 allocation
+control-a          20     0.000    0     0    0      20.00  298-72 allocation
+control-b          11     0.000    0     0    0      11.00  298-72 allocation
+M4                 25     0.000    0     0    0      25.00  298-72 allocation
+inference          20     0.000    0     0    0      20.00  298-72 allocation
+pre-contract              0.112    8     0    0       0.11  spent; not an arm
+------------------------------------------------------------------------------
+spent      0.112 of 165 GPU-hours (training 0.000 of 145, inference 0.000 of 20)
+projected  154.11 against a cap of 165 (plan 154)

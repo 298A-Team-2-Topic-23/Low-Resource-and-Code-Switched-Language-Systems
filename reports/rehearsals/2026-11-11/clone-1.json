@@ -1,0 +1,83 @@
+{
+  "label": "clone-1",
+  "source": "/home/claude/298a-team-2-topic-23/low-resource-and-code-switched-language-systems",
+  "ref": "5429ad30f456747d81b2c5d4986193441827aaa0",
+  "started_at": "2026-11-11T23:59:49+00:00",
+  "python": "3.13.18",
+  "platform": "Linux-6.18.44-fc-v378-x86_64-with-glibc2.39",
+  "steps": [
+    {
+      "step": "clone",
+      "exit": 0,
+      "seconds": 0.25
+    },
+    {
+      "step": "install (network on)",
+      "exit": 0,
+      "seconds": 339.51
+    },
+    {
+      "step": "tests",
+      "exit": 1,
+      "seconds": 16.9
+    },
+    {
+      "step": "repro",
+      "exit": 0,
+      "seconds": 0.14
+    },
+    {
+      "step": "fertility",
+      "exit": 0,
+      "seconds": 0.04
+    },
+    {
+      "step": "pipeline",
+      "exit": 0,
+      "seconds": 2.37
+    },
+    {
+      "step": "samples",
+      "exit": 0,
+      "seconds": 0.82
+    },
+    {
+      "step": "codemix",
+      "exit": 0,
+      "seconds": 0.05
+    },
+    {
+      "step": "harness",
+      "exit": 0,
+      "seconds": 0.21
+    },
+    {
+      "step": "budget",
+      "exit": 0,
+      "seconds": 0.04
+    },
+    {
+      "step": "figures",
+      "exit": 0,
+      "seconds": 1.04
+    }
+  ],
+  "broke": [
+    "tests: exit 1: 240 passed, 5 skipped, 1 warning, 12 errors in 16.00s",
+    "the demo rewrote tracked files: reports/data_statistics.json, reports/figures/fig1_sentence_lengths.png, reports/figures/fig2_cmi_distribution.png, reports/figures/fig3_switch_point_fraction.png, reports/figures/fig4_spelling_variants.png, reports/pipeline_monitor.json"
+  ],
+  "commit": "5429ad30f456747d81b2c5d4986193441827aaa0",
+  "fresh": true,
+  "network": "off (unshare -rn)",
+  "tracked_files_changed": [
+    " M reports/data_statistics.json",
+    " M reports/figures/fig1_sentence_lengths.png",
+    " M reports/figures/fig2_cmi_distribution.png",
+    " M reports/figures/fig3_switch_point_fraction.png",
+    " M reports/figures/fig4_spelling_variants.png",
+    " M reports/pipeline_monitor.json"
+  ],
+  "kept_at": "/tmp/rehearsal-clone-1-e7pcht6o",
+  "finished_at": "2026-11-12T00:05:51+00:00",
+  "demo_seconds": 21.61
+}
