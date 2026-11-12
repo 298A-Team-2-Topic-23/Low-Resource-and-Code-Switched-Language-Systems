@@ -77,7 +77,38 @@ def build_report(stats):
             "near_overlaps": gate.get("near_overlaps"),
             "threshold": gate.get("threshold"),
         },
+        "ingest_retries": _fetch_retries(),
     }
+
+
+def _fetch_retries():
+    """What the last fetch cost in attempts, read from data/raw/MANIFEST.json.
+
+    ISA row 4 asks for monitoring that covers logs, status, retries and alerts.
+    The retries live in the fetch manifest and the rest live here, which meant
+    demonstrating row 4 took three artefacts and an explanation. This pulls the
+    retry count into the one report.
+
+    A download that needed more than one attempt is not an error -- it succeeded
+    -- but it is the signal that precedes a job that starts failing, so it is
+    surfaced rather than left in a file nobody opens.
+    """
+    path = REPO_ROOT / "data" / "raw" / "MANIFEST.json"
+    if not path.exists():
+        return None
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    files, retried = 0, []
+    for name, ds in (manifest.get("datasets") or {}).items():
+        for local, rec in (ds.get("files") or {}).items():
+            files += 1
+            n = rec.get("attempts")
+            if isinstance(n, int) and n > 1:
+                retried.append({"file": local, "attempts": n})
+    return {"files": files, "retried": retried,
+            "clean": not retried}
 
 
 def _rel_delta(old, new):
@@ -179,6 +210,17 @@ def main(argv=None):
     print("  gate       {} (exact={}, near={})".format(
         "passed" if gate["passed"] else "FAILED",
         gate.get("exact_overlaps"), gate.get("near_overlaps")))
+    retries = report.get("ingest_retries")
+    if retries is None:
+        print("  retries    n/a (no fetch manifest; corpus not fetched by "
+              "scripts/fetch_data.py)")
+    elif retries["clean"]:
+        print("  retries    none, {} file(s) fetched first time".format(retries["files"]))
+    else:
+        print("  retries    {} of {} file(s) needed more than one attempt".format(
+            len(retries["retried"]), retries["files"]))
+        for r in retries["retried"]:
+            print("    - {} took {} attempts".format(r["file"], r["attempts"]))
     print("  drift      {}".format(
         "ok" if report["drift"]["within_threshold"] else "ALERT"))
     for alert in report["drift"]["alerts"]:

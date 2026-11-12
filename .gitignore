@@ -2,6 +2,13 @@
 # never committed. Split manifests ARE committed -- they are what makes a split
 # citable and reproducible without redistributing the data itself.
 data/raw/
+# ...but the provenance manifest IS committed: it records every raw file's
+# source, pinned revision, SHA-256, licence and citation, so the fetch is
+# reproducible and auditable without redistributing the corpora themselves.
+!data/raw/
+!data/raw/MANIFEST.json
+data/raw/*
+!data/raw/MANIFEST.json
 data/interim/
 data/processed/*
 !data/processed/manifests/
@@ -36,3 +43,14 @@ venv/
 # OS / editor
 .DS_Store
 .vscode/
+
+# Derived supervision for MLX LoRA: rebuildable from the frozen splits with
+# scripts/build_sft_data.py, so the JSONL is not committed. Its manifest is,
+# because it records the prompt, and changing the prompt changes the measurement.
+data/sft/*
+!data/sft/*/
+data/sft/*/*.jsonl
+!data/sft/*/manifest.json
+
+# MLX adapters and merged weights: large, and rebuildable from a recorded run.
+models/adapters/

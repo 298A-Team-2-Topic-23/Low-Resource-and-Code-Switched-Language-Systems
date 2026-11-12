@@ -1,0 +1,91 @@
+{
+  "generated": "2026-11-10T20:24:58+00:00",
+  "datasets": {
+    "cmu_dog": {
+      "repo": "festvox/cmu_hinglish_dog",
+      "rev": "19796c6fb32020154cb2745d48704fa73e29b17d",
+      "licence": "CC-BY-SA-3.0 and GFDL",
+      "homepage": "https://huggingface.co/datasets/festvox/cmu_hinglish_dog",
+      "citation": "Zhou, Y., Kang, Y. and Black, A. W. (2018). A Dataset for Document Grounded Conversations. EMNLP 2018. Hinglish version distributed by CMU Festvox and used as the English-to-Hinglish machine translation task in GLUECoS (Khanuja et al., ACL 2020).",
+      "role": "Baseline reproduction surface. This is the GLUECoS English-to-Hinglish MT task: published numbers exist and the data is downloadable, with train/validation/test splits already fixed upstream. It replaces the MixMT Subtask-1 gate, whose test set was never released (the WMT22 task page still reads 'Test phase -- TBD').",
+      "files": {
+        "cmu_dog/train.parquet": {
+          "url": "https://huggingface.co/datasets/festvox/cmu_hinglish_dog/resolve/19796c6fb32020154cb2745d48704fa73e29b17d/data/train-00000-of-00001.parquet",
+          "bytes": 843924,
+          "sha256": "ce36a4aa054be82e6fc6857afa796fd1145b6544566e9151655b799ef17bf22a",
+          "retrieved": "2026-11-10T20:24:53+00:00"
+        },
+        "cmu_dog/validation.parquet": {
+          "url": "https://huggingface.co/datasets/festvox/cmu_hinglish_dog/resolve/19796c6fb32020154cb2745d48704fa73e29b17d/data/validation-00000-of-00001.parquet",
+          "bytes": 96336,
+          "sha256": "b13707b2fde4203d77a10f7c0e6bfe6ea27ec8014dd7d7cd868ca67f1051cc35",
+          "retrieved": "2026-11-10T20:24:53+00:00"
+        },
+        "cmu_dog/test.parquet": {
+          "url": "https://huggingface.co/datasets/festvox/cmu_hinglish_dog/resolve/19796c6fb32020154cb2745d48704fa73e29b17d/data/test-00000-of-00001.parquet",
+          "bytes": 99568,
+          "sha256": "75aac173d55983b24852fc30f097a60e11e9055cfef485b719e80f77d1c7767e",
+          "retrieved": "2026-11-10T20:24:54+00:00"
+        }
+      }
+    },
+    "hinge": {
+      "repo": "LingoIITGN/HinGE",
+      "rev": "e25a10382d9adb77f3a4f03b721fbd0a43c0de4c",
+      "licence": "CC-BY-4.0",
+      "homepage": "https://huggingface.co/datasets/LingoIITGN/HinGE",
+      "citation": "Srivastava, V. and Singh, M. (2021). HinGE: A Dataset for Generation and Evaluation of Code-Mixed Hinglish Text. Eval4NLP 2021, 200-208. https://aclanthology.org/2021.eval4nlp-1.20",
+      "role": "Primary corpus. English / Devanagari Hindi / human Hinglish, plus WAC and PAC rule-based outputs with 1-10 quality ratings. Supplies the Devanagari slice requirement AI-6 names and the three-column structure the gold set was specified as.",
+      "note": "docs/datasheet.md recorded this licence as 'Unstated; inherits IIT Bombay's terms at minimum / non-commercial (inferred) / unresolved'. The authors' own lab (Lingo Research Group, IIT Gandhinagar) publishes it as CC-BY-4.0. The datasheet is corrected accordingly.",
+      "files": {
+        "hinge/HinGE.csv": {
+          "url": "https://huggingface.co/datasets/LingoIITGN/HinGE/resolve/e25a10382d9adb77f3a4f03b721fbd0a43c0de4c/HinGE.csv",
+          "bytes": 1591630,
+          "sha256": "dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3",
+          "retrieved": "2026-11-10T20:24:55+00:00"
+        }
+      }
+    },
+    "phinc": {
+      "repo": "veezbo/phinc",
+      "rev": "a50e9b699599284036f934b3f5ccc42baa6724b7",
+      "licence": "CC-BY-4.0",
+      "homepage": "https://huggingface.co/datasets/veezbo/phinc",
+      "citation": "Srivastava, V. and Singh, M. (2020). PHINC: A Parallel Hinglish Social Media Code-Mixed Corpus for Machine Translation. WNUT 2020. https://aclanthology.org/2020.wnut-1.7 Original release: https://zenodo.org/record/3605597",
+      "role": "Scale. 13,738 code-mixed Hinglish sentences with human-written English translations. Reversed, it is English-to-Hinglish training data. It is also the official MixMT Subtask-2 training set, so it shares the lineage this project already cites.",
+      "files": {
+        "phinc/hinglish_english_parallel_corpus.csv": {
+          "url": "https://huggingface.co/datasets/veezbo/phinc/resolve/a50e9b699599284036f934b3f5ccc42baa6724b7/hinglish_english_parallel_corpus.csv",
+          "bytes": 2125039,
+          "sha256": "325ba383cd6d73e0c3128885e2a79133e612ec03d18c8b55506d0b4b12ec68ed",
+          "retrieved": "2026-11-10T20:24:56+00:00"
+        }
+      }
+    },
+    "trilingual": {
+      "repo": "debajyotimaz/trilingual-hinglish-corpus",
+      "rev": "ea41ce29c5bb28de330b0abb5768fa5b06a4bb70",
+      "licence": "CC-BY-NC-SA-4.0",
+      "homepage": "https://huggingface.co/datasets/debajyotimaz/trilingual-hinglish-corpus",
+      "citation": "Mazumder, D., Pathak, D., Kodali, P. and Patro, J. (2026). Neither Here Nor There: Cross-Lingual Representation Dynamics of Code-Mixed Text in Multilingual Encoders. Findings of EMNLP 2026. https://arxiv.org/abs/2603.19771",
+      "role": "Second three-column source: 21,139 English / Devanagari Hindi / Romanised Hinglish triples.",
+      "note": "Its own documentation lists PHINC among its sources, so it overlaps the training corpus above. The section 3.5 leakage check must therefore run ACROSS datasets, not only across splits. A within-split check alone would report a clean result that is false.",
+      "licence_warning": "NC and SA. Non-commercial use only, and derivatives share alike. Keep any artefact derived from it separable from the CC-BY-4.0 work.",
+      "files": {
+        "trilingual/train.parquet": {
+          "url": "https://huggingface.co/datasets/debajyotimaz/trilingual-hinglish-corpus/resolve/ea41ce29c5bb28de330b0abb5768fa5b06a4bb70/data/train-00000-of-00001.parquet",
+          "bytes": 3154523,
+          "sha256": "d8a5972b83ebd31ca016bc303e18d060976d29fefa9885ef7c78ae4ea4ab709a",
+          "retrieved": "2026-11-10T20:24:57+00:00"
+        },
+        "trilingual/test.parquet": {
+          "url": "https://huggingface.co/datasets/debajyotimaz/trilingual-hinglish-corpus/resolve/ea41ce29c5bb28de330b0abb5768fa5b06a4bb70/data/test-00000-of-00001.parquet",
+          "bytes": 795616,
+          "sha256": "68875bbcc9109e0566a54f5ba16328d4dc0e500758d47bb7cb05a0cf17dd5ef4",
+          "retrieved": "2026-11-10T20:24:58+00:00"
+        }
+      }
+    }
+  },
+  "note": "Hashes and licences for the raw corpora. The data itself is not committed (.gitignore excludes data/raw/); this manifest is what makes the fetch reproducible and auditable. Regenerate with scripts/fetch_data.py, re-check with --verify."
+}

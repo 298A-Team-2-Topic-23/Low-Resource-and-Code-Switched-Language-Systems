@@ -19,10 +19,15 @@ them as not yet ingested, so the gap stays visible.
 - **Provenance.** Srivastava & Singh, *HinGE: A Dataset for Generation and
   Evaluation of Code-Mixed Hinglish Text*, Eval4NLP 2021 (ACL Anthology
   [2021.eval4nlp-1.20](https://aclanthology.org/2021.eval4nlp-1.20/)).
-  Primary release: `HinGE.pkl`, downloaded from
-  https://drive.google.com/drive/folders/1sxU4PpFZs86ncad_iak4U6AY_2wOsayj
-  (linked from the author's resource page). English/Hindi source pairs
-  are drawn from the IIT Bombay parallel corpus.
+  **Canonical release (corrected 10 November 2026):**
+  [`LingoIITGN/HinGE`](https://huggingface.co/datasets/LingoIITGN/HinGE) —
+  `HinGE.csv`, published by the authors' own lab (Lingo Research Group,
+  IIT Gandhinagar) under **CC-BY-4.0**. Fetched at pinned revision
+  `e25a10382d9adb77f3a4f03b721fbd0a43c0de4c` by `scripts/fetch_data.py`.
+  A Google Drive folder was previously the only source we had recorded, and
+  this datasheet listed the licence as unresolved on that basis. It is not
+  unresolved: it is CC-BY-4.0, attribution only.
+  English/Hindi source pairs are drawn from the IIT Bombay parallel corpus.
 - **Checksum and conversion (298-44).** The release we use has SHA-256
   `e78c8f48af3eea0b141e767082189b7b619e9cbe50ad8f0b2a4863b82ebc5960`.
   The pipeline refuses pickles, so it is converted once with
@@ -30,6 +35,21 @@ them as not yet ingested, so the gap stays visible.
   --expected-sha256 <hash above>` (restricted unpickler, pandas/numpy only),
   giving a CSV with SHA-256 `dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3`.
   The pipeline measures 1,976 rows and 4,799 references from that CSV.
+- **The published CSV and the converted pickle are the same bytes.**
+  `LingoIITGN/HinGE`'s `HinGE.csv` hashes to
+  `dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3` — the
+  identical value recorded above for the pkl conversion. Running
+  `scripts/run_pipeline.py` on it reproduces
+  `data/processed/manifests/hinge_split_manifest.json` byte for byte: same
+  1,976 input rows, same 3,738/468/468 split sizes, same three split SHA-256s,
+  same leakage-gate result. `scripts/convert_hinge_pkl.py` is therefore no
+  longer on the critical path; `scripts/fetch_data.py` is.
+- **Reference count (298-77) resolved.** Counting the official CSV gives
+  **4,799** human references. CLAUDE.md's locked fact of 4,803 is four higher.
+  Two independent artefacts (the pkl conversion and the authors' published CSV)
+  both measure 4,799, so 4,799 is what the distributed corpus contains and is
+  what the report should state, with the four-item difference noted against the
+  paper.
 - **Verified against the actual file** (not taken from secondary
   literature): **1,976 rows**, columns `English, Hindi,
   Human-generated Hinglish (list), WAC, WAC rating1, WAC rating2, PAC,
@@ -201,16 +221,101 @@ them as not yet ingested, so the gap stays visible.
   counts, hashes and a few quoted examples are committed
   (`reports/codemix/README.md`).
 
+## 5. Trilingual Hinglish Corpus
+
+- **Provenance.** Mazumder, Pathak, Kodali & Patro, *Neither Here Nor There:
+  Cross-Lingual Representation Dynamics of Code-Mixed Text in Multilingual
+  Encoders*, Findings of EMNLP 2026 ([arXiv 2603.19771](https://arxiv.org/abs/2603.19771)).
+  [`debajyotimaz/trilingual-hinglish-corpus`](https://huggingface.co/datasets/debajyotimaz/trilingual-hinglish-corpus),
+  pinned revision `ea41ce29c5bb28de330b0abb5768fa5b06a4bb70`.
+- **Quantity.** 21,139 rows (train 16,911 / test 4,228), columns
+  `id, english, hindi, hinglish`.
+- **Licensing.** CC-BY-NC-SA-4.0 — **non-commercial and share-alike**, the
+  most restrictive source we hold. Anything derived from it must stay
+  separable from the CC-BY-4.0 work.
+- **Overlap risk.** Its own documentation lists PHINC among its sources, so it
+  overlaps §6. The section 3.5 leakage check must therefore run **across
+  datasets**, not only across splits. A within-split check alone would report a
+  clean result that is false.
+- **DEFECT — the `hindi` column is misaligned and must not be used.**
+  Measured by `scripts/validate_raw.py`, not asserted:
+
+  | Probe | HinGE (human-aligned control) | Trilingual |
+  |---|---:|---:|
+  | English/Hindi word-count correlation | **+0.943** | +0.783 |
+  | English/Hinglish word-count correlation | — | +0.896 |
+  | Handles and hashtags shared English→Hindi | 1.000 | **0.536** |
+  | Rows whose Hindi carries a handle English never had | 0 | **3,347 (15.8%)** |
+
+  A translation cannot invent an `@handle`. 15.8% of rows provably carry a
+  Devanagari sentence from a *different* source text, and that is a lower
+  bound — the probe can only detect it where the mismatched Hindi happens to
+  contain a handle, so rows without one are untestable and may be equally bad.
+  Example (row 2): `english` is "sania has now become a property of pakistan…",
+  `hinglish` matches it, and `hindi` reads "@Atheist_Krishna मैंने पुलिस को फोन
+  किया है" — *I have called the police*.
+
+  **Decision.** Use the `english`→`hinglish` pair only, which is sound
+  (correlation +0.896 over all 21,139 rows, hashtags carried through). Take the
+  Devanagari slice and the code-switching-penalty reference from HinGE (§1)
+  instead, whose English/Hindi correlation is +0.943.
+
+## 6. PHINC
+
+- **Provenance.** Srivastava & Singh, *PHINC: A Parallel Hinglish Social Media
+  Code-Mixed Corpus for Machine Translation*, WNUT 2020
+  ([2020.wnut-1.7](https://aclanthology.org/2020.wnut-1.7)). Original release
+  Zenodo record 3605597; fetched from
+  [`veezbo/phinc`](https://huggingface.co/datasets/veezbo/phinc) at pinned
+  revision `a50e9b699599284036f934b3f5ccc42baa6724b7`.
+- **Quantity.** 13,738 rows, columns `Sentence` (code-mixed Hinglish) and
+  `English_Translation`. Translations were produced manually by annotators.
+- **Licensing.** CC-BY-4.0 — attribution only.
+- **Intended use.** Scale for English→Hinglish training, by reversing the
+  direction. It is also the official MixMT Subtask-2 training set, so it shares
+  the lineage this project already cites.
+- **Caveat.** Social-media text: handles, hashtags, emoji and non-standard
+  spelling throughout. Noisier than HinGE's IIT Bombay-derived formal prose, so
+  the two should not be pooled without reporting the domain split.
+
+## 7. CMU Hinglish DoG
+
+- **Provenance.** Zhou, Kang & Black, *A Dataset for Document Grounded
+  Conversations*, EMNLP 2018; Hinglish version distributed by CMU Festvox.
+  [`festvox/cmu_hinglish_dog`](https://huggingface.co/datasets/festvox/cmu_hinglish_dog),
+  pinned revision `19796c6fb32020154cb2745d48704fa73e29b17d`.
+- **Quantity.** 8,060 train / 942 validation / 960 test conversation turns,
+  each carrying a `translation` dict with `en` and `hi_en` keys. **Splits are
+  fixed upstream** and are not ours to re-draw.
+- **Licensing.** CC-BY-SA-3.0 and GFDL — attribution and share-alike.
+- **Intended use. This is the baseline-reproduction surface.** It is the
+  English→Hinglish machine-translation task in GLUECoS (Khanuja et al., ACL
+  2020) and the CALCS 2021 shared task, both of which publish numbers on it.
+  Its 8,060-row training split matches the figure reported for the CALCS 2021
+  English→Hinglish task.
+- **Why it replaces the MixMT gate.** Workbook 2 §4.4 pins the reproduction
+  gate to "MixMT Subtask-1 test set, 500 sentences". That test set was never
+  released: the WMT22 task page lists Google Drive links for training and
+  validation only, and its test-phase entry still reads *"Test phase — TBD"*.
+  The gate as written cannot be run. CMU Hinglish DoG has published numbers
+  **and** downloadable test data, so it is the gate that can actually be
+  honoured. This change is recorded in the Workbook 2 carry-forward table;
+  §4.4's metrics are unchanged.
+
 ## Summary table
 
 | Dataset | License | Restriction | Status |
 |---|---|---|---|
-| HinGE | Unstated; inherits IIT Bombay's terms at minimum | Non-commercial (inferred) | Unresolved — confirm with authors |
+| HinGE | **CC-BY-4.0** | Attribution | **Confirmed** — authors' own lab, `LingoIITGN/HinGE`, rev `e25a1038` |
+| PHINC | CC-BY-4.0 | Attribution | Confirmed — `veezbo/phinc`, rev `a50e9b69`; original Zenodo 3605597 |
+| CMU Hinglish DoG | CC-BY-SA-3.0 and GFDL | Attribution, share-alike | Confirmed — `festvox/cmu_hinglish_dog`, rev `19796c6f` |
+| Trilingual Hinglish | CC-BY-NC-SA-4.0 | Non-commercial, share-alike | Confirmed — `debajyotimaz/trilingual-hinglish-corpus`, rev `ea41ce29`. **Hindi column unusable, see §5** |
 | IIT Bombay corpus | CC-BY-NC-4.0 | Non-commercial | Confirmed |
 | Samanantar | CC-BY-NC-4.0 (team decision; conflicts with AI4Bharat's own CC0 claim) | Non-commercial, attribution | Confirmed by team decision, flagged |
 | Dakshina | CC BY-SA 4.0 | Attribution, share-alike | Confirmed; derived code-mix data not redistributed (298-76) |
 
-All four sources restrict at least to non-commercial and/or
-attribution/share-alike use. That is consistent with a course research
+HinGE, PHINC and CMU Hinglish DoG are attribution-only, so the primary
+training and evaluation path is not restricted to non-commercial use. The
+remaining sources restrict to non-commercial and/or share-alike use. That is consistent with a course research
 project; it would block any commercial reuse of the resulting models or
 data without separately clearing rights.

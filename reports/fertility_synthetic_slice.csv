@@ -1,0 +1,6 @@
+# SUPERSEDED 10 November 2026 by reports/fertility.csv, which measures the same
+# metrics on the real HinGE corpus. Kept so the synthetic-to-real comparison is auditable.
+tokenizer,slice,n_lines,n_words,n_word_types,n_tokens,fertility,fertility_wordlevel,bytes_per_token,continuation_rate,severe_split_rate,byte_fallback_rate,vocab_coverage,spelling_variant_burden,variant_single_token_rate
+Qwen/Qwen2.5-7B-Instruct,en,1200,11413,372,13168,1.1538,1.1530,4.4654,0.1454,0.0011,0.0000,0.5323,1.8322,0.2731
+Qwen/Qwen2.5-7B-Instruct,hi_roman,30,165,128,315,1.9091,1.8788,2.7746,0.7152,0.0121,0.0000,0.2188,1.8322,0.2731
+Qwen/Qwen2.5-7B-Instruct,hinglish,1169,10442,314,17259,1.6528,1.6195,3.2162,0.4926,0.0162,0.0000,0.5478,1.8322,0.2731

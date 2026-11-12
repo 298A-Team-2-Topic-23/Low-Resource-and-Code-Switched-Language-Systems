@@ -1,0 +1,132 @@
+{
+  "kind": "train_lora",
+  "system": "M2 LoRA Qwen2.5-7B-4bit seed 42",
+  "returncode": 0,
+  "ok": true,
+  "command": "/Users/sarveshwaghmare/Low-Resource-and-Code-Switched-Language-Systems/.venv/bin/python -m mlx_lm lora -c /Users/sarveshwaghmare/Low-Resource-and-Code-Switched-Language-Systems/configs/m2_lora_qwen7b.yaml --seed 42 --adapter-path models/adapters/m2_qwen7b_seed42",
+  "config_file": "configs/m2_lora_qwen7b.yaml",
+  "config": "# Model 2 -- LoRA fine-tune of Qwen2.5-7B-Instruct, 4-bit, on Apple Silicon.\n#\n# This is the section 4.1 QLoRA recipe translated to MLX. Every deviation from\n# that recipe is listed below rather than left for a reader to notice.\n#\n#   rank 32, alpha 64, dropout 0.05, all seven linear projections\n#\n# Deviations, and why:\n#\n#   * NF4 -> MLX affine 4-bit. `bitsandbytes` NF4 is CUDA-only and the GPU\n#     allocation (298-51) is still outstanding. MLX quantises 4-bit affine with\n#     group size 64. This changes the quantisation error, so M2's absolute\n#     scores are not comparable with a published NF4 QLoRA number; the M1-to-M2\n#     *difference*, measured on the same machine and the same quantisation, is\n#     what the ablation claims.\n#\n#   * `scale: 2.0`. MLX applies `scale * (B @ A)` directly, where PEFT applies\n#     `alpha / rank`. alpha 64 over rank 32 is 2.0, so this is the faithful\n#     translation of the recipe, not MLX's default of 20.0.\n#\n#   * batch_size 1 with gradient checkpointing and max_seq_length 512. A 16 GB\n#     machine cannot hold more. This affects wall-clock time and gradient noise,\n#     not the recipe.\n#\n#   * mask_prompt: true. Loss is taken on the Hinglish continuation only. The\n#     English source appears verbatim in the prompt, and M1 already shows the\n#     model's failure mode is copying English through unchanged, so training on\n#     prompt tokens would reward exactly the behaviour M2 exists to fix.\n\nmodel: \"mlx-community/Qwen2.5-7B-Instruct-4bit\"\ntrain: true\nfine_tune_type: lora\noptimizer: adamw\ndata: \"data/sft/hinge\"\n\nnum_layers: -1          # every layer, to match \"all seven linear projections\"\nbatch_size: 1\niters: 600              # ~0.16 epochs over 3,738 examples\n#\n# Learning rate: searched, not guessed. 1.0e-4, the usual LoRA default and what\n# this file first carried, produces NaN training loss by iteration 10 on this\n# setup -- the initial validation loss is finite at 5.250 and the first reported\n# train loss is already nan, so it is the update that overflows, not the forward\n# pass. 80.7M trainable parameters (1.06% of 7.6B) across all 28 layers on a\n# 4-bit base is enough to do it. At 1.0e-5 the same 10 iterations take\n# validation loss from 5.250 to 3.099 with no instability.\n#\n# Both runs are kept in runs/ and both appear on the Team Meeting 2 slide-6\n# curve, because that slide asks for \"learning curves, including any run that\n# diverged\" and the diverged run is the evidence that this value was searched.\nlearning_rate: 1.0e-5\nmax_seq_length: 512\ngrad_checkpoint: true\nmask_prompt: true\n\nsteps_per_report: 10    # the loss curve Team Meeting 2 slide 6 needs\nsteps_per_eval: 50      # validation loss, for the divergence check\nval_batches: 25\nsave_every: 100\nseed: 42\n\nadapter_path: \"models/adapters/m2_qwen7b_seed42\"\n\nlora_parameters:\n  rank: 32\n  scale: 2.0\n  dropout: 0.05\n  keys:\n    - \"self_attn.q_proj\"\n    - \"self_attn.k_proj\"\n    - \"self_attn.v_proj\"\n    - \"self_attn.o_proj\"\n    - \"mlp.gate_proj\"\n    - \"mlp.up_proj\"\n    - \"mlp.down_proj\"\n",
+  "overrides": {
+    "seed": 42,
+    "iters": null,
+    "adapter_path": "models/adapters/m2_qwen7b_seed42"
+  },
+  "train_curve": [
+    {
+      "iter": 420,
+      "loss": 2.248
+    },
+    {
+      "iter": 430,
+      "loss": 2.178
+    },
+    {
+      "iter": 440,
+      "loss": 2.004
+    },
+    {
+      "iter": 450,
+      "loss": 2.095
+    },
+    {
+      "iter": 460,
+      "loss": 2.053
+    },
+    {
+      "iter": 470,
+      "loss": 2.23
+    },
+    {
+      "iter": 480,
+      "loss": 1.82
+    },
+    {
+      "iter": 490,
+      "loss": 2.06
+    },
+    {
+      "iter": 500,
+      "loss": 2.013
+    },
+    {
+      "iter": 510,
+      "loss": 2.383
+    },
+    {
+      "iter": 520,
+      "loss": 2.376
+    },
+    {
+      "iter": 530,
+      "loss": 2.147
+    },
+    {
+      "iter": 540,
+      "loss": 2.001
+    },
+    {
+      "iter": 550,
+      "loss": 1.881
+    },
+    {
+      "iter": 560,
+      "loss": 2.365
+    },
+    {
+      "iter": 570,
+      "loss": 1.741
+    },
+    {
+      "iter": 580,
+      "loss": 1.883
+    },
+    {
+      "iter": 590,
+      "loss": 2.219
+    },
+    {
+      "iter": 600,
+      "loss": 1.895
+    }
+  ],
+  "val_curve": [
+    {
+      "iter": 450,
+      "loss": 2.003
+    },
+    {
+      "iter": 500,
+      "loss": 2.111
+    },
+    {
+      "iter": 550,
+      "loss": 2.025
+    },
+    {
+      "iter": 600,
+      "loss": 2.378
+    }
+  ],
+  "first_train_loss": 2.248,
+  "last_train_loss": 1.895,
+  "best_val_loss": 2.003,
+  "best_val_iter": 450,
+  "last_val_loss": 2.378,
+  "diverged": false,
+  "elapsed_seconds": 3199.11,
+  "gpu_hours": 0.88864,
+  "tokens_per_second": null,
+  "peak_memory_gb": null,
+  "device": "Apple M4, 16 GB unified memory (MLX)",
+  "curve_csv": "runs/20261110T220440Z_m2-lora-qwen2-5-7b-4bit-seed-42_curve.csv",
+  "finished_at": "2026-11-10T22:04:40+00:00",
+  "curve_is_partial": true,
+  "curve_note": "Recovered from the run's stdout log after the live parser failed to match mlx_lm 0.32's table format. mlx_lm redraws that table with ANSI cursor control, so only the final visible rows survive in a captured log: 19 of 60 train reports and 4 of 12 validation reports. The surviving window is iterations 450-600, which is the window that matters here. Future runs capture the full curve, pinned by tests/test_train_curve_parse.py.",
+  "overfitting": true,
+  "checkpoint_advice": {
+    "best_val_iter": 450,
+    "best_val_loss": 2.003,
+    "prefer_saved_checkpoint": 400,
+    "final_val_loss": 2.378
+  }
+}

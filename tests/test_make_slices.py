@@ -46,7 +46,7 @@ class BuildTest(unittest.TestCase):
     def test_absence_names_a_reason_and_a_command(self):
         entry = self.manifest["absent"]["hi_deva"]
         self.assertIn("reason", entry)
-        self.assertIn("convert_hinge_pkl", entry["command_that_closes_it"])
+        self.assertIn("fetch_data.py", entry["command_that_closes_it"])
         self.assertIn("HinGE", entry["supplied_by"])
 
     def test_ai6_status_is_definite(self):
