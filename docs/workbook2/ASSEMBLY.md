@@ -26,6 +26,10 @@ sections. Each file must name who wrote it, for example `Written by Savalia, Jen
    SQLite was removed because only the unassembled pipeline demo used it.
 4. **Re-sort the references** after adding sources from the other sections, and recount the journal
    or conference share in `self_assessment.md` and `carry_forward.md`.
+   *Done for 3.1 and 3.2 (11 Nov): they introduce no new bibliographic sources. They name datasets
+   — HinGE, PHINC, CMU Hinglish DoG, Trilingual — whose provenance lives in `data/raw/MANIFEST.json`
+   and `docs/datasheet.md`. GLUECoS and CALCS 2021 are named there as the CMU DoG task's provenance,
+   not cited as works, because §1.5 commits to citing only papers a member has read. No re-sort needed.*
 5. **Re-rate** every `[PENDING: not on main]` row against the rubric wording when its section lands.
 6. **Walk the sections** for the checklist row "every claim links to a commit, run, dataset version
    or Linear issue".

@@ -48,6 +48,7 @@ from lrcs.analysis.eda import (GRID, SERIES_1, SERIES_2, SURFACE,  # noqa: E402
                                TEXT_PRIMARY, TEXT_SECONDARY)
 
 FIGURES = {
+    "lineage": "fig3_1_lineage.png",
     "platform": "fig4_2_1_platform.png",
     "dataflow": "fig4_2_2_ml_dataflow.png",
     "components": "fig4_2_3_components.png",
@@ -142,6 +143,88 @@ def _save(fig, path):
     import matplotlib.pyplot as plt
     plt.close(fig)
     return path
+
+
+# ------------------------------------------------------- 3.1 data lineage
+
+
+def draw_lineage(out):
+    """Section 3.1: source to frozen splits, and which gate can stop the run.
+
+    Section 3.1 needs a lineage diagram and markdown's mermaid does not survive
+    the Word build, so it is generated here with the other three rather than
+    drawn by hand -- same reason as 4.2: a figure nobody can regenerate cannot
+    be checked against the repository it claims to describe.
+
+    The counts are read from reports/data_statistics.json, not typed in, so the
+    figure cannot drift from the run it describes.
+    """
+    import json
+    stats_path = REPO_ROOT / "reports" / "data_statistics.json"
+    stats = json.loads(stats_path.read_text(encoding="utf-8"))
+    prov = stats.get("provenance") or {}
+    attr = stats.get("attrition") or {}
+    splits = stats.get("splits") or {}
+
+    def _n(value):
+        return "{:,}".format(value) if isinstance(value, int) else "?"
+
+    rows_in = _n(prov.get("rows_in_file"))
+    ingested = _n(attr.get("ingested") or prov.get("records"))
+    kept = _n(attr.get("kept"))
+    removed = _n(attr.get("removed_total"))
+    tr = _n((splits.get("train") or {}).get("records"))
+    dv = _n((splits.get("dev") or {}).get("records"))
+    te = _n((splits.get("test") or {}).get("records"))
+    sha = (prov.get("sha256") or "")[:8]
+
+    fig, ax = _canvas(13, 5.0, "Figure 3.1  Data lineage: source to frozen splits",
+                      "Counts read from reports/data_statistics.json by "
+                      "scripts/model_support_figures.py. Grey = never committed.")
+
+    y, h = 0.56, 0.17
+    src = _box(ax, 0.025, y, 0.145, h,
+               "LingoIITGN/HinGE\nCC-BY-4.0, rev e25a1038\n{} rows".format(rows_in),
+               fill=FILL_LOCAL)
+    fetch = _box(ax, 0.195, y, 0.125, h,
+                 "fetch_data.py\nSHA-256 {}\nlicence recorded".format(sha))
+    val = _box(ax, 0.345, y, 0.115, h, "validate_raw.py\nalignment probes")
+    ing = _box(ax, 0.485, y, 0.115, h, "1  ingest\n{} records".format(ingested))
+    cln = _box(ax, 0.625, y, 0.125, h,
+               "2  clean\nsix filters\n-{} -> {}".format(removed, kept))
+    spl = _box(ax, 0.775, y, 0.125, h, "3  split\ndedup + MinHash")
+
+    for a, b in ((src, fetch), (fetch, val), (val, ing), (ing, cln), (cln, spl)):
+        _arrow(ax, _anchor(a, "r"), _anchor(b, "l"))
+
+    gate = _box(ax, 0.775, 0.335, 0.125, 0.125,
+                "LEAKAGE GATE\ntrain vs test", bold=True)
+    _arrow(ax, _anchor(spl, "b"), _anchor(gate, "t"))
+
+    halt = _box(ax, 0.60, 0.135, 0.145, 0.125,
+                "exit 3\nno manifest written\nnothing downstream runs",
+                fill=FILL_LOCAL)
+    _arrow(ax, _anchor(gate, "l"), _anchor(halt, "r"), label="overlap")
+
+    man = _box(ax, 0.345, 0.335, 0.205, 0.125,
+               "split manifest  (committed)\nSHA-256 + record ids per split\n"
+               "train {} / dev {} / test {}".format(tr, dv, te), bold=True)
+    _arrow(ax, _anchor(gate, "l"), (man[0] + man[2], man[1] + man[3] / 2),
+           label="pass", rad=-0.12, color=SERIES_1)
+
+    eda = _box(ax, 0.145, 0.135, 0.12, 0.115, "4  EDA\nstatistics, figures")
+    wh = _box(ax, 0.025, 0.335, 0.115, 0.125,
+              "SQLite warehouse\ngitignored", fill=FILL_LOCAL)
+    mdl = _box(ax, 0.295, 0.135, 0.12, 0.115, "models\nsection 4")
+    _arrow(ax, _anchor(man, "l"), _anchor(wh, "r"), color=SERIES_1)
+    _arrow(ax, _anchor(man, "b"), _anchor(eda, "t"), rad=0.15, color=SERIES_1)
+    _arrow(ax, _anchor(man, "b"), _anchor(mdl, "t"), rad=-0.12, color=SERIES_1)
+
+    ax.text(0.025, 0.055,
+            "The gate halts rather than warns: on any train/test overlap the run exits 3 and "
+            "writes no manifest, so no model can be trained on splits it never cleared.",
+            ha="left", va="center", fontsize=7, color=TEXT_SECONDARY)
+    return _save(fig, out)
 
 
 # ------------------------------------------------------------- 4.2.1 platform
@@ -500,6 +583,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
     out = Path(args.out_dir)
 
+    print("figure ->", draw_lineage(out / FIGURES["lineage"]))
     print("figure ->", draw_platform(out / FIGURES["platform"]))
     print("figure ->", draw_dataflow(out / FIGURES["dataflow"]))
     path, record = draw_components(out / FIGURES["components"], out / COMPONENTS_JSON)

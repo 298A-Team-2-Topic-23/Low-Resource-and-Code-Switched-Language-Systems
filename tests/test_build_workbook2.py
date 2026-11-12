@@ -167,8 +167,26 @@ class CommittedSourcesTest(unittest.TestCase):
             out = Path(holder) / "draft.docx"
             problems = build(SOURCE_DIR, out)
             self.assertTrue(out.exists())
-        # The checklist's five template rows stay open until someone has Template 5 to hand.
-        self.assertGreaterEqual(sum("Template 5" in p for p in problems), 5)
+        # Until 11 November this asserted that at least five "[PENDING: row text from
+        # Template 5]" rows were still open, because nobody had the template. The template
+        # arrived and the rows were written from it, so the old assertion was asserting a
+        # gap rather than a property. Inverted: the rows must now stay filled.
+        leftover = [p for p in problems if "Template 5" in p]
+        self.assertEqual(leftover, [], "the submission checklist has gone back to placeholders")
+
+    def test_checklist_answers_every_template_5_row(self):
+        """Six rows, each with a verdict. A checklist with a blank verdict is not a checklist."""
+        text = (SOURCE_DIR / "submission_checklist.md").read_text(encoding="utf-8")
+        rows = [l for l in text.splitlines()
+                if l.startswith("| ") and not l.startswith("|---")
+                and l.split("|")[1].strip().isdigit()]
+        self.assertEqual(len(rows), 6, "Template 5 has six checklist rows")
+        for row in rows:
+            verdict = row.split("|")[3].strip()
+            self.assertTrue(verdict, "row has no verdict: " + row[:60])
+            self.assertTrue(
+                verdict.startswith("**"),
+                "a verdict should lead with Yes / No / Partly: " + row[:60])
 
 
 if __name__ == "__main__":
