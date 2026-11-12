@@ -8,11 +8,15 @@ the machine-learning data flow and the component dependencies. Each diagram is g
 committed script, `scripts/model_support_figures.py`, for the same reason the Gantt and PERT charts
 are: a figure nobody can regenerate cannot be checked against the repository it claims to describe.
 
-One fact governs the rest of the section. **No GPU allocation is confirmed.** The request raised on
-26 September (298-10) and its follow-up (298-51) are both open. The only GPU execution on record is
-a free Colab T4 on 22 October, running a 0.5B stand-in model on synthetic data, which
-`docs/COMPUTE_BUDGET.md` records as a smoke test and not as a result. Everything below separates
-what has executed from what is planned, and the diagrams draw the two differently.
+Two facts govern the rest of the section. **No departmental GPU allocation is confirmed** — the
+request raised on 26 September (298-10) and its follow-up (298-51) are both open. **It has stopped
+being a blocker.** On 11 November Models 1 and 2 were trained and scored on a hosted Colab A100
+(40 GB): the §4.1 recipe as written, NF4 with double quantisation, three seeds, 1.508 GPU-hours,
+on the real HinGE splits. `docs/COMPUTE_BUDGET.md` records 3.039 GPU-hours in total, of which
+0.199 are smoke tests and 2.840 are real work. Everything below separates what has executed from
+what is planned, and the diagrams draw the two differently; the diagrams were generated before the
+A100 run and still show the T4 as the only proven runtime, which `scripts/model_support_figures.py`
+will correct on its next run.
 
 ## 4.2.1 Shared environment
 
@@ -28,7 +32,7 @@ between two arms can only come from the arm.
 | Evaluation | `sacrebleu==2.6.0` | `requirements.txt` | chrF++ (Popović, 2017), the primary metric, and BLEU, scored by `evaluation/run_eval.py` |
 | Data and storage | Python's `sqlite3`, `pyarrow` | standard library, `requirements.txt` | The pipeline warehouse (`data/warehouse/lrcs.sqlite`, gitignored) and Samanantar's parquet shards |
 | Reproducibility | `common/repro.py`: `set_seed` and `RunLogger` | repository | One seeding function for every source of randomness, and one JSON record per run with its seed, commit and GPU-hours under `runs/` |
-| Testing | `pytest` | `tests/` | 22 test modules; on this commit 218 tests pass and 7 skip. The CPU paths of every trainer are covered, including argument handling, prompt assembly and completion-only label masking in `tests/test_train_qlora.py` |
+| Testing | `pytest` | `tests/` | 22 test modules; 218 tests pass and 7 skip on this branch, 277 and 4 once 298-53 and 298-54 are also on `main`. The CPU paths of every trainer are covered, including argument handling, prompt assembly and completion-only label masking in `tests/test_train_qlora.py` |
 | Version control and tracking | GitHub, Linear | repository, board | Every commit names its issue with `Closes 298-NN` or `Refs 298-NN` |
 
 The backbone for every arm except the baseline is `Qwen/Qwen2.5-7B-Instruct`, adopted in section
@@ -42,7 +46,8 @@ from the Hugging Face Hub at run time and are never committed.
 | Tier | Hardware | State | Used for |
 |---|---|---|---|
 | Developer machines | Apple Silicon laptops, CPU only | In use | The data pipeline, tokenizer analysis, warehouse, all tests and all figures. `bitsandbytes` 4-bit kernels need CUDA, so the quantised path cannot be tested here |
-| Colab T4 | NVIDIA T4, 16 GB, Turing | **Proven 22 October** on the smoke run | Proved the CUDA path end to end, including NF4 quantisation and adapter reload. Seven run records under `runs/`, 0.112 GPU-hours |
+| Colab T4 | NVIDIA T4, 16 GB, Turing | **Proven 22 October** on the smoke run, and again 11 November | Proved the CUDA path end to end, including NF4 quantisation and adapter reload. 0.199 GPU-hours across both smoke sessions |
+| Colab A100 | NVIDIA A100-SXM4, 40 GB, Ampere | **Proven 11 November** on the reportable run | Models 1 and 2, real corpus, real 7B backbone, three seeds, NF4 double quantisation, native bf16. 1.508 GPU-hours, twelve run records under `runs/`. This is where the reported M1/M2 numbers come from |
 | 40 GB allocation | At least one 40 GB card, three independent single-GPU slots | **Unconfirmed** (298-10, 298-51) | The reportable runs for every trained arm |
 | Fallback | Colab Pro+ or a quoted single-GPU cloud instance | **Not funded** | The same, if the allocation is refused. `docs/COMPUTE_ALLOCATION.md` gives the runbook, which has not yet been executed |
 
@@ -59,8 +64,8 @@ figures marked *our arithmetic* are estimates, not measurements; no 7B job has r
 
 | Model | Entry point | GPU need | Peak memory, main contributor | Other support | State on `main` |
 |---|---|---|---|---|---|
-| M1 zero-shot | `models/generate_zeroshot.py` | Inference only; any CUDA GPU | About 15 GB for the bf16 backbone *(our arithmetic)* | Greedy decoding; 0- and 5-shot prompts | Smoke-tested on the 0.5B stand-in. The script's default model is `Qwen/Qwen3-8B` and must be overridden to the adopted backbone, which `README.md` records as a known gap |
-| M2 QLoRA | `models/train_qlora.py` | One GPU; a 16 GB T4 suffices for one seed, slowly | About 3.8 GB of 4-bit weights plus adapters and activations; gradient checkpointing on | Rank 32, alpha 64, all seven linear projections, effective batch 32, loss on the completion only | Smoke-tested on a T4. The notebook's extrapolation is 14–23 GPU-hours for three seeds on a T4 and 4–6 on an A100 (`notebooks/m1_m2_colab.ipynb`) |
+| M1 zero-shot | `models/generate_zeroshot.py` | Inference only; any CUDA GPU | About 15 GB for the bf16 backbone *(our arithmetic)* | Greedy decoding; 0- and 5-shot prompts | **Complete (298-53).** Three seeds on the adopted backbone, 0- and 5-shot, 197 test sources: chrF++ 40.666 0-shot against 38.474 5-shot, so few-shot measurably hurts. 0-shot shows zero seed variance because decoding is greedy. The script's default model is still `Qwen/Qwen3-8B` and must be overridden, which `README.md` records as a known gap |
+| M2 QLoRA | `models/train_qlora.py` | One GPU; a 16 GB T4 suffices for one seed, slowly | About 3.8 GB of 4-bit weights plus adapters and activations; gradient checkpointing on | Rank 32, alpha 64, all seven linear projections, effective batch 32, loss on the completion only | **Complete (298-54).** Three seeds on an A100, 3 epochs, 351 steps each, 80,740,352 trainable parameters: **1.277 GPU-hours of training, 1.508 including inference.** The earlier extrapolation of 4–6 GPU-hours on an A100 was roughly four times the measured cost, which matters for the 298-72 reservations. chrF++ 51.683 ± 1.154 against M1's 40.666 |
 | M3 vocabulary extension + CPT | Not yet written | One 40 GB GPU. The embedding and LM head cannot stay 4-bit while they train | Stage 1 trains both 545.0M-parameter matrices; at 16 bytes per trained parameter for weights, gradients and Adam state that is **17.4 GB** before activations *(our arithmetic)*. It does not fit a 16 GB T4 and is marginal on 24 GB | SentencePiece diff on the train split; K chosen on the dev split at the tokenizer level, on CPU, before any GPU time (section 4.1) | Not started (298B) |
 | Control A | As M3, original tokenizer | As M3 | As M3 | Identical stages and data to M3 | Not started (298B) |
 | Control B | `models/train_qlora.py`, resumed from each M2 seed | As M2 | As M2 | Each M2 seed continues until it has used M3's GPU-hours (298-72). The trainer has no resume-from-adapter option yet; adding one is part of this arm | Not started (298B) |
@@ -170,7 +175,7 @@ exceeds the reserve. The first measured M3 seed settles that, before Control A i
 
 ```bash
 python scripts/model_support_figures.py --check     # the three figures and the edge list
-python -m pytest -q                                 # 218 pass, 7 skip on this commit
+python -m pytest -q                                 # 218 pass, 7 skip here; 277 and 4 with 298-53/298-54
 python common/repro.py --summary runs/              # GPU-hours spent against the cap
 ```
 
