@@ -41,7 +41,16 @@ permissions:
 
 jobs:
   pipeline:
-    runs-on: ubuntu-latest
+    # Pinned, not `ubuntu-latest`. The point of this job is to run on the oldest
+    # Python the project supports -- requirements.txt holds matplotlib at 3.9.4
+    # for a team machine on 3.9, and a 3.10-only call in validate_raw.py had
+    # already shipped once. `ubuntu-latest` has moved to 26.04, which no longer
+    # offers 3.9, so setup-python failed in seven seconds.
+    #
+    # When 22.04 is retired this job will fail loudly on the runner label rather
+    # than quietly stop testing 3.9. At that point either move 3.9 to a container
+    # or drop 3.9 support deliberately, as a decision rather than a drift.
+    runs-on: ubuntu-22.04
     timeout-minutes: 20
 
     steps:
@@ -49,8 +58,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"   # the oldest version the project supports;
-                                  # if it runs here it runs on every team machine
+          python-version: "3.9"   # if it runs here it runs on every team machine
 
       - name: Show the environment is bare
         run: |
