@@ -57,14 +57,18 @@
       "scripts/audit_hinglisheval_overlap.py",
       "scripts/audit_normalisation.py",
       "scripts/audit_section_3_6.py",
+      "scripts/build_colab_notebook.py",
       "scripts/build_report.py",
+      "scripts/build_sft_data.py",
       "scripts/build_workbook2.py",
       "scripts/charts.py",
       "scripts/codemix_quality.py",
       "scripts/convert_hinge_pkl.py",
       "scripts/emit_stage_samples.py",
       "scripts/error_analysis_sheet.py",
+      "scripts/fetch_data.py",
       "scripts/generate_codemix.py",
+      "scripts/generate_mlx.py",
       "scripts/load_warehouse.py",
       "scripts/make_slices.py",
       "scripts/model_support_figures.py",
@@ -75,7 +79,12 @@
       "scripts/run_pipeline.py",
       "scripts/run_summary.py",
       "scripts/schedule_figures.py",
+      "scripts/score_codemixing.py",
+      "scripts/serve_demo.py",
       "scripts/split_balance.py",
+      "scripts/train_lora_mlx.py",
+      "scripts/training_curves.py",
+      "scripts/validate_raw.py",
       "scripts/warehouse_demo.py",
       "scripts/workbook2_figures.py"
     ]
@@ -215,6 +224,8 @@
         "scripts/error_analysis_sheet.py",
         "scripts/model_support_figures.py",
         "scripts/run_pipeline.py",
+        "scripts/score_codemixing.py",
+        "scripts/serve_demo.py",
         "scripts/split_balance.py",
         "scripts/workbook2_figures.py"
       ]
@@ -231,6 +242,8 @@
         "scripts/prepare_parallel_corpus.py",
         "scripts/romanise_parallel.py",
         "scripts/run_pipeline.py",
+        "scripts/score_codemixing.py",
+        "scripts/serve_demo.py",
         "scripts/split_balance.py"
       ]
     },
@@ -240,7 +253,9 @@
       "files": [
         "scripts/emit_stage_samples.py",
         "scripts/error_analysis_sheet.py",
-        "scripts/run_pipeline.py"
+        "scripts/run_pipeline.py",
+        "scripts/score_codemixing.py",
+        "scripts/serve_demo.py"
       ]
     },
     {
@@ -352,6 +367,7 @@
         "scripts/charts.py",
         "scripts/model_support_figures.py",
         "scripts/schedule_figures.py",
+        "scripts/training_curves.py",
         "scripts/workbook2_figures.py"
       ]
     },
