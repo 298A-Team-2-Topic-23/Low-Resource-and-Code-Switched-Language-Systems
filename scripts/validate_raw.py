@@ -46,6 +46,7 @@ import argparse
 import ast
 import csv
 import json
+import math
 import re
 import statistics
 import sys
@@ -169,13 +170,29 @@ def _mean(xs):
 
 
 def _corr(pairs):
+    """Pearson correlation, computed here rather than taken from `statistics`.
+
+    `statistics.correlation` is Python 3.10+. requirements.txt pins matplotlib to
+    3.9.4 precisely because one team machine is on Python 3.9, so calling it made
+    this script crash with AttributeError on a version the project claims to
+    support -- and this script sits in the clone-and-run path and in the Colab
+    notebook, so the crash lands on whoever is reproducing our work.
+
+    Equivalence against statistics.correlation is pinned in
+    tests/test_validate_raw_corr.py on interpreters that have it.
+    """
     if len(pairs) < 3:
         return None
     xs, ys = [a for a, _ in pairs], [b for _, b in pairs]
-    try:
-        return statistics.correlation(xs, ys)
-    except statistics.StatisticsError:
+    n = len(xs)
+    mx, my = sum(xs) / n, sum(ys) / n
+    dx = [x - mx for x in xs]
+    dy = [y - my for y in ys]
+    sxx = sum(d * d for d in dx)
+    syy = sum(d * d for d in dy)
+    if sxx <= 0 or syy <= 0:          # a constant column has no correlation
         return None
+    return sum(a * b for a, b in zip(dx, dy)) / math.sqrt(sxx * syy)
 
 
 def probe_pair(triples, left, right):
