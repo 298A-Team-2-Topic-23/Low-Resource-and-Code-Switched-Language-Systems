@@ -92,8 +92,15 @@ def read_table(path):
     delimiter = "," if suffix == ".csv" else "\t"
     # HinGE cells can be long lists of references; lift the csv field cap.
     csv.field_size_limit(min(sys.maxsize, 2 ** 31 - 1))
+    # A CSV is quoted and must be parsed that way. A TSV in this project is not:
+    # `lrcs.data.splits` joins fields with tabs and quotes nothing, so a double
+    # quote is literal data. Parsing such a file with the default quotechar
+    # silently merges rows (it cost us 127 of train's 3,738 records before this
+    # was found). Pick the convention from the delimiter rather than guessing.
+    quoting = {"quoting": csv.QUOTE_NONE, "quotechar": None} if delimiter == "\t" else {}
     with open(str(path), encoding="utf-8", newline="") as fh:
-        rows = [r for r in csv.reader(fh, delimiter=delimiter) if any(c.strip() for c in r)]
+        rows = [r for r in csv.reader(fh, delimiter=delimiter, **quoting)
+                if any(c.strip() for c in r)]
     if not rows:
         raise IngestError("{}: file is empty".format(path))
     mapping = detect_columns(rows[0])

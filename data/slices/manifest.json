@@ -8,12 +8,12 @@
   "present": {
     "en": {
       "path": "data/slices/en.txt",
-      "n_lines": 1200,
+      "n_lines": 1976,
       "script": "roman",
-      "devanagari_fraction": 0.0,
-      "source": "lrcs.data.synthetic generate(n=1200, seed=42) english column",
-      "sha256": "80305ea742d30b3336a5aa0fcc9122e3ada503a7f7ae9318874d67cdd39cde74",
-      "regenerate": "python3 scripts/make_slices.py --seed 42"
+      "devanagari_fraction": 8.9e-05,
+      "source": "data/raw/hinge/HinGE.csv English column (real corpus)",
+      "sha256": "b341f2037b340937b208d9c7b11e36b5ece6526c40e848e3ce16cf0d084a76d6",
+      "regenerate": "python3 scripts/fetch_data.py --only hinge && python3 scripts/make_slices.py --from-hinge data/raw/hinge/HinGE.csv"
     },
     "hi_roman": {
       "path": "data/slices/hi_roman.txt",
@@ -26,20 +26,24 @@
     },
     "hinglish": {
       "path": "data/slices/hinglish.txt",
-      "n_lines": 1169,
+      "n_lines": 4799,
       "script": "roman",
-      "devanagari_fraction": 0.005179,
-      "source": "lrcs.data.synthetic generate(n=1200, seed=42) hinglish column",
-      "sha256": "2269791d68098ea3f8a2fb062e8ff522b74f1a0ae4a18d823236b24786cfcdd8",
-      "regenerate": "python3 scripts/make_slices.py --seed 42"
-    }
-  },
-  "absent": {
+      "devanagari_fraction": 0.007015,
+      "source": "data/raw/hinge/HinGE.csv Human-generated Hinglish column, every human reference on its own line (real corpus)",
+      "sha256": "fa535c1ada6a60cc972a868494dd1bd1db1327dd555d92d8124b741a3ccf7334",
+      "regenerate": "python3 scripts/fetch_data.py --only hinge && python3 scripts/make_slices.py --from-hinge data/raw/hinge/HinGE.csv"
+    },
     "hi_deva": {
-      "reason": "no Devanagari text is committed anywhere in this repository (verified: git grep over the Devanagari block returns nothing). The synthetic generator produces an empty hindi column, and data/goldtestset/gold_set.csv holds its header row only, so its Devanagari column is empty too.",
-      "supplied_by": "HinGE.pkl, whose released 'Hindi' column is Devanagari. It is not committed (data/raw/ is gitignored) and is not on this machine. A licensed Devanagari corpus under 298-76 would also supply it.",
-      "command_that_closes_it": "python3 scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv && python3 scripts/make_slices.py --hi-deva-from data/raw/hinge.csv"
+      "path": "data/slices/hi_deva.txt",
+      "n_lines": 1976,
+      "script": "devanagari",
+      "devanagari_fraction": 0.966457,
+      "source": "data/raw/hinge/HinGE.csv Hindi column (real corpus)",
+      "sha256": "b8af0364edbce80b7ef2df5d6316995c41bdf82541901e35307a3683be6fea16",
+      "regenerate": "python3 scripts/fetch_data.py --only hinge && python3 scripts/make_slices.py --from-hinge data/raw/hinge/HinGE.csv"
     }
   },
-  "ai6_status": "not met: 3 of 4 slices measurable (en, hi_roman, hinglish). Missing: hi_deva."
+  "absent": {},
+  "ai6_status": "met: 4 of 4 slices measured.",
+  "sources_are_real": true
 }

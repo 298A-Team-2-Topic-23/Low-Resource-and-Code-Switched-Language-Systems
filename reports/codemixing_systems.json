@@ -1,0 +1,82 @@
+{
+  "human references (target)": {
+    "n_sentences": 468,
+    "tagger_coverage": 0.6858259736499204,
+    "cmi_mean_all": 25.859581233278536,
+    "cmi_mean_mixed_only": 30.25571004293589,
+    "frac_sentences_mixed": 0.8547008547008547,
+    "switch_point_fraction": 0.23658936519091123,
+    "m_index": 0.6956197663086462,
+    "burstiness": 0.049627369214068844
+  },
+  "English source (floor)": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.9006553984132459,
+    "cmi_mean_all": 0.0,
+    "cmi_mean_mixed_only": 0.0,
+    "frac_sentences_mixed": 0.0,
+    "switch_point_fraction": 0.0,
+    "m_index": 0.0,
+    "burstiness": -0.22823436008953357
+  },
+  "M1 0shot s13": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.7175313665649372,
+    "cmi_mean_all": 22.706881513136647,
+    "cmi_mean_mixed_only": 32.41489607310086,
+    "frac_sentences_mixed": 0.700507614213198,
+    "switch_point_fraction": 0.30625,
+    "m_index": 0.9227970605716017,
+    "burstiness": -0.0005294319035723337
+  },
+  "M2 QLoRA s13": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.7173702868192072,
+    "cmi_mean_all": 24.53653847977435,
+    "cmi_mean_mixed_only": 28.26724023693302,
+    "frac_sentences_mixed": 0.868020304568528,
+    "switch_point_fraction": 0.24149827501232135,
+    "m_index": 0.6652694973013302,
+    "burstiness": 0.07949591076997033
+  },
+  "M1 0shot s42": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.7175313665649372,
+    "cmi_mean_all": 22.706881513136647,
+    "cmi_mean_mixed_only": 32.41489607310086,
+    "frac_sentences_mixed": 0.700507614213198,
+    "switch_point_fraction": 0.30625,
+    "m_index": 0.9227970605716017,
+    "burstiness": -0.0005294319035723337
+  },
+  "M2 QLoRA s42": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.7267080745341615,
+    "cmi_mean_all": 25.263331851089898,
+    "cmi_mean_mixed_only": 29.1045402027176,
+    "frac_sentences_mixed": 0.868020304568528,
+    "switch_point_fraction": 0.2502467917077986,
+    "m_index": 0.71349529560455,
+    "burstiness": 0.06761952997356387
+  },
+  "M1 0shot s1337": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.7175313665649372,
+    "cmi_mean_all": 22.706881513136647,
+    "cmi_mean_mixed_only": 32.41489607310086,
+    "frac_sentences_mixed": 0.700507614213198,
+    "switch_point_fraction": 0.30625,
+    "m_index": 0.9227970605716017,
+    "burstiness": -0.0005294319035723337
+  },
+  "M2 QLoRA s1337": {
+    "n_sentences": 197,
+    "tagger_coverage": 0.7414921465968587,
+    "cmi_mean_all": 24.546349887289846,
+    "cmi_mean_mixed_only": 28.278543437404092,
+    "frac_sentences_mixed": 0.868020304568528,
+    "switch_point_fraction": 0.24214596423392942,
+    "m_index": 0.6967332615175166,
+    "burstiness": 0.09811072126272653
+  }
+}
