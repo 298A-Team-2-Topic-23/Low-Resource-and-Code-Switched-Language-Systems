@@ -6,7 +6,8 @@
       "analysis/variant_cost_hinge.py"
     ],
     "common/repro": [
-      "common/repro.py"
+      "common/repro.py",
+      "common/run_contract.py"
     ],
     "evaluation/": [
       "evaluation/run_eval.py"
@@ -71,6 +72,7 @@
       "scripts/prepare_parallel_corpus.py",
       "scripts/romanise_parallel.py",
       "scripts/run_pipeline.py",
+      "scripts/run_summary.py",
       "scripts/schedule_figures.py",
       "scripts/split_balance.py",
       "scripts/warehouse_demo.py",
@@ -184,7 +186,8 @@
       "from": "scripts/",
       "to": "common/repro",
       "files": [
-        "scripts/run_pipeline.py"
+        "scripts/run_pipeline.py",
+        "scripts/run_summary.py"
       ]
     },
     {
@@ -283,7 +286,8 @@
       "component": "common/repro",
       "package": "torch",
       "files": [
-        "common/repro.py"
+        "common/repro.py",
+        "common/run_contract.py"
       ]
     },
     {
