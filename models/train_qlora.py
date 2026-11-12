@@ -37,9 +37,15 @@ Then generate and score with the existing tools:
   python evaluation/run_eval.py --hyp out/m2.s13.txt --ref data/test.hinglish.txt \
       --system "Model 2 QLoRA"
 
-NOT YET RUN ON A GPU. The CPU paths (argument handling, data loading, prompt assembly and
-label masking) are covered by tests/test_train_qlora.py; the training loop itself is
-unverified until 298-51 confirms the allocation. Treat the first run as a smoke test.
+RUN ON A GPU 11 November 2026: Tesla T4, bitsandbytes 0.50.2, nf4-double, fp16,
+30 steps on a 0.5B stand-in, status ok -- runs/20261111T205200Z_model2-qlora_seed13.json.
+That was a smoke profile, so its loss is not a result; what it establishes is that this
+file runs. The CPU paths (argument handling, data loading, prompt assembly and
+label masking) are covered by tests/test_train_qlora.py.
+
+Still unverified at full scale: the 7B base, a full epoch, and more than one seed. The
+T4 smoke ran 30 steps on 256 examples, so it proves the path works, not that the recipe
+converges. Run the smoke profile first on any new machine.
 """
 
 import argparse
@@ -155,6 +161,15 @@ def main():
     ap.add_argument("--max-steps", type=int, help="stop after N steps (smoke test)")
     ap.add_argument("--no-4bit", action="store_true",
                     help="bf16 base instead of 4-bit NF4; needs far more memory")
+    ap.add_argument("--save-steps", type=int, default=0,
+                    help="write a resumable checkpoint every N optimiser steps. "
+                         "0 disables it. A full epoch on a hosted T4 runs for hours "
+                         "and the session is cut before then, so a long run without "
+                         "this loses everything it did.")
+    ap.add_argument("--keep-checkpoints", type=int, default=2,
+                    help="how many checkpoints to retain (disk, not quality)")
+    ap.add_argument("--resume", action="store_true",
+                    help="continue from the newest checkpoint in --out if one exists")
     args = ap.parse_args()
 
     effective = args.batch_size * args.grad_accum
@@ -274,14 +289,34 @@ def main():
             fp16=use_fp16,
             gradient_checkpointing=True,
             logging_steps=10,
-            save_strategy="no",
+            # A checkpoint every --save-steps, so a severed Colab session costs
+            # minutes rather than the whole run. Default 0 keeps the old
+            # behaviour for short runs, where checkpointing is only overhead.
+            save_strategy="steps" if args.save_steps else "no",
+            save_steps=args.save_steps or 500,
+            save_total_limit=args.keep_checkpoints,
             report_to=[],
             seed=args.seed,
             data_seed=args.seed,
         )
         trainer = Trainer(model=model, args=targs, train_dataset=dataset,
                           data_collator=Collator(tok.pad_token_id))
-        result = trainer.train()
+
+        # Resuming is opt-in and reported. A silent resume onto a checkpoint
+        # written by a *different* recipe would produce a number nobody could
+        # account for, so the checkpoint is named in stdout and in the run record.
+        resume_from = None
+        if args.resume:
+            ckpts = sorted(Path(args.out).glob("checkpoint-*"),
+                           key=lambda q: int(q.name.split("-")[1]))
+            if ckpts:
+                resume_from = str(ckpts[-1])
+                print("resuming from {}".format(resume_from))
+                run.log_metric("resumed_from_step", int(ckpts[-1].name.split("-")[1]))
+            else:
+                print("--resume given but no checkpoint in {}; starting fresh"
+                      .format(args.out))
+        result = trainer.train(resume_from_checkpoint=resume_from)
 
         Path(args.out).mkdir(parents=True, exist_ok=True)
         model.save_pretrained(args.out)

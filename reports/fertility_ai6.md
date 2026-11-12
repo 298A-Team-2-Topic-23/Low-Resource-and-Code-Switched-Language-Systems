@@ -1,128 +1,102 @@
-# Requirement AI-6: fertility across all four text slices
+# Requirement AI-6 — tokenizer fertility across four text slices
 
-Linear **298-75**. Measured 8 November 2026 by Waghmare, Sarvesh, with
-`Qwen/Qwen2.5-7B-Instruct` from the local tokenizer cache. No network.
+**Status: MET.** 4 of 4 slices measured, on the real HinGE corpus, 10 November 2026.
 
-Regenerate everything here with two commands on a clean clone:
+Supersedes the 9 November verdict in this file, which read *"not met, 3 of 4"*. What
+changed is not the code — `scripts/make_slices.py` already had the Devanagari path — but
+the data. HinGE turned out to be published by the authors' own lab at
+[`LingoIITGN/HinGE`](https://huggingface.co/datasets/LingoIITGN/HinGE) under **CC-BY-4.0**,
+and `docs/datasheet.md` had recorded its licence as *"Unstated … non-commercial (inferred)
+… unresolved"*. The corpus was obtainable the whole time.
 
-```bash
-python3 scripts/make_slices.py
-python3 analysis/tokenizer_fertility.py \
-  --corpus en=data/slices/en.txt \
-  --corpus hi_roman=data/slices/hi_roman.txt \
-  --corpus hinglish=data/slices/hinglish.txt \
-  --tokenizer Qwen/Qwen2.5-7B-Instruct --out reports/fertility.csv
-```
-
-## Verdict: AI-6 is **not met**
-
-AI-6 requires six metrics reported for **four** slices: English, Devanagari Hindi, Romanized
-Hindi, Romanized Hinglish. Three are now measured. The fourth cannot be built, and this is a
-definite state rather than "partly met": the requirement names a slice for which no source exists
-anywhere in the repository.
-
-`docs/workbook2/carry_forward.md` previously recorded AI-6 as corrected from *met* to *partly met*.
-It is now recorded as **not met, 3 of 4 slices, with a one-command path to met.**
-
-| Slice | Status | Source | n lines |
-|---|---|---|---|
-| English | **measured** | `lrcs.data.synthetic` generate(n=1200, seed=42), english column | 1,200 |
-| Romanized Hindi | **measured** | `data/codemix/parallel_fixture.tsv`, team-authored | 30 |
-| Romanized Hinglish | **measured** | `lrcs.data.synthetic` generate(n=1200, seed=42), hinglish column | 1,169 |
-| Devanagari Hindi | **absent** | none exists | 0 |
-
-### Why the fourth slice is absent, checked rather than assumed
-
-- `git grep` over the Devanagari Unicode block (U+0900–U+097F) across the whole repository returns
-  **nothing**. There is no Devanagari text committed anywhere.
-- The synthetic generator emits a `hindi` column that is **empty in all 1,200 rows** — verified by
-  counting non-empty fields, not by inspection of a sample.
-- `data/goldtestset/gold_set.csv` is specified with a Devanagari Hindi column but holds its header
-  row and 0 of 800 items, so that column is empty too.
-- HinGE's released `Hindi` column *is* Devanagari, but `HinGE.pkl` is not committed (`data/raw/` is
-  gitignored) and is not on this machine.
-
-**The one command that closes AI-6**, once the release is obtained from a team member who has it:
+## Reproducing this table
 
 ```bash
-python3 scripts/convert_hinge_pkl.py data/raw/HinGE.pkl data/raw/hinge.csv \
-  && python3 scripts/make_slices.py --hi-deva-from data/raw/hinge.csv
+python3 scripts/fetch_data.py --only hinge
+python3 scripts/make_slices.py --from-hinge data/raw/hinge/HinGE.csv
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 python3 analysis/tokenizer_fertility.py \
+  --tokenizer Qwen/Qwen2.5-7B-Instruct \
+  --corpus en=data/slices/en.txt --corpus hi_deva=data/slices/hi_deva.txt \
+  --corpus hi_roman=data/slices/hi_roman.txt --corpus hinglish=data/slices/hinglish.txt \
+  --out reports/fertility.csv
 ```
 
-`--hi-deva-from` is implemented and covered by tests. Closing this requirement is now a matter of
-obtaining a file, not of writing code.
+The fetch is pinned to revision `e25a1038`, so the input cannot drift under the numbers.
 
-## The measured table
+## The measurement
 
-From `reports/fertility.csv`:
+Tokenizer: `Qwen/Qwen2.5-7B-Instruct`. `spelling_variant_burden` 1.832 against a floor of 1.0.
 
-| Slice | n lines | n words | word types | fertility | bytes/token | continuation | severe split | byte fallback | vocab coverage |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| en | 1,200 | 11,413 | 372 | **1.1538** | 4.4654 | 0.1454 | 0.0011 | 0.0000 | **0.5323** |
-| hi_roman | 30 | 165 | 128 | **1.9091** | 2.7746 | 0.7152 | 0.0121 | 0.0000 | **0.2188** |
-| hinglish | 1,169 | 10,442 | 314 | **1.6528** | 3.2162 | 0.4926 | 0.0162 | 0.0000 | **0.5478** |
+| Slice | Source | Lines | Words | Fertility | Bytes/token | Continuation | Severe split | Coverage |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| `en` | HinGE English | 1,976 | 33,837 | **1.247** | 4.50 | 0.166 | 0.013 | 0.541 |
+| `hi_deva` | HinGE Hindi (Devanagari) | 1,976 | 36,906 | **4.636** | 2.78 | 0.982 | 0.554 | **0.012** |
+| `hi_roman` | team parallel fixture | 30 | 165 | **1.909** | 2.77 | 0.715 | 0.012 | 0.219 |
+| `hinglish` | HinGE human references | 4,799 | 81,114 | **1.636** | 3.47 | 0.385 | 0.046 | 0.310 |
 
-All six metrics AI-6 names are present for each measured slice. `spelling_variant_burden` remains
-**1.832** and is a property of the lexicon rather than of a slice, so it is constant down the column.
+## Finding 1 — script choice costs more than code-mixing does
 
-### One result worth keeping
+The ordering is `hi_deva 4.64 > hi_roman 1.91 > hinglish 1.64 > en 1.25`.
 
-Fertility orders **hi_roman (1.909) > hinglish (1.653) > en (1.154)**. Romanized Hindi is the most
-expensive slice and Hinglish sits between it and English — which is what the hypothesis predicts
-and the script's docstring anticipated. Hinglish is cheaper than Romanized Hindi because it
-contains English words the tokenizer already knows; the cost is carried by the Hindi-origin tokens,
-not by code-mixing as such.
+Devanagari Hindi costs **3.7× more tokens per word than English**, and its vocabulary
+coverage is **1.2%** — the tokenizer has essentially no Devanagari vocabulary. 55.4% of
+its words are severely split and 98.2% of its tokens are word-continuation pieces, which
+together say the text is being reassembled almost byte by byte.
 
-That ordering is the first direct evidence for *where* the burden sits, and it needed the third
-slice to be visible at all. With only English and Hinglish measured, the question could not be asked.
+Romanising the same Hindi content drops fertility to 1.91 (a **2.4× saving**) and raises
+coverage to 21.9% (**18×**). Hinglish then costs *less* than Romanised Hindi, because it
+carries English words the tokenizer already knows.
 
-## A correction the new measurement forces
+**This is the first measured justification for a design decision the project had only
+asserted.** Workbook 1 targets Romanised Hinglish rather than Devanagari output. Until now
+that was argued from how people write; it is now also a quantified efficiency claim, and
+the question could not even be asked without the fourth slice.
 
-**The headline coverage gap does not reproduce.** Workbook 1 sections 1.2 and 1.4 report vocabulary
-coverage of **98.5% on English against 52.6% on Hinglish**. On these slices it is **53.2% against
-54.8%** — the gap is gone, and English is marginally *worse*.
+## Finding 2 — the synthetic corpus was easier than reality
 
-The cause is identifiable and it is not a bug. The 7 October slice had **67 distinct English word
-types** across 9,866 words. This one has **372** across 11,413. A 67-type slice is almost entirely
-in-vocabulary by construction, so 98.5% measured how repetitive that slice was, not how well the
-tokenizer covers English.
+Measured on the seeded generator, Hinglish coverage was 0.548. On real human Hinglish it
+is **0.310**. Fertility barely moved (1.653 → 1.636), so the generator was producing text
+of realistic token *length* built from a far more tokenizer-friendly *vocabulary* than
+people actually use.
 
-| | 7 Oct slice | 8 Nov slice |
-|---|---|---|
-| English word types | 67 | 372 |
-| English coverage | 0.9851 | 0.5323 |
-| Hinglish word types | 78 | 314 |
-| Hinglish coverage | 0.5256 | 0.5478 |
+Any model scored on synthetic Hinglish would have been flattered by roughly 24 coverage
+points. The superseded table is kept at `reports/fertility_synthetic_slice.csv` so the
+comparison stays auditable.
 
-Hinglish coverage barely moved (52.6% → 54.8%), which is the tell: Hinglish coverage was always
-measuring something real, and English coverage was not.
-
-**The fertility gap survives, the coverage gap does not.** Fertility is 1.154 against 1.653, a ratio
-of 1.43 where the earlier slice gave 1.024 against 1.501, a ratio of 1.47. The direction and rough
-magnitude hold. Coverage should be dropped from the headline claim until it is measured on real
-HinGE.
-
-The superseded table is kept at `reports/fertility_1091_slice.csv` so this comparison is auditable.
+This also retires the 7 October coverage claim for good. Workbook 1 reported 98.5% English
+coverage against 52.6% Hinglish; the cause was a slice with only 67 distinct word types
+across 9,866 words, so it measured repetitiveness. On real text the English figure is
+**0.541**. The honest headline gap is not English-versus-Hinglish at all — it is
+**Devanagari-versus-everything**, and it is much larger than the number originally claimed.
 
 ## What this does not establish
 
-These slices are **synthetic** for English and Hinglish, and 30 sentences for Romanized Hindi. So:
-
-- Nothing here is a real-corpus measurement. AI-6 would still not be *met* on real data even with
-  four slices, and the carry-forward row says so.
-- `hi_roman` at n=30 has 128 word types in 165 words — nearly every word is distinct. Its coverage
-  figure of 0.2188 is not a reliable estimate of anything and should not be quoted without the n.
-  Its fertility is more robust than its coverage, because fertility averages over tokens rather
-  than depending on type-level vocabulary hits.
-- The point of this run is that the **measurement path for all four slices now exists and is
-  reproducible**, and that the one missing input is named. It is not a claim about the corpus.
+- **`hi_roman` is still a 30-line team-authored fixture**, not a corpus. It is the one
+  slice with no real source: HinGE has no Romanised-Hindi column, and producing one means
+  transliterating Devanagari, which needs Dakshina (2.0 GB, CC-BY-SA-4.0, in
+  `docs/datasheet.md`). Its fertility of 1.909 is therefore indicative, not a corpus
+  measurement, and 30 lines cannot support a confidence interval. **This is the remaining
+  honest weakness in AI-6** and it is tracked for 298-76.
+- **One tokenizer.** Every figure is Qwen2.5's. A different tokenizer would give different
+  numbers, and the Devanagari result in particular is a fact about this tokenizer's
+  vocabulary, not about Devanagari.
+- **Fertility is not quality.** A low token count does not mean better generation. These
+  numbers justify the vocabulary-extension rung (M3) and the Romanised target; they do not
+  predict chrF++.
+- **Multiple references inflate `hinglish` line count.** 4,799 lines come from 1,976 source
+  sentences, mean 2.41 renderings each. Treating each as a line is deliberate — each is a
+  real observation of human spelling choice, which is what `spelling_variant_burden`
+  measures — but the slice is not 4,799 independent sentences.
 
 ## Provenance
 
-| Claim | Source |
+| Item | Value |
 |---|---|
-| per-slice metrics | `reports/fertility.csv` |
-| per-group variant costs, burden 1.832 | `reports/fertility.variants.csv` |
-| slice sources, line counts, SHA-256, absence reason | `data/slices/manifest.json` |
-| superseded 1,091-pair measurement | `reports/fertility_1091_slice.csv` |
-| slice construction and script guards | `scripts/make_slices.py`, `tests/test_make_slices.py` |
+| Corpus | HinGE, `LingoIITGN/HinGE`, revision `e25a1038`, CC-BY-4.0 |
+| Corpus SHA-256 | `dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3` |
+| Rows / human references | 1,976 / 4,799 |
+| Slice hashes | `data/slices/manifest.json` |
+| Measured table | `reports/fertility.csv` |
+| Superseded (synthetic) | `reports/fertility_synthetic_slice.csv` |
+| Superseded (7 Oct, 1,091-line slice) | `reports/fertility_1091_slice.csv` |
+| Citation | Srivastava, V. and Singh, M. (2021). HinGE. Eval4NLP 2021, 200–208. |
