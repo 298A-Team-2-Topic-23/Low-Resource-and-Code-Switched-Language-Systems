@@ -49,8 +49,19 @@ demo-298-70: pipeline-synthetic
 test-warehouse:
 	$(PYTHON) -m pytest tests/test_warehouse.py -q
 
+# The prototype needs mlx_lm, which lives in the virtualenv, not in the system
+# interpreter the rest of these targets use. `make demo` ran $(PYTHON) and died with
+# ModuleNotFoundError. DEMO_PYTHON prefers .venv and falls back to $(PYTHON), and the
+# target says so rather than failing with an import error mid-demonstration.
+DEMO_PYTHON := $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || echo $(PYTHON))
+
 demo:  ## ISA row 5: live prototype, audience picks the input (http://127.0.0.1:8000)
-	$(PYTHON) scripts/serve_demo.py --warm
+	@$(DEMO_PYTHON) -c "import mlx_lm" 2>/dev/null || { \
+	  echo "mlx_lm is not importable by $(DEMO_PYTHON)."; \
+	  echo "Install it:  python3 -m venv .venv && .venv/bin/pip install mlx-lm"; \
+	  echo "Or point at an interpreter that has it:  make demo DEMO_PYTHON=/path/to/python"; \
+	  exit 1; }
+	$(DEMO_PYTHON) scripts/serve_demo.py --warm
 
 demo-light:  ## same, M2 only -- about half the memory
-	$(PYTHON) scripts/serve_demo.py --warm --no-m1
+	$(DEMO_PYTHON) scripts/serve_demo.py --warm --no-m1

@@ -145,8 +145,16 @@ often does not.
 lexicon-driven, so a Hindi word outside the 323-entry list is unresolved and CMI understates it.
 The page says so at the moment it happens rather than printing a quietly wrong number.
 
-**Needs:** the adapter under `models/adapters/`, about 8 GB free. `make demo-light` halves the
-memory by serving M2 only — rehearse whichever you will use.
+**Needs:** the adapter under `models/adapters/`, about 8 GB free, and **`mlx_lm`, which lives in
+`.venv` and not in the system interpreter** — the target resolves `.venv/bin/python`
+automatically and prints an install hint if it cannot find the module. Measured on this machine:
+**ready in 11 seconds** with both models, 10 with `make demo-light` (M2 only, half the memory).
+Generation is 3–7 seconds per sentence.
+
+**A sentence that shows the contrast well**, if nobody volunteers one:
+*"Please submit your assignment before Friday."* M1 returns it unchanged at CMI 0.0 — it does not
+code-switch at all — while M2 gives *"Please submit your assignment Friday tak."* at CMI 16.67.
+That difference is the whole argument for M2 in one line.
 
 ### Row 6 · Clone-and-run, from scratch
 
