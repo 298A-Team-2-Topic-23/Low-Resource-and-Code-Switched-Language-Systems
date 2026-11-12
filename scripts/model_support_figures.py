@@ -238,12 +238,12 @@ def draw_platform(out):
     # Zone 1: developer machines
     _zone(ax, 0.02, 0.17, 0.27, 0.72, "Developer machines\nApple Silicon laptops, CPU work only")
     wt = _box(ax, 0.04, 0.70, 0.23, 0.08, "Git working tree\npinned requirements.txt")
-    raw = _box(ax, 0.04, 0.57, 0.23, 0.10, "data/raw/  HinGE.pkl\ndata/processed/*.tsv\nlicensed text, local only",
+    raw = _box(ax, 0.04, 0.57, 0.23, 0.10, "data/raw/  fetched corpora\ndata/processed/*.tsv\nlicensed text, local only",
                fill=FILL_LOCAL)
     pipe = _box(ax, 0.04, 0.45, 0.23, 0.08, "Data pipeline + tokenizer analysis\nscripts/run_pipeline.py, analysis/")
     wh = _box(ax, 0.04, 0.335, 0.23, 0.08, "SQLite warehouse + monitor\ndata/warehouse/lrcs.sqlite",
               fill=FILL_LOCAL)
-    tests = _box(ax, 0.04, 0.215, 0.23, 0.08, "pytest: 23 test modules\nCPU paths of every trainer")
+    tests = _box(ax, 0.04, 0.215, 0.23, 0.08, "pytest: 27 test modules\nCPU paths of every trainer")
 
     # Zone 2: GitHub
     _zone(ax, 0.365, 0.17, 0.27, 0.72, "GitHub  298A-Team-2-Topic-23\nversion-controlled, public")
@@ -254,11 +254,15 @@ def draw_platform(out):
     lin = _box(ax, 0.385, 0.215, 0.23, 0.11, "Linear 298-NN issues\nlinked by commit message\n(Closes / Refs)")
 
     # Zone 3: GPU runtime
-    _zone(ax, 0.71, 0.48, 0.27, 0.41, "GPU runtime, single GPU per job")
-    t4 = _box(ax, 0.73, 0.70, 0.23, 0.08, "Colab T4 16 GB  (proven 22 Oct)\nNF4 4-bit QLoRA, fp16 on Turing")
-    a100 = _box(ax, 0.73, 0.585, 0.23, 0.08, "40 GB card: university allocation\nor funded fallback  (unconfirmed)",
-                dashed=True)
-    job = _box(ax, 0.73, 0.50, 0.23, 0.06, "train_qlora.py / generate_zeroshot.py\n+ RunLogger", size=7)
+    _zone(ax, 0.71, 0.45, 0.27, 0.44, "GPU runtime, single GPU per job")
+    t4 = _box(ax, 0.73, 0.735, 0.23, 0.065,
+              "Colab T4 16 GB  (smoke, 22 Oct & 11 Nov)\nNF4 4-bit QLoRA, fp16 on Turing", size=7)
+    # Solid, not dashed: this is where the reported M1/M2 numbers come from.
+    a100 = _box(ax, 0.73, 0.645, 0.23, 0.075,
+                "Colab A100 40 GB  (PROVEN 11 Nov)\nNF4 + bf16, M1 and M2, three seeds", size=7)
+    uni = _box(ax, 0.73, 0.555, 0.23, 0.07,
+               "University allocation / funded\nfallback  (still unconfirmed)", dashed=True, size=7)
+    job = _box(ax, 0.73, 0.47, 0.23, 0.06, "train_qlora.py / generate_zeroshot.py\n+ RunLogger", size=7)
 
     # Zone 4: external, not in git
     _zone(ax, 0.71, 0.17, 0.27, 0.27, "External, not in git")
@@ -274,7 +278,8 @@ def draw_platform(out):
     _arrow(ax, _anchor(pipe, "r"), _anchor(man, "l"), "manifests", color=SERIES_1)
     _arrow(ax, _anchor(pipe, "r"), _anchor(rep, "l"), "aggregates", color=SERIES_1, label_at=0.6)
     _arrow(ax, _anchor(code, "r"), _anchor(t4, "l"), "git clone\nreviewed commit")
-    _arrow(ax, _anchor(code, "r"), _anchor(a100, "l"), None, dashed=True)
+    _arrow(ax, _anchor(code, "r"), _anchor(a100, "l"), None)          # solid: this one ran
+    _arrow(ax, _anchor(code, "r"), _anchor(uni, "l"), None, dashed=True)
     _arrow(ax, _anchor(hf, "t"), _anchor(job, "b"), "weights", label_at=0.45)
     _arrow(ax, _anchor(job, "l"), _anchor(runs, "r"), "run JSON committed\nwith budget entry",
            color=SERIES_1, label_at=0.5, label_dy=-0.05)

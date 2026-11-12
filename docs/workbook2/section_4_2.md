@@ -14,9 +14,8 @@ being a blocker.** On 11 November Models 1 and 2 were trained and scored on a ho
 (40 GB): the §4.1 recipe as written, NF4 with double quantisation, three seeds, 1.508 GPU-hours,
 on the real HinGE splits. `docs/COMPUTE_BUDGET.md` records 3.039 GPU-hours in total, of which
 0.199 are smoke tests and 2.840 are real work. Everything below separates what has executed from
-what is planned, and the diagrams draw the two differently; the diagrams were generated before the
-A100 run and still show the T4 as the only proven runtime, which `scripts/model_support_figures.py`
-will correct on its next run.
+what is planned, and the diagrams draw the two differently: Figure 4.2.1 now draws the A100 solid,
+as a proven runtime, and the university allocation dashed beside it.
 
 ## 4.2.1 Shared environment
 
@@ -62,15 +61,15 @@ reads `bf16` means the fix has regressed.
 The models differ in what they update (section 4.1), so they differ in what they need. Memory
 figures marked *our arithmetic* are estimates, not measurements; no 7B job has run yet.
 
-| Model | Entry point | GPU need | Peak memory, main contributor | Other support | State on `main` |
-|---|---|---|---|---|---|
-| M1 zero-shot | `models/generate_zeroshot.py` | Inference only; any CUDA GPU | About 15 GB for the bf16 backbone *(our arithmetic)* | Greedy decoding; 0- and 5-shot prompts | **Complete (298-53).** Three seeds on the adopted backbone, 0- and 5-shot, 197 test sources: chrF++ 40.666 0-shot against 38.474 5-shot, so few-shot measurably hurts. 0-shot shows zero seed variance because decoding is greedy. The script's default model is still `Qwen/Qwen3-8B` and must be overridden, which `README.md` records as a known gap |
-| M2 QLoRA | `models/train_qlora.py` | One GPU; a 16 GB T4 suffices for one seed, slowly | About 3.8 GB of 4-bit weights plus adapters and activations; gradient checkpointing on | Rank 32, alpha 64, all seven linear projections, effective batch 32, loss on the completion only | **Complete (298-54).** Three seeds on an A100, 3 epochs, 351 steps each, 80,740,352 trainable parameters: **1.277 GPU-hours of training, 1.508 including inference.** The earlier extrapolation of 4–6 GPU-hours on an A100 was roughly four times the measured cost, which matters for the 298-72 reservations. chrF++ 51.683 ± 1.154 against M1's 40.666 |
-| M3 vocabulary extension + CPT | Not yet written | One 40 GB GPU. The embedding and LM head cannot stay 4-bit while they train | Stage 1 trains both 545.0M-parameter matrices; at 16 bytes per trained parameter for weights, gradients and Adam state that is **17.4 GB** before activations *(our arithmetic)*. It does not fit a 16 GB T4 and is marginal on 24 GB | SentencePiece diff on the train split; K chosen on the dev split at the tokenizer level, on CPU, before any GPU time (section 4.1) | Not started (298B) |
-| Control A | As M3, original tokenizer | As M3 | As M3 | Identical stages and data to M3 | Not started (298B) |
-| Control B | `models/train_qlora.py`, resumed from each M2 seed | As M2 | As M2 | Each M2 seed continues until it has used M3's GPU-hours (298-72). The trainer has no resume-from-adapter option yet; adding one is part of this arm | Not started (298B) |
-| M4 synthetic augmentation | `scripts/generate_codemix.py`, then the M2 trainer | As M2, plus a reverse Hinglish-to-English model for back-translation | As M2 | Synthesis runs on CPU; only the reverse model and the fine-tune need a GPU | Synthesis run on a 30,000-pair real slice (298-76); training not started |
-| Baseline, not one of the four | `models/train_mbart_baseline.py` | One GPU; full fine-tune of 610M parameters | About 9.8 GB of weights, gradients and Adam state *(our arithmetic)* | 10,000 steps fixed by the paper; both input conditions | Trainer merged with tests; not run (298-52) |
+| Model | Entry point | GPU need | Peak memory *(our arithmetic unless stated)* | State |
+|---|---|---|---|---|
+| M1 zero-shot | `generate_zeroshot.py` | Inference only, any CUDA GPU | ~15 GB, bf16 backbone | **Complete (298-53)**, three seeds, 0- and 5-shot |
+| M2 QLoRA | `train_qlora.py` | One GPU; a 16 GB T4 suffices for one seed, slowly | ~3.8 GB of 4-bit weights plus adapters and activations, gradient checkpointing on | **Complete (298-54)**, three seeds, 1.508 GPU-hours measured |
+| M3 vocab + CPT | Not yet written | One 40 GB GPU — embedding and LM head cannot stay 4-bit while they train | Stage 1 trains both 545.0M matrices; at 16 bytes per trained parameter that is **17.4 GB** before activations. Does not fit a 16 GB T4, marginal on 24 GB | Not started (298B) |
+| Control A | As M3, original tokenizer | As M3 | As M3 | Not started (298B) |
+| Control B | `train_qlora.py`, resumed from each M2 seed | As M2 | As M2 | Not started (298B). The trainer has no resume-from-adapter option yet; adding one is part of this arm |
+| M4 augmented | `generate_codemix.py`, then the M2 trainer | As M2, plus a reverse Hinglish→English model | As M2. Synthesis runs on CPU | Synthesis run on a 30,000-pair real slice; training not started |
+| Baseline, *not one of the four* | `train_mbart_baseline.py` | One GPU, full fine-tune of 610M parameters | ~9.8 GB of weights, gradients and Adam state | Trainer merged with tests; not run (298-52) |
 
 If only 24 GB cards are offered, M3 and Control A are the arms at risk. The plan, recorded in
 Workbook 1 section 2.3 and `docs/COMPUTE_ALLOCATION.md`, is to profile M3's peak memory with
@@ -152,24 +151,21 @@ Generating the figure from code surfaced three facts the written plan did not st
 
 ## 4.2.6 Compute budget
 
-Workbook 1 section 2.3 committed to a 130 GPU-hour target and a 145-hour hard cap. The per-arm
-estimates in `docs/COMPUTE_BUDGET.md` summed to 177. 298-72 resolves the conflict in two parts,
-proposed by Singh on 11 November for sign-off at Team Meeting 2 on 12 November:
+Workbook 1 §2.3 committed to a 130-hour target and a 145-hour cap; the per-arm estimates summed
+to **177**. 298-72 resolves this in two parts, for sign-off at Team Meeting 2. **Two arms shrink,
+losing little**: M3 trains one vocabulary size on GPU because the K sweep runs on CPU (45→36),
+and Control B resumes each M2 seed rather than retraining (25→11), the cost being that Control
+B's learning-rate schedule becomes two segments rather than one. **The cap is made explicit**:
+145 for training plus 20 for inference and evaluation, a hard cap of **165** against a plan of
+**154**, leaving 11 in reserve — $330 at the $2/GPU-hour planning assumption.
 
-1. **Two arms shrink, losing little.** M3 trains one vocabulary size on the GPU instead of
-   several, because the K sweep runs at the tokenizer level on CPU (section 4.1): 45 to 36
-   GPU-hours. Control B resumes each M2 seed for M3's hours minus M2's instead of retraining from
-   the start: 25 to 11. The cost of the second change is that Control B's learning-rate schedule
-   becomes two segments rather than one longer run, which the results section will state.
-2. **The cap is made explicit.** The abstract's 145 hours becomes the training cap, and inference
-   and evaluation are budgeted separately at 20, as `docs/COMPUTE_BUDGET.md` has carried since
-   298-26. The hard cap is **165 GPU-hours**; the plan totals **154**, leaving 11 in reserve. At
-   the $2 per GPU-hour planning assumption the cap costs $330 against $290 before.
+One risk is carried with it: Control A runs M3's two stages but is budgeted at 20 hours against
+M3's 36, and if it must match M3's steps the plan exceeds the reserve. The first measured M3 seed
+settles that before Control A is scheduled.
 
-`docs/COMPUTE_BUDGET.md` holds the arithmetic and the sign-off, and the carry-forward table
-records the change to section 2.3. One risk is carried with it: Control A runs the same two stages
-as M3 but is budgeted at 20 hours against M3's 36, and if it has to match M3's steps the plan
-exceeds the reserve. The first measured M3 seed settles that, before Control A is scheduled.
+A measured counterweight now exists. M1 and M2 together were reserved 27 GPU-hours and cost
+**1.508**, so the remaining estimates are probably loose. That is recorded rather than acted on;
+re-deriving the plan from one data point is a team decision.
 
 ## 4.2.7 Regenerating this section's evidence
 

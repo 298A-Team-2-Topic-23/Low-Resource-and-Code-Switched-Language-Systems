@@ -171,12 +171,20 @@ to one pair. Both are deterministic, so a reported p-value can be reproduced exa
 - Lexicon-driven normalisation, audited against the old rules in
   `reports/normalisation_audit.md`: 298-78, 11 November.
 
-Two gaps remain open:
+Two gaps remained open at that point. One has since closed:
 
 - **Case.** chrF++ keeps sacreBLEU's case-sensitive default, so it stays comparable with
   published chrF++. The case-folded score is reported beside it, and the spelling gap is
-  measured against the folded score.
-- **Multi-reference scoring** is not yet in the harness.
+  measured against the folded score. **Still open.**
+- **Multi-reference scoring.** **Closed 10 November**: `evaluation/run_eval.py --ref-jsonl`
+  takes reference sets, scoring chrF++ and BLEU multi-reference and ROUGE-L and WER against the
+  best-matching reference, exactly as §4.4.2 commits. The 11 November M1 and M2 runs were scored
+  with it. One limit, recorded rather than left to be discovered: `--compare` and `--ladder`
+  still read single-reference streams, so a ladder verdict and a `--ref-jsonl` score sit on
+  different denominators and must not be quoted side by side.
+
+*This subsection is appended, not edited. Nothing above it has changed since the section was
+committed on 10 November, which is the point of the section.*
 
 ## Provenance
 
