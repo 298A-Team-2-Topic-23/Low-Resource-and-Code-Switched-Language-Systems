@@ -12,6 +12,7 @@ import sys
 from collections import OrderedDict
 from pathlib import Path
 
+import numpy
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -107,6 +108,20 @@ def test_modified_split_is_refused(tmp_path):
 def test_prepare_script_removes_planted_test_source(tmp_path):
     pa = pytest.importorskip("pyarrow")
     pq = pytest.importorskip("pyarrow.parquet")
+
+    # pyarrow before 14 was built against numpy 1.x headers. Paired with numpy
+    # 1.26 it runs every assertion in this test correctly and then segfaults the
+    # interpreter at shutdown, so the suite prints "301 passed" and exits 139.
+    # requirements.txt pins pyarrow==21.0.0 and a clean install skips this test
+    # for want of pyarrow at all, so this only bites an interpreter with an old
+    # pyarrow lying around -- which is exactly the machine someone demonstrates
+    # `python -m pytest` on. Skipping is honest; a crash after a green run is not.
+    if tuple(int(p) for p in pa.__version__.split(".")[:1]) < (14,):
+        pytest.skip(
+            "pyarrow {} is ABI-incompatible with numpy {} and segfaults at "
+            "interpreter shutdown. requirements.txt pins pyarrow==21.0.0; install "
+            "that to run this test.".format(pa.__version__, numpy.__version__))
+
     import prepare_parallel_corpus as prep
 
     manifest, processed = _write_splits(tmp_path, threshold=0.7)
