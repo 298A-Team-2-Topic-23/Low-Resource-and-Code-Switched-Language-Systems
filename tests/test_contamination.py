@@ -105,23 +105,44 @@ def test_modified_split_is_refused(tmp_path):
         contamination.load_split_sources(manifest, processed)
 
 
+def _pyarrow_too_old_for_numpy():
+    """The installed pyarrow's major version, read WITHOUT importing pyarrow.
+
+    This has to answer before the import, not after. pyarrow before 14 was built
+    against numpy 1.x headers; paired with numpy 1.26 the mismatch kills the
+    interpreter at shutdown, so the suite prints a full green run and then exits
+    139. The damage is done by the import itself, which is why an earlier version
+    of this guard -- importorskip first, check the version second -- still
+    crashed: it skipped the body after already loading the library.
+
+    importlib.metadata reads the installed distribution's metadata off disk and
+    never loads the module, so an incompatible pyarrow is never brought in.
+    """
+    try:
+        from importlib import metadata
+    except ImportError:                       # pragma: no cover - Python < 3.8
+        return None
+    try:
+        version = metadata.version("pyarrow")
+    except metadata.PackageNotFoundError:
+        return None                           # absent; importorskip will skip
+    try:
+        return version if int(version.split(".")[0]) < 14 else None
+    except ValueError:                        # pragma: no cover - odd version string
+        return None
+
+
 def test_prepare_script_removes_planted_test_source(tmp_path):
+    old = _pyarrow_too_old_for_numpy()
+    if old is not None:
+        pytest.skip(
+            "pyarrow {} is ABI-incompatible with numpy {} and segfaults the "
+            "interpreter at shutdown; it is not imported here. requirements.txt "
+            "pins pyarrow==21.0.0, which runs this test."
+            .format(old, numpy.__version__))
+
     pa = pytest.importorskip("pyarrow")
     pq = pytest.importorskip("pyarrow.parquet")
-
-    # pyarrow before 14 was built against numpy 1.x headers. Paired with numpy
-    # 1.26 it runs every assertion in this test correctly and then segfaults the
-    # interpreter at shutdown, so the suite prints "301 passed" and exits 139.
-    # requirements.txt pins pyarrow==21.0.0 and a clean install skips this test
-    # for want of pyarrow at all, so this only bites an interpreter with an old
-    # pyarrow lying around -- which is exactly the machine someone demonstrates
-    # `python -m pytest` on. Skipping is honest; a crash after a green run is not.
-    if tuple(int(p) for p in pa.__version__.split(".")[:1]) < (14,):
-        pytest.skip(
-            "pyarrow {} is ABI-incompatible with numpy {} and segfaults at "
-            "interpreter shutdown. requirements.txt pins pyarrow==21.0.0; install "
-            "that to run this test.".format(pa.__version__, numpy.__version__))
-
     import prepare_parallel_corpus as prep
 
     manifest, processed = _write_splits(tmp_path, threshold=0.7)
