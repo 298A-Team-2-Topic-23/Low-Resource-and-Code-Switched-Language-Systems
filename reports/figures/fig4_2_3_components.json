@@ -70,6 +70,7 @@
       "scripts/model_support_figures.py",
       "scripts/monitor_pipeline.py",
       "scripts/prepare_parallel_corpus.py",
+      "scripts/rehearse_demo.py",
       "scripts/romanise_parallel.py",
       "scripts/run_pipeline.py",
       "scripts/run_summary.py",

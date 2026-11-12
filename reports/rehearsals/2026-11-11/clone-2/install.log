@@ -1,0 +1,1 @@
+$ /usr/local/bin/python3 -m venv /tmp/rehearsal-clone-2-jewi49bw/venv && /tmp/rehearsal-clone-2-jewi49bw/venv/bin/python -m pip install -q -r requirements-demo.txt

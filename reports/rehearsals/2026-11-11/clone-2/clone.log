@@ -1,0 +1,1 @@
+$ git clone -q /home/claude/298a-team-2-topic-23/low-resource-and-code-switched-language-systems /tmp/rehearsal-clone-2-jewi49bw/repo && git -C /tmp/rehearsal-clone-2-jewi49bw/repo checkout -q 6da38f66f18564360aefc5761ebfb9997ca862de

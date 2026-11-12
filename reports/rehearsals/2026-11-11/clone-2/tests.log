@@ -1,0 +1,12 @@
+$ /tmp/rehearsal-clone-2-jewi49bw/venv/bin/python -m pytest tests/ -q -p no:cacheprovider
+......................................................s................. [ 28%]
+............................................................ss.......... [ 56%]
+........................................................................ [ 84%]
+.........s..............................                                 [100%]
+=============================== warnings summary ===============================
+tests/test_model_support_figures.py::test_every_component_on_main_has_a_place
+  /tmp/rehearsal-clone-2-jewi49bw/venv/lib/python3.13/site-packages/matplotlib/_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
+    ParserElement.enablePackrat()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+252 passed, 5 skipped, 1 warning in 10.71s

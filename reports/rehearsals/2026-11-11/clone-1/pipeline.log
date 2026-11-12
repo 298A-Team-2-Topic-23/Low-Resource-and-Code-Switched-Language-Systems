@@ -1,0 +1,137 @@
+$ make demo-298-70 PYTHON=/tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python
+/tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python scripts/run_pipeline.py --synthetic --n-synthetic 1200 --seed 42
+[run] data-pipeline started, seed=42
+
+[stage 1] ingest -- provenance and measured counts
+----------------------------------------------------------------
+  source            synthetic
+  path              data/raw/synthetic_n1200_seed42.tsv
+  file mtime (UTC)  2026-11-12T00:05:46+00:00   <- when the file was retrieved/written
+  ingested at (UTC) 2026-11-12T00:05:46+00:00
+  bytes             117,933
+  sha256            9a99d85b60ac0d767829adf5a6c9b5bfe7b94bfd60dfe7630c85df9723189087
+  columns           english=english, hindi=hindi, hinglish=hinglish (from header)
+  rows in file      1,200   <- measured
+  records           1,200   <- one per Hinglish reference
+  note              no Devanagari Hindi column in this input
+
+[stage 2] clean -- six filters, attrition, language tags
+----------------------------------------------------------------
+  filter                 in  removed     out     % rm
+  ---------------------------------------------------
+  missing_field       1,200       31   1,169    2.58%
+  not_romanized       1,169       17   1,152    1.45%
+  untranslated        1,152       28   1,124    2.43%
+  length_bounds       1,124       14   1,110    1.25%
+  length_ratio        1,110       13   1,097    1.17%
+  exact_duplicate     1,097       93   1,004    8.48%
+  ---------------------------------------------------
+  ingested 1,200 -> kept 1,004 (196 removed)
+
+[stage 3] split -- dedupe, disjoint splits, leakage gate, manifests
+----------------------------------------------------------------
+  sources 839 -> 673 groups (166 merged as near-duplicates, 217 verified pairs; largest group 19)
+  train     801 records
+  dev       100 records
+  test      103 records
+  leakage gate PASSED: 839 sources checked at Jaccard >= 0.7 -- 0 exact, 0 near-duplicate overlaps
+  train  sha256 67d8f9841677377db310d06ee4598e8988b8a9581305f3bb4403231bb4fc80ff
+  dev    sha256 882f56d819a808a3d8abd69dada8cffd992e7e0681aea9e6fe02a2d8e86b8a7d
+  test   sha256 de454f0cc74c7310d2a59ece273546c28ee38513290fd37d6d21660dab5d80a1
+  manifest -> /tmp/rehearsal-clone-1-e7pcht6o/repo/data/processed/manifests/synthetic_split_manifest.json
+
+[stage 4] eda -- statistics, spelling variance, figures
+----------------------------------------------------------------
+  records           1,004 across train 801, dev 100, test 103
+  refs per source   1.20 mean
+  length (words)    English mean 8.2 / median 8.0   Hinglish mean 8.0 / median 8.0
+  vocabulary        Hinglish 214 types / 8,033 tokens (TTR 0.027)
+  tagger coverage   99.3% of word tokens resolved to lang1/lang2
+  CMI               25.22 mean, 100.0% of sentences mixed
+  SPF               0.4651   M-index 0.6026
+  spelling variance 23/72 lexicon groups seen, 23 with 2+ spellings, 37.1% of their occurrences non-canonical
+  figure -> reports/figures/fig1_sentence_lengths.png
+  figure -> reports/figures/fig2_cmi_distribution.png
+  figure -> reports/figures/fig3_switch_point_fraction.png
+  figure -> reports/figures/fig4_spelling_variants.png
+  statistics -> /tmp/rehearsal-clone-1-e7pcht6o/repo/reports/data_statistics.json
+
+pipeline OK in 1.9s  (ingest 0.0s, clean 0.0s, split 1.3s, eda 0.6s)
+[run] data-pipeline ok in 0.000 GPU-hours -> /tmp/rehearsal-clone-1-e7pcht6o/repo/runs/20261112T000546Z_data-pipeline_seed42.json
+/tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python scripts/load_warehouse.py --stats reports/data_statistics.json --db data/warehouse/lrcs.sqlite
+warehouse <- data/warehouse/lrcs.sqlite
+  run_id         synthetic_42_9a99d85b60ac
+  source         synthetic
+  raw            1,200
+  preprocessed   1,004
+  transformed    1,004
+  prepared       1,004
+/tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python scripts/warehouse_demo.py --db data/warehouse/lrcs.sqlite
+
+== 01_rows_per_stage.sql ==
+stage         rows
+------------  ----
+raw           1200
+preprocessed  1004
+transformed   1004
+prepared      1004
+  (4 rows)
+
+== 02_attrition_per_filter.sql ==
+step  filter_name      rows_in  removed  rows_out  pct_removed
+----  ---------------  -------  -------  --------  -----------
+0     missing_field    1200     31       1169      2.58       
+1     not_romanized    1169     17       1152      1.45       
+2     untranslated     1152     28       1124      2.43       
+3     length_bounds    1124     14       1110      1.25       
+4     length_ratio     1110     13       1097      1.17       
+5     exact_duplicate  1097     93       1004      8.48       
+  (6 rows)
+
+== 03_split_sizes_and_leakage.sql ==
+split  rows  pct_of_kept  groups  leakage_gate  exact_overlaps  near_overlaps  unique_sources  near_dup_groups
+-----  ----  -----------  ------  ------------  --------------  -------------  --------------  ---------------
+train  801   79.78        537     passed        0               0              839             673            
+dev    100   9.96         69      passed        0               0              839             673            
+test   103   10.26        67      passed        0               0              839             673            
+  (3 rows)
+
+== 04_cmi_summary.sql ==
+n_sentences  tagger_coverage  cmi_mean_all  cmi_mean_mixed_only  frac_sentences_mixed  switch_point_fraction  m_index  burstiness  mean_span_length
+-----------  ---------------  ------------  -------------------  --------------------  ---------------------  -------  ----------  ----------------
+1004         0.9933           25.22         25.22                1.0                   0.4651                 0.603    -0.154      1.88            
+  (1 row)
+
+== 05_references_per_source.sql ==
+references_per_source  english_sources
+---------------------  ---------------
+1                      697            
+2                      124            
+3                      14             
+4                      3              
+5                      1              
+  (5 rows)
+
+== 06_run_latency.sql ==
+run_id                     source     seed  kind       records_ingested  records_kept  leakage_gate  ingest_seconds  clean_seconds  split_seconds  eda_seconds  elapsed_seconds  loaded_at                
+-------------------------  ---------  ----  ---------  ----------------  ------------  ------------  --------------  -------------  -------------  -----------  ---------------  -------------------------
+synthetic_42_9a99d85b60ac  synthetic  42    synthetic  1200              1004          passed        0.02            0.04           1.25           0.62         1.94             2026-11-12T00:05:48+00:00
+  (1 row)
+
+demo queries OK
+/tmp/rehearsal-clone-1-e7pcht6o/venv/bin/python scripts/monitor_pipeline.py --stats reports/data_statistics.json --out reports/pipeline_monitor.json
+pipeline monitor
+  source     synthetic
+  ingested   1,200  kept 1,004  removed 196
+  splits     train 801  dev 100  test 103
+  latency    ingest 0.02s  clean 0.04s  split 1.25s  eda 0.62s  total 1.94s
+  gate       passed (exact=0, near=0)
+  drift      ALERT
+    - ingested drifted by 74.99% (4799 -> 1200)
+    - kept drifted by 78.52% (4674 -> 1004)
+    - train drifted by 78.57% (3738 -> 801)
+    - dev drifted by 78.63% (468 -> 100)
+    - test drifted by 77.99% (468 -> 103)
+    - input sha256 changed (dcfaf37ca9d7 -> 9a99d85b60ac)
+  wrote      reports/pipeline_monitor.json
+demo-298-70 OK
