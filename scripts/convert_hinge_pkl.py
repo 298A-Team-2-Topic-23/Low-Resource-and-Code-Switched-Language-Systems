@@ -27,8 +27,8 @@ import io
 import sys
 from pathlib import Path
 
-ALLOWED_MODULE_PREFIXES = ("pandas.", "numpy.")
-ALLOWED_MODULES = {"pandas", "numpy"}
+ALLOWED_MODULE_PREFIXES = ("pandas.", "numpy.", "pyarrow.")
+ALLOWED_MODULES = {"pandas", "numpy", "pyarrow"}
 # functools.partial: pandas builds blocks with it; builtins.slice: index ranges.
 # Neither can execute anything on its own.
 ALLOWED_GLOBALS = {("functools", "partial"), ("builtins", "slice")}

@@ -1,0 +1,62 @@
+{
+  "name": "model2-qlora",
+  "seed": 13,
+  "started_at": "2026-11-11T21:51:11+00:00",
+  "elapsed_seconds": 1545.4,
+  "n_gpus": 1,
+  "gpu_hours": 0.429,
+  "status": "ok",
+  "error": null,
+  "config": {
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "seed": 13,
+    "rank": 32,
+    "alpha": 64,
+    "dropout": 0.05,
+    "lr": 0.0002,
+    "epochs": 3.0,
+    "effective_batch": 32,
+    "max_len": 512,
+    "quantisation": "nf4-double",
+    "precision": "bf16",
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "n_train": 3738
+  },
+  "metrics": {
+    "trainable_parameters": 80740352,
+    "train_loss": 1.4951,
+    "steps": 351
+  },
+  "notes": [
+    "QLoRA r32 a64 on all linear projections, effective batch 32"
+  ],
+  "environment": {
+    "python": "3.13.16",
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+    "host": "cd875134debd",
+    "git_commit": "e77a10c0c8d93264e1e9441b068b36d6952e02e0-dirty",
+    "gpu": {
+      "name": "NVIDIA A100-SXM4-40GB",
+      "count": 1,
+      "cuda": "13.0"
+    },
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "transformers": "4.57.6",
+      "accelerate": "1.10.1",
+      "peft": "0.17.1",
+      "bitsandbytes": "0.50.2",
+      "sacrebleu": "2.6.0",
+      "numpy": "2.4.6"
+    },
+    "slurm_job_id": null
+  }
+}

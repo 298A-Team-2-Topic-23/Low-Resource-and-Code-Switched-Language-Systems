@@ -22,8 +22,15 @@ python scripts/run_summary.py --fail-over-cap    # exit 2 if the projection exce
 It reads every record under `runs/`: the 298-73 contract records at
 `runs/<model>/<seed>/run.json` (with archived earlier attempts beside them, because failed runs
 spend budget), and the `RunLogger` records from before the contract. A run that is not on disk did
-not happen. As of 11 November it prints **0.112 GPU-hours spent**, all seven pre-contract smoke
-tests, and a projection of 154.11 against the 165-hour cap.
+not happen. As of 11 November it prints **3.039 GPU-hours spent** across 33 records — 0.199 of smoke tests
+and 2.840 of real work — and a projection of **157.04** against the 165-hour cap.
+
+That projection is deliberately pessimistic and should be read with one caveat. Every record so
+far is pre-contract (`RunLogger`, not `ExperimentRun`), so none of them is attributed to an arm:
+M1 and M2 are complete, but their rows still project the full 27-hour allocation *on top of* the
+1.508 hours they actually cost. The projection drops once their runs are re-recorded through the
+contract, or once the allocations are revised. Until then 157.04 is an upper bound, not an
+estimate.
 
 The projection replaces an arm's allocation with measured hours, mean per seed times three, as
 soon as one reportable training seed of that arm finishes. That is the check the decision below
@@ -36,10 +43,11 @@ these files.
 
 ## Allocation checkpoint — 22 October 2026 (298-10 / 298-51)
 
-**Not ready for funded training.** The owner confirmed on 22 October that there is
-no confirmed university allocation and no funded cloud fallback. No new GPU job
-was run for this checkpoint. The existing free-Colab smoke records below remain
-the only committed GPU execution evidence.
+**Written 22 October; the allocation is still unconfirmed, and since 11 November it is no longer
+blocking.** The owner confirmed on 22 October that there is no confirmed university allocation
+and no funded cloud fallback, and that part is unchanged. What changed is that the reportable
+M1 and M2 runs were done without one, on a hosted Colab A100 — so the rows below are the state
+of the *request*, not a statement that no GPU work has happened.
 
 | Required evidence | Current state | What closes the gap |
 |---|---|---|
@@ -48,7 +56,7 @@ the only committed GPU execution evidence.
 | Card and memory | Unknown; request includes at least one GPU with 40 GB or more VRAM | Exact card class and VRAM; confirm separately from host RAM |
 | Hours / charge | No allocation or approved spend evidenced | Written GPU-hour allowance, charging basis and access instructions |
 | Funded fallback | Not funded | Owner-approved purchase, usable balance and measured runtime hardware |
-| Fallback training proof | Existing 0.5B/synthetic/free-T4 pilot only | A new training job on the funded runtime, saved adapter, reload/generation and run JSON |
+| Fallback training proof | **Satisfied 11 November on a hosted A100**: real 7B, real corpus, three seeds, adapters saved, reloaded through `--adapter`, scored, run JSON committed | Nothing further for M1/M2. M3 still needs a 40 GB card for a longer job |
 | 24 GB contingency | Availability unknown | Profile memory before M3; record an agreed smaller common backbone if needed |
 
 The September request date above is a board claim, not a newly verified submission
@@ -56,10 +64,12 @@ receipt. Earlier personal lab reservations do not establish this project's quota
 Keep both issues open until their acceptance evidence exists. Follow
 [the allocation and fallback runbook](COMPUTE_ALLOCATION.md) for the request fields,
 pilot commands and closure checklist. A successful synthetic pilot establishes
-infrastructure only; it cannot close the real-corpus M1/M2 research issues.
+infrastructure only; it cannot close the real-corpus M1/M2 research issues — those
+were closed on 11 November by running them.
 
-Essentially nothing is spent, because no training has run on the real corpus yet. The
-allocation itself is still unconfirmed — see 298-51, open since 26 September.
+The discrepancy this checkpoint raised — arm estimates summing to 177 against a 145-hour cap —
+is resolved below under **Budget decision — 298-72**, which is why no "budget discrepancy"
+subsection follows here any more.
 
 ## Runs
 
@@ -73,9 +83,27 @@ allocation itself is still unconfirmed — see 298-51, open since 26 September.
 | 2026-10-22 | model2-qlora | 13 | Tesla T4 | bf16 (emulated) | 0.085 | 30 steps, loss 1.974, 17.6M trainable |
 | 2026-10-22 | model2-qlora-0shot | 13 | Tesla T4 | — | 0.006 | adapter reloaded and scored |
 
-**Every GPU model row above is a smoke test on synthetic data with a 0.5B stand-in model.
-None is a reportable model result.** The purpose was to prove the path executes on CUDA, including the
-4-bit NF4 quantised branch, which could not be tested on the team's Apple Silicon machines.
+| 2026-11-10 | m1-smoke | 42 | Apple M4 (MLX) | 4-bit affine | 0.005 | 8-line path check |
+| 2026-11-10 | m1-zero-shot | 42 | Apple M4 (MLX) | 4-bit affine | 0.222 | **real HinGE**, 197 sources, 12 Devanagari outputs |
+| 2026-11-10 | m2-lora | 42 | Apple M4 (MLX) | 4-bit affine | 0.889 | 600 iters ≈ 0.16 epochs; 1e-4 diverged to NaN, 1e-5 used |
+| 2026-11-10 | m2-lora-0shot it500 | 42 | Apple M4 (MLX) | 4-bit affine | 0.216 | chrF++ 57.808, but CMI fell to 11.88 |
+| 2026-11-11 | model2-qlora (smoke) | 13 | Tesla T4 | fp16 | 0.062 | 0.5B stand-in, 30 steps; **first GPU run of `train_qlora.py`** |
+| 2026-11-11 | model1-0shot (smoke) | 13 | Tesla T4 | — | 0.011 | 0.5B, 48 lines |
+| 2026-11-11 | model1-5shot (smoke) | 13 | Tesla T4 | — | 0.007 | 0.5B, 48 lines |
+| 2026-11-11 | model2-qlora-0shot (smoke) | 13 | Tesla T4 | — | 0.007 | 0.5B, adapter reloaded |
+| 2026-11-11 | model1-0shot ×3 | 13/42/1337 | A100-SXM4-40GB | bf16 | 0.074 | greedy, so all three seeds identical |
+| 2026-11-11 | model1-5shot ×3 | 13/42/1337 | A100-SXM4-40GB | bf16 | 0.058 | worse than 0-shot on every metric |
+| 2026-11-11 | model2-qlora ×3 | 13/42/1337 | A100-SXM4-40GB | **bf16, NF4 double** | 1.277 | **the §4.1 recipe as written**, 3 epochs, 351 steps each |
+| 2026-11-11 | model2-qlora-0shot ×3 | 13/42/1337 | A100-SXM4-40GB | bf16 | 0.099 | chrF++ 51.683 ± 1.154, 0 Devanagari |
+
+T4 rows dated 2026-10-22 and the 2026-11-11 smoke row are **smoke tests with a 0.5B
+stand-in. None of them is a reportable result.** Their purpose was to prove the path executes on CUDA, including the
+4-bit NF4 quantised branch, which cannot be tested on the team's Apple Silicon machines.
+
+The 10 November MLX rows are real results on the real corpus, but they use MLX's 4-bit
+affine quantisation in place of NF4, so they are a deviation from §4.1 and are superseded
+for reporting by the 11 November A100 rows. They are kept because the disagreement between
+the two runs is itself a finding — see `reports/m1_m2_comparison.md`.
 
 ### A note on the 2026-10-22 precision
 

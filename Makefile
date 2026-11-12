@@ -48,3 +48,9 @@ demo-298-70: pipeline-synthetic
 
 test-warehouse:
 	$(PYTHON) -m pytest tests/test_warehouse.py -q
+
+demo:  ## ISA row 5: live prototype, audience picks the input (http://127.0.0.1:8000)
+	$(PYTHON) scripts/serve_demo.py --warm
+
+demo-light:  ## same, M2 only -- about half the memory
+	$(PYTHON) scripts/serve_demo.py --warm --no-m1

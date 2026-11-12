@@ -1,0 +1,35 @@
+{
+  "source_manifest": "data/processed/manifests/hinge_split_manifest.json",
+  "input_sha256": "dcfaf37ca9d7528e27da7be6b0cfffafb8bbe7825fe4da45077b96236cd9c9c3",
+  "system_prompt": "You translate English into Hinglish: conversational Hindi-English code-mixed text written in the Roman alphabet. Keep common English words in English. Never use Devanagari script. Reply with the translation only.",
+  "user_template": "Translate to Hinglish:\n{english}",
+  "splits": {
+    "train": {
+      "file": "data/sft/hinge/train.jsonl",
+      "manifest_records": 3738,
+      "rows_written": 3738,
+      "unique_sources": 1549,
+      "dropped_empty": 0,
+      "dropped_over_max_words": 0
+    },
+    "dev": {
+      "file": "data/sft/hinge/valid.jsonl",
+      "manifest_records": 468,
+      "rows_written": 468,
+      "unique_sources": 192,
+      "dropped_empty": 0,
+      "dropped_over_max_words": 0
+    },
+    "test": {
+      "file": "data/sft/hinge/test.jsonl",
+      "manifest_records": 468,
+      "rows_written": 468,
+      "unique_sources": 197,
+      "dropped_empty": 0,
+      "dropped_over_max_words": 0,
+      "reference_set_file": "data/sft/hinge/test_references.jsonl",
+      "reference_set_sources": 197,
+      "mean_references_per_source": 2.376
+    }
+  }
+}
