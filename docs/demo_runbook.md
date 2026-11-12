@@ -74,8 +74,10 @@ oldest version a team machine uses.
 This is the row rubric 4.5 is really about. Run it live, **10 seconds**:
 
 ```bash
-python3 scripts/run_pipeline.py --input data/raw/hinge.csv --seed 42 --reports-dir out/real/reports --processed-dir out/real/processed --manifest-dir out/real/manifests --raw-dir out/real/raw --no-run-log
+PYTHONWARNINGS=ignore TRANSFORMERS_VERBOSITY=error python3 scripts/run_pipeline.py --input data/raw/hinge.csv --seed 42 --reports-dir out/real/reports --processed-dir out/real/processed --manifest-dir out/real/manifests --raw-dir out/real/raw --no-run-log
 ```
+
+*The two environment variables only silence a urllib3 LibreSSL warning and a transformers message about PyTorch being absent — neither is used by the pipeline, but on a projector they read as errors above your output. Without them the run is identical.*
 
 **Then prove it is the committed data, not a fresh guess:**
 
