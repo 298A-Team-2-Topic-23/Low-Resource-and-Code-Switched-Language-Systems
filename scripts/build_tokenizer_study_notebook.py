@@ -270,27 +270,110 @@ records a skip with its reason rather than failing — a missing row is data abo
 not a crash.
 """)
 
-code('''
-# repo id -> short label. Open models first so the panel is never empty.
-PANEL = {
-    "Qwen/Qwen2.5-7B-Instruct":      "Qwen2.5-7B",      # the project's backbone
-    "facebook/mbart-large-cc25":     "mBART-cc25",      # the reproduced baseline's model
-    "google/mt5-base":               "mT5-base",        # multilingual, SentencePiece
-    "bigscience/bloomz-560m":        "BLOOMZ",          # multilingual, includes Hindi
-    "ai4bharat/IndicBARTSS":         "IndicBART",       # Indic-specialised
-    "meta-llama/Llama-3.1-8B-Instruct": "Llama-3.1-8B", # gated: needs HF token
-    "google/gemma-2-9b-it":          "Gemma-2-9B",      # gated: needs HF token
-}
+md("""
+### 5a · Hugging Face authentication
 
-# Optional. Without it the two gated rows are skipped and the panel still stands.
-HF_TOKEN = os.environ.get("HF_TOKEN") or ""
+Llama and Gemma are **gated**: the token alone is not enough, the account behind it must have
+accepted each licence. Two minutes, once per account:
+
+| Model | Accept the licence at |
+|---|---|
+| Llama-3.1-8B-Instruct | huggingface.co/meta-llama/Llama-3.1-8B-Instruct |
+| Gemma-2-9B-it | huggingface.co/google/gemma-2-9b-it |
+
+Then create a **read** token at huggingface.co/settings/tokens.
+
+**Do not paste the token into a cell.** In Colab use the key icon in the left sidebar, add a
+secret named `HF_TOKEN`, and enable notebook access. The cell below reads it from there, and
+falls back to a hidden prompt. Either way the token never appears in the saved notebook.
+""")
+
+code('''
+from getpass import getpass
+
+HF_TOKEN = ""
+try:                                    # Colab secret: the key icon, left sidebar
+    from google.colab import userdata
+    HF_TOKEN = userdata.get("HF_TOKEN") or ""
+    if HF_TOKEN:
+        print("token loaded from Colab secrets")
+except Exception:
+    pass
+if not HF_TOKEN:
+    HF_TOKEN = os.environ.get("HF_TOKEN") or ""
+if not HF_TOKEN:
+    HF_TOKEN = getpass("HF token (input hidden, leave blank to skip gated models): ").strip()
+
 if HF_TOKEN:
     os.environ["HF_TOKEN"] = HF_TOKEN
-    print("HF token present - gated models will be attempted.")
+    from huggingface_hub import login, whoami
+    login(token=HF_TOKEN, add_to_git_credential=False)
+    try:
+        who = whoami(token=HF_TOKEN)
+        print(f"authenticated as {who.get(\'name\')}")
+    except Exception as exc:
+        print(f"token present but whoami failed: {str(exc)[:110]}")
 else:
-    print("No HF_TOKEN set. Gated models will be skipped with a recorded reason.\\n"
-          "To include them: accept the licence on huggingface.co, then set\\n"
-          '  os.environ["HF_TOKEN"] = "hf_..."  and re-run this cell.')
+    print("No token. Gated models will be skipped with a recorded reason; the open "
+          "panel still stands.")
+''')
+
+code('''
+# Licence acceptance is per-account and separate from the token, so check it
+# before spending GPU time rather than failing midway through the panel.
+from huggingface_hub import HfApi
+
+GATED = ["meta-llama/Llama-3.1-8B-Instruct", "google/gemma-2-9b-it"]
+ACCESS = {}
+if HF_TOKEN:
+    api = HfApi(token=HF_TOKEN)
+    for repo in GATED:
+        try:
+            api.model_info(repo)
+            ACCESS[repo] = "ok"
+            print(f"  ok      {repo}")
+        except Exception as exc:
+            msg = str(exc).split("\\n")[0][:120]
+            ACCESS[repo] = msg
+            print(f"  BLOCKED {repo}\\n          {msg}")
+            print(f"          accept the licence at https://huggingface.co/{repo}")
+else:
+    for repo in GATED:
+        ACCESS[repo] = "no token supplied"
+''')
+
+code('''
+# repo id -> short label.
+#
+# Two panels, because they answer different questions and have different
+# fairness requirements.
+#
+#   TOKENIZER panel: scale is irrelevant. A tokenizer is a tokenizer, so a 560M
+#   model's vocabulary is as legitimate a data point as a 9B model's.
+#
+#   GENERATION panel: scale is NOT irrelevant. Comparing a 560M model against a
+#   9B one conflates tokenizer quality with capacity, which would make the
+#   burden-to-quality correlation meaningless. The generation panel is therefore
+#   restricted to 7-9B instruction-tuned models.
+TOKENIZER_PANEL = {
+    "Qwen/Qwen2.5-7B-Instruct":         "Qwen2.5-7B",    # the project's backbone
+    "facebook/mbart-large-cc25":        "mBART-cc25",    # the reproduced baseline
+    "google/mt5-base":                  "mT5-base",      # multilingual SentencePiece
+    "bigscience/bloomz-560m":           "BLOOMZ",        # multilingual, includes Hindi
+    "ai4bharat/IndicBARTSS":            "IndicBART",     # Indic-specialised
+    "meta-llama/Llama-3.1-8B-Instruct": "Llama-3.1-8B",  # gated
+    "google/gemma-2-9b-it":             "Gemma-2-9B",    # gated
+}
+
+# Scale-matched subset for Part B. Parameter counts are stated so the constraint
+# is visible rather than implied.
+GENERATION_PANEL = {
+    "Qwen/Qwen2.5-7B-Instruct":         ("Qwen2.5-7B",   7.6),
+    "meta-llama/Llama-3.1-8B-Instruct": ("Llama-3.1-8B", 8.0),
+    "google/gemma-2-9b-it":             ("Gemma-2-9B",   9.2),
+}
+print("tokenizer panel :", len(TOKENIZER_PANEL), "entries")
+print("generation panel:", len(GENERATION_PANEL), "entries, 7.6-9.2B (scale-matched)")
 ''')
 
 code('''
@@ -310,7 +393,7 @@ def load_tokenizer(repo):
         return None, f"{kind}: {msg}"
 
 AVAILABLE, SKIPPED = {}, {}
-for repo, label in PANEL.items():
+for repo, label in TOKENIZER_PANEL.items():
     tok, why = load_tokenizer(repo)
     if tok is None:
         SKIPPED[label] = why
@@ -462,15 +545,43 @@ if not torch.cuda.is_available():
     raise SystemExit(
         "Part B needs a GPU.\\n"
         "Runtime -> Change runtime type -> GPU, then run from the top.\\n"
-        "Part A's results are already written to out/ and are complete without this.")
+        "Part A\'s results are already written to out/ and are complete without it.")
 
-# 7B at 4-bit is ~4.5 GB; a 16 GB T4 holds one at a time comfortably.
-GEN_PANEL = [r for r in AVAILABLE if any(
-    k in r for k in ("Qwen2.5-7B", "Llama-3.1-8B", "gemma-2-9b", "bloomz"))]
-print("backbones for generation:", [AVAILABLE[r] for r in GEN_PANEL])
-if len(GEN_PANEL) < 2:
-    print("\\nWARNING: fewer than 2 generative backbones available. H2 needs n>=4 to be "
-          "anything more than anecdote; the verdict cell will say so.")
+VRAM = torch.cuda.get_device_properties(0).total_memory / 2**30
+A100 = VRAM > 30 and RUN.get("bf16_native")
+
+# Precision is chosen from the card and then held FIXED across the panel. A
+# per-model choice would confound the comparison: a model scored in bf16 against
+# one scored in fp16 differs for a reason that has nothing to do with its
+# tokenizer, which is the variable under study.
+if A100:
+    DTYPE, BATCH, NLL_LIMIT = torch.bfloat16, 16, 400
+    print(f"{VRAM:.0f} GB with native bf16 -> bf16, batch {BATCH}")
+else:
+    DTYPE, BATCH, NLL_LIMIT = torch.float16, 4, 200
+    print(f"{VRAM:.0f} GB -> fp16, batch {BATCH}. Smaller batches and a shorter NLL pass.")
+
+# 4-bit NF4 throughout, on every card. On an A100 the weights would fit in bf16,
+# but mixing quantisation across the panel would be the same confound as mixing
+# precision. Consistency matters more here than fidelity.
+RUN["precision"] = {"dtype": str(DTYPE), "quantisation": "nf4-double",
+                    "batch": BATCH, "nll_limit": NLL_LIMIT, "a100_path": bool(A100)}
+
+GEN_PANEL = [r for r in GENERATION_PANEL if r in AVAILABLE]
+blocked = [r for r in GENERATION_PANEL if r not in AVAILABLE]
+print("\\ngeneration panel:")
+for r in GEN_PANEL:
+    print(f"  ok      {GENERATION_PANEL[r][0]:<14} {GENERATION_PANEL[r][1]:.1f}B")
+for r in blocked:
+    print(f"  missing {GENERATION_PANEL[r][0]:<14} {ACCESS.get(r, \'tokenizer unavailable\')[:70]}")
+
+sizes = [GENERATION_PANEL[r][1] for r in GEN_PANEL]
+if sizes and max(sizes) / min(sizes) > 1.5:
+    print(f"\\nWARNING: panel spans {min(sizes):.1f}-{max(sizes):.1f}B. The correlation "
+          "will partly measure capacity, not tokenizer. Say so when reporting it.")
+if len(GEN_PANEL) < 4:
+    print(f"\\nNOTE: {len(GEN_PANEL)} backbones. H2\'s rule needs n>=4; with fewer, the "
+          "verdict cell reports inconclusive by construction.")
 ''')
 
 code('''
@@ -478,7 +589,7 @@ from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 
 QUANT = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                            bnb_4bit_use_double_quant=True,
-                           bnb_4bit_compute_dtype=torch.float16)
+                           bnb_4bit_compute_dtype=DTYPE)
 
 def free(*objs):
     for o in objs:
@@ -486,8 +597,7 @@ def free(*objs):
     gc.collect(); torch.cuda.empty_cache()
 
 def load_causal(repo):
-    kw = {"quantization_config": QUANT, "device_map": "auto",
-          "torch_dtype": torch.float16}
+    kw = {"quantization_config": QUANT, "device_map": "auto", "torch_dtype": DTYPE}
     if HF_TOKEN:
         kw["token"] = HF_TOKEN
     tok = AutoTokenizer.from_pretrained(repo, **({"token": HF_TOKEN} if HF_TOKEN else {}))
@@ -496,13 +606,14 @@ def load_causal(repo):
     return AutoModelForCausalLM.from_pretrained(repo, **kw), tok
 
 @torch.no_grad()
-def per_byte_nll(model, tok, lines, limit=200):
+def per_byte_nll(model, tok, lines, limit=None):
     """Sum NLL over a corpus, divided by its length in BYTES.
 
     Per-token NLL rewards a tokenizer that simply uses fewer, longer tokens.
     Per-byte does not: the denominator is the text itself, identical for every
     model, so two models with different vocabularies become comparable.
     """
+    limit = NLL_LIMIT if limit is None else limit
     total_nll, total_bytes = 0.0, 0
     for line in lines[:limit]:
         line = line.strip()
@@ -522,22 +633,54 @@ SYSTEM = ("You translate English into Hinglish: conversational Hindi-English cod
           "written in the Roman alphabet. Keep common English words in English. Never use "
           "Devanagari script. Reply with the translation only.")
 
+def build_prompt(tok, src):
+    """Gemma has no system role, so the instruction is folded into the user turn.
+
+    Each model gets its own chat template, which is the correct comparison: a
+    model is entitled to the prompt format it was trained on. The *instruction*
+    is identical across the panel; only the framing differs.
+    """
+    msgs = [{"role": "system", "content": SYSTEM},
+            {"role": "user", "content": f"Translate to Hinglish:\\n{src}"}]
+    try:
+        return tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False)
+    except Exception:
+        pass
+    try:                                    # no system role (Gemma): fold it in
+        merged = [{"role": "user", "content": f"{SYSTEM}\\n\\nTranslate to Hinglish:\\n{src}"}]
+        return tok.apply_chat_template(merged, add_generation_prompt=True, tokenize=False)
+    except Exception:                       # no template at all: plain completion
+        return f"{SYSTEM}\\n\\nEnglish: {src}\\nHinglish:"
+
 @torch.no_grad()
-def zero_shot(model, tok, sources, max_new_tokens=96):
+def zero_shot(model, tok, sources, max_new_tokens=96, batch=None):
+    """Batched greedy generation.
+
+    One sentence at a time leaves an A100 almost entirely idle; batching is the
+    difference between minutes and tens of minutes across a panel. Padding must
+    be on the LEFT for decoder-only generation -- with right padding the model
+    continues from pad tokens and the output is garbage.
+    """
+    batch = batch or BATCH
+    side = tok.padding_side
+    tok.padding_side = "left"
     outs = []
-    for src in sources:
-        msgs = [{"role": "system", "content": SYSTEM},
-                {"role": "user", "content": f"Translate to Hinglish:\\n{src}"}]
-        try:
-            prompt = tok.apply_chat_template(msgs, add_generation_prompt=True,
-                                             tokenize=False)
-        except Exception:                      # no chat template: fall back to plain
-            prompt = f"{SYSTEM}\\n\\nEnglish: {src}\\nHinglish:"
-        ids = tok(prompt, return_tensors="pt").to(model.device)
-        gen = model.generate(**ids, max_new_tokens=max_new_tokens, do_sample=False,
-                             pad_token_id=tok.pad_token_id)
-        text = tok.decode(gen[0][ids.input_ids.shape[1]:], skip_special_tokens=True)
-        outs.append(next((l.strip() for l in text.strip().splitlines() if l.strip()), ""))
+    try:
+        for i in range(0, len(sources), batch):
+            chunk = sources[i:i + batch]
+            prompts = [build_prompt(tok, s) for s in chunk]
+            enc = tok(prompts, return_tensors="pt", padding=True,
+                      truncation=True, max_length=1024).to(model.device)
+            gen = model.generate(**enc, max_new_tokens=max_new_tokens, do_sample=False,
+                                 pad_token_id=tok.pad_token_id)
+            for j in range(len(chunk)):
+                text = tok.decode(gen[j][enc.input_ids.shape[1]:], skip_special_tokens=True)
+                outs.append(next((l.strip() for l in text.strip().splitlines()
+                                  if l.strip()), ""))
+            if i == 0:
+                print(f"    [{min(batch, len(sources))}/{len(sources)}] {outs[0][:72]}")
+    finally:
+        tok.padding_side = side
     return outs
 ''')
 
